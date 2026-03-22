@@ -35,7 +35,7 @@ export const useRoadmapStore = () => {
   }, [user, fetchAll]);
 
   const updateStatus = useCallback(async (id: string, status: RoadmapItem['status']) => {
-    await supabase.from('roadmap_items').update({ status }).eq('id', id);
+    await (supabase.from('roadmap_items') as any).update({ status }).eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
