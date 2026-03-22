@@ -9,7 +9,7 @@ export const useBacklogStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setTasks([]); return; }
-    const { data } = await supabase.from('backlog_tasks').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('backlog_tasks') as any).select('*').eq('user_id', user.id);
     if (data) {
       setTasks(data.map(d => ({
         id: d.id, title: d.title, description: d.description,
