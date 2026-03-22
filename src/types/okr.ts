@@ -1,9 +1,9 @@
 export const OKR_CATEGORIES = [
-  { value: 'professional', label: 'Metas Profissionais', color: '235 70% 65%' },
-  { value: 'personal', label: 'Metas Pessoais', color: '45 100% 55%' },
-  { value: 'health', label: 'Metas de Saúde', color: '0 72% 45%' },
-  { value: 'social', label: 'Metas Sociais', color: '330 60% 75%' },
-  { value: 'financial', label: 'Metas Financeiras', color: '160 60% 45%' },
+  { value: 'professional', label: 'Profissional', color: '235 70% 65%' },
+  { value: 'personal', label: 'Pessoal', color: '45 100% 55%' },
+  { value: 'health', label: 'Saúde', color: '0 72% 45%' },
+  { value: 'social', label: 'Social', color: '330 60% 75%' },
+  { value: 'financial', label: 'Financeiro', color: '160 60% 45%' },
 ] as const;
 
 export type OKRCategory = typeof OKR_CATEGORIES[number]['value'];
