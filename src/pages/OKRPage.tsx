@@ -2,22 +2,18 @@ import { useState } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
-import { getCurrentQuarter, getQuarters, OKR_CATEGORIES, getCategoryConfig } from '@/types/okr';
+import { getCurrentQuarter, getQuarters } from '@/types/okr';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Target } from 'lucide-react';
 
 const OKRPage = () => {
   const currentYear = new Date().getFullYear();
   const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const quarters = getQuarters(currentYear);
 
   const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress } = useOKRStore();
 
-  const filtered = getObjectivesByQuarter(selectedQuarter).filter(
-    o => selectedCategory === 'all' || o.category === selectedCategory,
-  );
+  const filtered = getObjectivesByQuarter(selectedQuarter);
 
   if (loading) {
     return <div className="flex items-center justify-center py-20 text-muted-foreground">Carregando OKRs...</div>;
@@ -33,23 +29,12 @@ const OKRPage = () => {
         <CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} />
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
-          <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {quarters.map(q => <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>)}
-          </SelectContent>
-        </Select>
-
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-          <TabsList>
-            <TabsTrigger value="all">Todas</TabsTrigger>
-            {OKR_CATEGORIES.map(c => (
-              <TabsTrigger key={c.value} value={c.value}>{c.label}</TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
+      <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
+        <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {quarters.map(q => <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>)}
+        </SelectContent>
+      </Select>
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">

@@ -3,9 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X } from 'lucide-react';
-import { KeyResult, OKRCategory, OKR_CATEGORIES } from '@/types/okr';
+import { KeyResult, OKRCategory } from '@/types/okr';
 
 interface Props {
   quarter: string;
@@ -15,7 +14,6 @@ interface Props {
 const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<OKRCategory>('professional');
   const [krs, setKrs] = useState<Omit<KeyResult, 'id'>[]>([
     { title: '', currentValue: 0, targetValue: 100, unit: '%' },
   ]);
@@ -30,8 +28,8 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
 
   const handleSubmit = () => {
     if (!title.trim() || krs.some(kr => !kr.title.trim())) return;
-    onAdd(title, quarter, category, krs);
-    setTitle(''); setCategory('professional');
+    onAdd(title, quarter, 'professional', krs);
+    setTitle('');
     setKrs([{ title: '', currentValue: 0, targetValue: 100, unit: '%' }]);
     setOpen(false);
   };
@@ -44,15 +42,6 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader><DialogTitle>Criar Objetivo — {quarter}</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label>Categoria</Label>
-            <Select value={category} onValueChange={(v) => setCategory(v as OKRCategory)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {OKR_CATEGORIES.map(c => (<SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>))}
-              </SelectContent>
-            </Select>
-          </div>
           <div className="space-y-2">
             <Label>Objetivo</Label>
             <Input placeholder="Ex: Aumentar a receita recorrente" value={title} onChange={e => setTitle(e.target.value)} />
