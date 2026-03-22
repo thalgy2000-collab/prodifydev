@@ -23,6 +23,7 @@ const groups = [
     label: '🔍 Discovery',
     items: [
       { title: 'Oportunidades', url: '/oportunidades', icon: TreePine },
+      { title: 'SWOT', url: '/swot', icon: Shield },
     ],
   },
   {
