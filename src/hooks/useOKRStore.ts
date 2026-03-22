@@ -48,7 +48,7 @@ export const useOKRStore = () => {
   const updateObjective = useCallback(async (id: string, updates: { title?: string; category?: OKRCategory; keyResults?: Omit<KeyResult, 'id'>[] }) => {
     if (!user) return;
     if (updates.title || updates.category) {
-      await supabase.from('objectives').update({
+      await (supabase.from('objectives') as any).update({
         ...(updates.title && { title: updates.title }),
         ...(updates.category && { category: updates.category }),
       }).eq('id', id);
