@@ -25,7 +25,7 @@ export const useRiceStore = () => {
     if (!user) return;
     const existing = scores.find(s => s.itemId === itemId);
     if (existing) {
-      await supabase.from('rice_scores').update(patch).eq('id', existing.id);
+      await (supabase.from('rice_scores') as any).update(patch).eq('id', existing.id);
     } else {
       await supabase.from('rice_scores').insert({
         user_id: user.id, item_id: itemId, item_type: itemType,
