@@ -45,7 +45,7 @@ const OKRPage = () => {
           <TabsList>
             <TabsTrigger value="all">Todas</TabsTrigger>
             {OKR_CATEGORIES.map(c => (
-              <TabsTrigger key={c.value} value={c.value}>{c.label.replace('Metas ', '')}</TabsTrigger>
+              <TabsTrigger key={c.value} value={c.value}>{c.label}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
