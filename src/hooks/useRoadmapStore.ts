@@ -9,7 +9,7 @@ export const useRoadmapStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setItems([]); return; }
-    const { data } = await supabase.from('roadmap_items').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('roadmap_items') as any).select('*').eq('user_id', user.id);
     if (data) {
       setItems(data.map(d => ({
         id: d.id, title: d.title, description: d.description, quarter: d.quarter,
