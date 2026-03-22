@@ -22,7 +22,7 @@ const getProgressColor = (pct: number) => {
 
 const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) => {
   const [editOpen, setEditOpen] = useState(false);
-
+  const navigate = useNavigate();
   return (
     <>
       <div className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
