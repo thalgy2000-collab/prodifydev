@@ -40,7 +40,7 @@ export const useOpportunityTreeStore = () => {
     if (patch.title !== undefined) dbPatch.title = patch.title;
     if (patch.description !== undefined) dbPatch.description = patch.description;
     if (patch.type !== undefined) dbPatch.type = patch.type;
-    await supabase.from('opportunity_nodes').update(dbPatch).eq('id', id);
+    await (supabase.from('opportunity_nodes') as any).update(dbPatch).eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
