@@ -30,7 +30,7 @@ export const useOKRStore = () => {
 
   const addObjective = useCallback(async (title: string, quarter: string, category: OKRCategory, keyResults: Omit<KeyResult, 'id'>[]) => {
     if (!user) return;
-    const { data: obj } = await supabase.from('objectives').insert({ title, quarter, category, user_id: user.id }).select().single();
+    const { data: obj } = await (supabase.from('objectives') as any).insert({ title, quarter, category, user_id: user.id }).select().single();
     if (obj && keyResults.length > 0) {
       await supabase.from('key_results').insert(keyResults.map(kr => ({
         title: kr.title, unit: kr.unit, objective_id: obj.id, user_id: user.id,
