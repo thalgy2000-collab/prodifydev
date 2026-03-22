@@ -23,7 +23,7 @@ export const useSprintStore = () => {
 
   const addSprint = useCallback(async (data: Omit<Sprint, 'id' | 'createdAt'>) => {
     if (!user) return;
-    await supabase.from('sprints').insert({
+    await (supabase.from('sprints') as any).insert({
       user_id: user.id, name: data.name, goal: data.goal,
       start_date: data.startDate, end_date: data.endDate, status: data.status,
     });
