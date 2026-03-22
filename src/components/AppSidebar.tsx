@@ -1,4 +1,4 @@
-import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, CalendarDays, ChevronDown } from 'lucide-react';
+import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, CalendarDays, ChevronDown, Shield } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ const groups = [
     label: '🔍 Discovery',
     items: [
       { title: 'Oportunidades', url: '/oportunidades', icon: TreePine },
+      { title: 'SWOT', url: '/swot', icon: Shield },
     ],
   },
   {
