@@ -41,7 +41,7 @@ export const useOKRStore = () => {
   }, [user, fetchAll]);
 
   const updateKeyResult = useCallback(async (objectiveId: string, krId: string, currentValue: number) => {
-    await supabase.from('key_results').update({ current_value: currentValue }).eq('id', krId);
+    await (supabase.from('key_results') as any).update({ current_value: currentValue }).eq('id', krId);
     await fetchAll();
   }, [fetchAll]);
 
