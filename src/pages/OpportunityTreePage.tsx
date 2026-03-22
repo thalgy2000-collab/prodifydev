@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useOpportunityTreeStore } from '@/hooks/useOpportunityTreeStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import { OpportunityNode, OpportunityNodeType, NODE_TYPE_CONFIG } from '@/types/opportunityTree';
