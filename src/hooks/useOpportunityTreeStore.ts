@@ -23,7 +23,7 @@ export const useOpportunityTreeStore = () => {
 
   const addNode = useCallback(async (data: Omit<OpportunityNode, 'id' | 'createdAt'>) => {
     if (!user) return { id: '', ...data, createdAt: '' } as OpportunityNode;
-    const { data: inserted } = await supabase.from('opportunity_nodes').insert({
+    const { data: inserted } = await (supabase.from('opportunity_nodes') as any).insert({
       user_id: user.id, objective_id: data.objectiveId, parent_id: data.parentId,
       type: data.type, title: data.title, description: data.description,
     }).select().single();
