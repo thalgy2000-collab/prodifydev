@@ -1,0 +1,56 @@
+import { useState, useCallback, useEffect } from 'react';
+import { OpportunityNode } from '@/types/opportunityTree';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+export const useOpportunityTreeStore = () => {
+  const { user } = useAuth();
+  const [nodes, setNodes] = useState<OpportunityNode[]>([]);
+
+  const fetchAll = useCallback(async () => {
+    if (!user) { setNodes([]); return; }
+    const { data } = await supabase.from('opportunity_nodes').select('*').eq('user_id', user.id);
+    if (data) {
+      setNodes(data.map(d => ({
+        id: d.id, objectiveId: d.objective_id, parentId: d.parent_id,
+        type: d.type as OpportunityNode['type'], title: d.title,
+        description: d.description, createdAt: d.created_at,
+      })));
+    }
+  }, [user]);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const addNode = useCallback(async (data: Omit<OpportunityNode, 'id' | 'createdAt'>) => {
+    if (!user) return { id: '', ...data, createdAt: '' } as OpportunityNode;
+    const { data: inserted } = await supabase.from('opportunity_nodes').insert({
+      user_id: user.id, objective_id: data.objectiveId, parent_id: data.parentId,
+      type: data.type, title: data.title, description: data.description,
+    }).select().single();
+    await fetchAll();
+    return inserted ? {
+      id: inserted.id, objectiveId: inserted.objective_id, parentId: inserted.parent_id,
+      type: inserted.type as OpportunityNode['type'], title: inserted.title,
+      description: inserted.description, createdAt: inserted.created_at,
+    } : { id: '', ...data, createdAt: '' } as OpportunityNode;
+  }, [user, fetchAll]);
+
+  const updateNode = useCallback(async (id: string, patch: Partial<OpportunityNode>) => {
+    const dbPatch: Record<string, unknown> = {};
+    if (patch.title !== undefined) dbPatch.title = patch.title;
+    if (patch.description !== undefined) dbPatch.description = patch.description;
+    if (patch.type !== undefined) dbPatch.type = patch.type;
+    await supabase.from('opportunity_nodes').update(dbPatch).eq('id', id);
+    await fetchAll();
+  }, [fetchAll]);
+
+  const deleteNode = useCallback(async (id: string) => {
+    await supabase.from('opportunity_nodes').delete().eq('id', id);
+    await fetchAll();
+  }, [fetchAll]);
+
+  const getNodesByObjective = useCallback((objectiveId: string) => nodes.filter(n => n.objectiveId === objectiveId), [nodes]);
+  const getChildren = useCallback((parentId: string) => nodes.filter(n => n.parentId === parentId), [nodes]);
+
+  return { nodes, addNode, updateNode, deleteNode, getNodesByObjective, getChildren };
+};
