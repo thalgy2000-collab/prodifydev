@@ -54,8 +54,8 @@ export const useOKRStore = () => {
       }).eq('id', id);
     }
     if (updates.keyResults) {
-      await supabase.from('key_results').delete().eq('objective_id', id);
-      await supabase.from('key_results').insert(updates.keyResults.map(kr => ({
+      await (supabase.from('key_results') as any).delete().eq('objective_id', id);
+      await (supabase.from('key_results') as any).insert(updates.keyResults.map(kr => ({
         title: kr.title, unit: kr.unit, objective_id: id, user_id: user.id,
         current_value: kr.currentValue, target_value: kr.targetValue,
       })));
