@@ -45,7 +45,15 @@ const OpportunityTreePage = () => {
   const { nodes, addNode, deleteNode, getNodesByObjective, getChildren } = useOpportunityTreeStore();
   const { objectives } = useOKRStore();
 
+  const [searchParams] = useSearchParams();
   const [selectedObjective, setSelectedObjective] = useState<string>('');
+
+  useEffect(() => {
+    const objId = searchParams.get('objectiveId');
+    if (objId && objectives.some(o => o.id === objId)) {
+      setSelectedObjective(objId);
+    }
+  }, [searchParams, objectives]);
   const [createOpen, setCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');

@@ -42,6 +42,10 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
               progress >= 40 ? 'bg-warning/10 text-warning' :
               'bg-destructive/10 text-destructive'
             }`}>{progress}%</span>
+            <Button variant="ghost" size="sm" className="h-8 gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-primary" onClick={() => navigate(`/oportunidades?objectiveId=${objective.id}`)}>
+              <TreePine className="h-4 w-4" />
+              <span className="text-xs">Oportunidades</span>
+            </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 text-muted-foreground" />
             </Button>
