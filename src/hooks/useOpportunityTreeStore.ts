@@ -9,7 +9,7 @@ export const useOpportunityTreeStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setNodes([]); return; }
-    const { data } = await supabase.from('opportunity_nodes').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('opportunity_nodes') as any).select('*').eq('user_id', user.id);
     if (data) {
       setNodes(data.map(d => ({
         id: d.id, objectiveId: d.objective_id, parentId: d.parent_id,
@@ -23,7 +23,7 @@ export const useOpportunityTreeStore = () => {
 
   const addNode = useCallback(async (data: Omit<OpportunityNode, 'id' | 'createdAt'>) => {
     if (!user) return { id: '', ...data, createdAt: '' } as OpportunityNode;
-    const { data: inserted } = await supabase.from('opportunity_nodes').insert({
+    const { data: inserted } = await (supabase.from('opportunity_nodes') as any).insert({
       user_id: user.id, objective_id: data.objectiveId, parent_id: data.parentId,
       type: data.type, title: data.title, description: data.description,
     }).select().single();
@@ -40,12 +40,12 @@ export const useOpportunityTreeStore = () => {
     if (patch.title !== undefined) dbPatch.title = patch.title;
     if (patch.description !== undefined) dbPatch.description = patch.description;
     if (patch.type !== undefined) dbPatch.type = patch.type;
-    await supabase.from('opportunity_nodes').update(dbPatch).eq('id', id);
+    await (supabase.from('opportunity_nodes') as any).update(dbPatch).eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
   const deleteNode = useCallback(async (id: string) => {
-    await supabase.from('opportunity_nodes').delete().eq('id', id);
+    await (supabase.from('opportunity_nodes') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 

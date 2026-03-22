@@ -10,8 +10,8 @@ export const useOKRStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setObjectives([]); setLoading(false); return; }
-    const { data: objs } = await supabase.from('objectives').select('*').eq('user_id', user.id);
-    const { data: krs } = await supabase.from('key_results').select('*').eq('user_id', user.id);
+    const { data: objs } = await (supabase.from('objectives') as any).select('*').eq('user_id', user.id);
+    const { data: krs } = await (supabase.from('key_results') as any).select('*').eq('user_id', user.id);
     if (objs) {
       const mapped: Objective[] = objs.map(o => ({
         id: o.id, title: o.title, quarter: o.quarter,
@@ -30,9 +30,9 @@ export const useOKRStore = () => {
 
   const addObjective = useCallback(async (title: string, quarter: string, category: OKRCategory, keyResults: Omit<KeyResult, 'id'>[]) => {
     if (!user) return;
-    const { data: obj } = await supabase.from('objectives').insert({ title, quarter, category, user_id: user.id }).select().single();
+    const { data: obj } = await (supabase.from('objectives') as any).insert({ title, quarter, category, user_id: user.id }).select().single();
     if (obj && keyResults.length > 0) {
-      await supabase.from('key_results').insert(keyResults.map(kr => ({
+      await (supabase.from('key_results') as any).insert(keyResults.map(kr => ({
         title: kr.title, unit: kr.unit, objective_id: obj.id, user_id: user.id,
         current_value: kr.currentValue, target_value: kr.targetValue,
       })));
@@ -41,21 +41,21 @@ export const useOKRStore = () => {
   }, [user, fetchAll]);
 
   const updateKeyResult = useCallback(async (objectiveId: string, krId: string, currentValue: number) => {
-    await supabase.from('key_results').update({ current_value: currentValue }).eq('id', krId);
+    await (supabase.from('key_results') as any).update({ current_value: currentValue }).eq('id', krId);
     await fetchAll();
   }, [fetchAll]);
 
   const updateObjective = useCallback(async (id: string, updates: { title?: string; category?: OKRCategory; keyResults?: Omit<KeyResult, 'id'>[] }) => {
     if (!user) return;
     if (updates.title || updates.category) {
-      await supabase.from('objectives').update({
+      await (supabase.from('objectives') as any).update({
         ...(updates.title && { title: updates.title }),
         ...(updates.category && { category: updates.category }),
       }).eq('id', id);
     }
     if (updates.keyResults) {
-      await supabase.from('key_results').delete().eq('objective_id', id);
-      await supabase.from('key_results').insert(updates.keyResults.map(kr => ({
+      await (supabase.from('key_results') as any).delete().eq('objective_id', id);
+      await (supabase.from('key_results') as any).insert(updates.keyResults.map(kr => ({
         title: kr.title, unit: kr.unit, objective_id: id, user_id: user.id,
         current_value: kr.currentValue, target_value: kr.targetValue,
       })));
@@ -64,7 +64,7 @@ export const useOKRStore = () => {
   }, [user, fetchAll]);
 
   const deleteObjective = useCallback(async (id: string) => {
-    await supabase.from('objectives').delete().eq('id', id);
+    await (supabase.from('objectives') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 

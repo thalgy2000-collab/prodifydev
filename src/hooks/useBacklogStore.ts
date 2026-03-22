@@ -9,7 +9,7 @@ export const useBacklogStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setTasks([]); return; }
-    const { data } = await supabase.from('backlog_tasks').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('backlog_tasks') as any).select('*').eq('user_id', user.id);
     if (data) {
       setTasks(data.map(d => ({
         id: d.id, title: d.title, description: d.description,
@@ -27,7 +27,7 @@ export const useBacklogStore = () => {
 
   const addTask = useCallback(async (data: Omit<BacklogTask, 'id' | 'createdAt'>) => {
     if (!user) return;
-    await supabase.from('backlog_tasks').insert({
+    await (supabase.from('backlog_tasks') as any).insert({
       user_id: user.id, title: data.title, description: data.description,
       priority: data.priority, status: data.status, category: data.category,
       initiative_id: data.initiativeId || null, objective_id: data.objectiveId || null,
@@ -49,17 +49,17 @@ export const useBacklogStore = () => {
     if (patch.keyResultId !== undefined) dbPatch.key_result_id = patch.keyResultId || null;
     if (patch.storyPoints !== undefined) dbPatch.story_points = patch.storyPoints ?? null;
     if (patch.sprintId !== undefined) dbPatch.sprint_id = patch.sprintId || null;
-    await supabase.from('backlog_tasks').update(dbPatch).eq('id', id);
+    await (supabase.from('backlog_tasks') as any).update(dbPatch).eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
   const deleteTask = useCallback(async (id: string) => {
-    await supabase.from('backlog_tasks').delete().eq('id', id);
+    await (supabase.from('backlog_tasks') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
   const assignToSprint = useCallback(async (taskId: string, sprintId: string | undefined) => {
-    await supabase.from('backlog_tasks').update({ sprint_id: sprintId || null }).eq('id', taskId);
+    await (supabase.from('backlog_tasks') as any).update({ sprint_id: sprintId || null }).eq('id', taskId);
     await fetchAll();
   }, [fetchAll]);
 

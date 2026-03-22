@@ -9,7 +9,7 @@ export const useRiceStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setScores([]); return; }
-    const { data } = await supabase.from('rice_scores').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('rice_scores') as any).select('*').eq('user_id', user.id);
     if (data) {
       setScores(data.map(d => ({
         id: d.id, itemId: d.item_id, itemType: d.item_type as RiceScore['itemType'],
@@ -25,9 +25,9 @@ export const useRiceStore = () => {
     if (!user) return;
     const existing = scores.find(s => s.itemId === itemId);
     if (existing) {
-      await supabase.from('rice_scores').update(patch).eq('id', existing.id);
+      await (supabase.from('rice_scores') as any).update(patch).eq('id', existing.id);
     } else {
-      await supabase.from('rice_scores').insert({
+      await (supabase.from('rice_scores') as any).insert({
         user_id: user.id, item_id: itemId, item_type: itemType,
         reach: patch.reach ?? 5, impact: patch.impact ?? 1,
         confidence: patch.confidence ?? 0.8, effort: patch.effort ?? 1,
@@ -41,7 +41,7 @@ export const useRiceStore = () => {
   const deleteScore = useCallback(async (itemId: string) => {
     const existing = scores.find(s => s.itemId === itemId);
     if (existing) {
-      await supabase.from('rice_scores').delete().eq('id', existing.id);
+      await (supabase.from('rice_scores') as any).delete().eq('id', existing.id);
       await fetchAll();
     }
   }, [scores, fetchAll]);

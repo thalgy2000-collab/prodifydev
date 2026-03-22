@@ -9,7 +9,7 @@ export const useRoadmapStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setItems([]); return; }
-    const { data } = await supabase.from('roadmap_items').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('roadmap_items') as any).select('*').eq('user_id', user.id);
     if (data) {
       setItems(data.map(d => ({
         id: d.id, title: d.title, description: d.description, quarter: d.quarter,
@@ -25,7 +25,7 @@ export const useRoadmapStore = () => {
 
   const addItem = useCallback(async (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => {
     if (!user) return;
-    await supabase.from('roadmap_items').insert({
+    await (supabase.from('roadmap_items') as any).insert({
       user_id: user.id, title: data.title, description: data.description, quarter: data.quarter,
       status: data.status, category: data.category, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, kr_contribution: data.krContribution ?? null,
@@ -35,12 +35,12 @@ export const useRoadmapStore = () => {
   }, [user, fetchAll]);
 
   const updateStatus = useCallback(async (id: string, status: RoadmapItem['status']) => {
-    await supabase.from('roadmap_items').update({ status }).eq('id', id);
+    await (supabase.from('roadmap_items') as any).update({ status }).eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
   const updateItem = useCallback(async (updated: RoadmapItem) => {
-    await supabase.from('roadmap_items').update({
+    await (supabase.from('roadmap_items') as any).update({
       title: updated.title, description: updated.description, quarter: updated.quarter,
       status: updated.status, category: updated.category, objective_id: updated.objectiveId || null,
       key_result_id: updated.keyResultId || null, kr_contribution: updated.krContribution ?? null,
@@ -50,7 +50,7 @@ export const useRoadmapStore = () => {
   }, [fetchAll]);
 
   const deleteItem = useCallback(async (id: string) => {
-    await supabase.from('roadmap_items').delete().eq('id', id);
+    await (supabase.from('roadmap_items') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 

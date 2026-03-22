@@ -9,7 +9,7 @@ export const useSprintStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setSprints([]); return; }
-    const { data } = await supabase.from('sprints').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('sprints') as any).select('*').eq('user_id', user.id);
     if (data) {
       setSprints(data.map(d => ({
         id: d.id, name: d.name, goal: d.goal,
@@ -23,7 +23,7 @@ export const useSprintStore = () => {
 
   const addSprint = useCallback(async (data: Omit<Sprint, 'id' | 'createdAt'>) => {
     if (!user) return;
-    await supabase.from('sprints').insert({
+    await (supabase.from('sprints') as any).insert({
       user_id: user.id, name: data.name, goal: data.goal,
       start_date: data.startDate, end_date: data.endDate, status: data.status,
     });
@@ -37,11 +37,10 @@ export const useSprintStore = () => {
     if (patch.startDate !== undefined) dbPatch.start_date = patch.startDate;
     if (patch.endDate !== undefined) dbPatch.end_date = patch.endDate;
     if (patch.status !== undefined) dbPatch.status = patch.status;
-    await supabase.from('sprints').update(dbPatch).eq('id', id);
+    await (supabase.from('sprints') as any).update(dbPatch).eq('id', id);
 
     if (patch.status === 'completed') {
-      await supabase
-        .from('backlog_tasks')
+      await (supabase.from('backlog_tasks') as any)
         .update({ sprint_id: null, returned_from_sprint_id: id })
         .eq('sprint_id', id)
         .neq('status', 'done');
@@ -51,7 +50,7 @@ export const useSprintStore = () => {
   }, [fetchAll]);
 
   const deleteSprint = useCallback(async (id: string) => {
-    await supabase.from('sprints').delete().eq('id', id);
+    await (supabase.from('sprints') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
