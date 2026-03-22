@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useOpportunityTreeStore } from '@/hooks/useOpportunityTreeStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import { OpportunityNode, OpportunityNodeType, NODE_TYPE_CONFIG } from '@/types/opportunityTree';
@@ -44,7 +45,15 @@ const OpportunityTreePage = () => {
   const { nodes, addNode, deleteNode, getNodesByObjective, getChildren } = useOpportunityTreeStore();
   const { objectives } = useOKRStore();
 
+  const [searchParams] = useSearchParams();
   const [selectedObjective, setSelectedObjective] = useState<string>('');
+
+  useEffect(() => {
+    const objId = searchParams.get('objectiveId');
+    if (objId && objectives.some(o => o.id === objId)) {
+      setSelectedObjective(objId);
+    }
+  }, [searchParams, objectives]);
   const [createOpen, setCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');

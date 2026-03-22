@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Objective, KeyResult, OKRCategory } from '@/types/okr';
-import { Trash2, Target, Pencil } from 'lucide-react';
+import { Trash2, Target, Pencil, TreePine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import EditOKRDialog from './EditOKRDialog';
@@ -21,7 +22,7 @@ const getProgressColor = (pct: number) => {
 
 const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) => {
   const [editOpen, setEditOpen] = useState(false);
-
+  const navigate = useNavigate();
   return (
     <>
       <div className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
@@ -41,6 +42,10 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
               progress >= 40 ? 'bg-warning/10 text-warning' :
               'bg-destructive/10 text-destructive'
             }`}>{progress}%</span>
+            <Button variant="ghost" size="sm" className="h-8 gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 text-muted-foreground hover:text-primary" onClick={() => navigate(`/oportunidades?objectiveId=${objective.id}`)}>
+              <TreePine className="h-4 w-4" />
+              <span className="text-xs">Oportunidades</span>
+            </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 text-muted-foreground" />
             </Button>
