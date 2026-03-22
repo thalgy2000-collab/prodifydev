@@ -54,7 +54,7 @@ export const useBacklogStore = () => {
   }, [fetchAll]);
 
   const deleteTask = useCallback(async (id: string) => {
-    await supabase.from('backlog_tasks').delete().eq('id', id);
+    await (supabase.from('backlog_tasks') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 
