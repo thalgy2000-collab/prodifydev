@@ -9,7 +9,7 @@ export const useOpportunityTreeStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setNodes([]); return; }
-    const { data } = await supabase.from('opportunity_nodes').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('opportunity_nodes') as any).select('*').eq('user_id', user.id);
     if (data) {
       setNodes(data.map(d => ({
         id: d.id, objectiveId: d.objective_id, parentId: d.parent_id,
