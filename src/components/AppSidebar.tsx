@@ -9,16 +9,41 @@ import {
   SidebarFooter, useSidebar,
 } from '@/components/ui/sidebar';
 
-const items = [
-  { title: 'OKRs', url: '/', icon: Target },
-  { title: 'Oportunidades', url: '/oportunidades', icon: TreePine },
-  { title: 'RICE', url: '/rice', icon: Calculator },
-  { title: 'Roadmap', url: '/roadmap', icon: Map },
-  { title: 'Backlog', url: '/backlog', icon: ListTodo },
-  { title: 'Sprints', url: '/sprints', icon: Zap },
-  { title: 'Agenda', url: '/agenda', icon: CalendarDays },
-  { title: 'Histórico', url: '/historico', icon: History },
-  { title: 'Análises', url: '/analises', icon: BarChart3 },
+const groups = [
+  {
+    label: '📍 Planejamento',
+    items: [
+      { title: 'OKRs', url: '/', icon: Target },
+      { title: 'Roadmap', url: '/roadmap', icon: Map },
+      { title: 'Agenda', url: '/agenda', icon: CalendarDays },
+    ],
+  },
+  {
+    label: '🔍 Discovery',
+    items: [
+      { title: 'Oportunidades', url: '/oportunidades', icon: TreePine },
+    ],
+  },
+  {
+    label: '⚡ Priorização',
+    items: [
+      { title: 'RICE', url: '/rice', icon: Calculator },
+    ],
+  },
+  {
+    label: '🚀 Delivery',
+    items: [
+      { title: 'Backlog', url: '/backlog', icon: ListTodo },
+      { title: 'Sprints', url: '/sprints', icon: Zap },
+      { title: 'Histórico', url: '/historico', icon: History },
+    ],
+  },
+  {
+    label: '📊 Análises',
+    items: [
+      { title: 'Análises', url: '/analises', icon: BarChart3 },
+    ],
+  },
 ];
 
 export function AppSidebar() {
@@ -30,25 +55,27 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            {!collapsed && <span className="font-bold">Metas & OKRs</span>}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map(item => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {groups.map(group => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>
+              {!collapsed && <span>{group.label}</span>}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map(item => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <div className="p-2">
