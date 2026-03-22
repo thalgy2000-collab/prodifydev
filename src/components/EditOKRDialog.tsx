@@ -3,9 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X } from 'lucide-react';
-import { Objective, KeyResult, OKRCategory, OKR_CATEGORIES } from '@/types/okr';
+import { Objective, KeyResult, OKRCategory } from '@/types/okr';
 
 interface Props {
   objective: Objective;
@@ -16,11 +15,10 @@ interface Props {
 
 const EditOKRDialog = ({ objective, open, onOpenChange, onSave }: Props) => {
   const [title, setTitle] = useState(objective.title);
-  const [category, setCategory] = useState<OKRCategory>(objective.category);
   const [krs, setKrs] = useState<(KeyResult | Omit<KeyResult, 'id'> & { id?: string })[]>(objective.keyResults);
 
   useEffect(() => {
-    setTitle(objective.title); setCategory(objective.category); setKrs(objective.keyResults);
+    setTitle(objective.title); setKrs(objective.keyResults);
   }, [objective]);
 
   const addKR = () => setKrs([...krs, { title: '', currentValue: 0, targetValue: 100, unit: '%' }]);
@@ -31,7 +29,7 @@ const EditOKRDialog = ({ objective, open, onOpenChange, onSave }: Props) => {
 
   const handleSubmit = () => {
     if (!title.trim() || krs.some(kr => !kr.title.trim())) return;
-    onSave(objective.id, { title, category, keyResults: krs });
+    onSave(objective.id, { title, keyResults: krs });
     onOpenChange(false);
   };
 
@@ -40,13 +38,6 @@ const EditOKRDialog = ({ objective, open, onOpenChange, onSave }: Props) => {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader><DialogTitle>Editar Objetivo</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label>Categoria</Label>
-            <Select value={category} onValueChange={(v) => setCategory(v as OKRCategory)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{OKR_CATEGORIES.map(c => (<SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>))}</SelectContent>
-            </Select>
-          </div>
           <div className="space-y-2">
             <Label>Objetivo</Label>
             <Input value={title} onChange={e => setTitle(e.target.value)} />
