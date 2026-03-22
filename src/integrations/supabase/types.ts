@@ -14,7 +14,405 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      backlog_tasks: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          initiative_id: string | null
+          key_result_id: string | null
+          objective_id: string | null
+          priority: string
+          returned_from_sprint_id: string | null
+          sprint_id: string | null
+          status: string
+          story_points: number | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          initiative_id?: string | null
+          key_result_id?: string | null
+          objective_id?: string | null
+          priority?: string
+          returned_from_sprint_id?: string | null
+          sprint_id?: string | null
+          status?: string
+          story_points?: number | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          initiative_id?: string | null
+          key_result_id?: string | null
+          objective_id?: string | null
+          priority?: string
+          returned_from_sprint_id?: string | null
+          sprint_id?: string | null
+          status?: string
+          story_points?: number | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backlog_tasks_key_result_id_fkey"
+            columns: ["key_result_id"]
+            isOneToOne: false
+            referencedRelation: "key_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlog_tasks_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlog_tasks_returned_from_sprint_id_fkey"
+            columns: ["returned_from_sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlog_tasks_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      key_results: {
+        Row: {
+          created_at: string
+          current_value: number
+          id: string
+          objective_id: string
+          target_value: number
+          title: string
+          unit: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number
+          id?: string
+          objective_id: string
+          target_value?: number
+          title: string
+          unit?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number
+          id?: string
+          objective_id?: string
+          target_value?: number
+          title?: string
+          unit?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "key_results_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      objectives: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          quarter: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          quarter: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          quarter?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      opportunity_nodes: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          objective_id: string
+          parent_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          objective_id: string
+          parent_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          objective_id?: string
+          parent_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_nodes_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_nodes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      rice_scores: {
+        Row: {
+          confidence: number
+          created_at: string
+          effort: number
+          id: string
+          impact: number
+          item_id: string
+          item_type: string
+          reach: number
+          user_id: string
+        }
+        Insert: {
+          confidence?: number
+          created_at?: string
+          effort?: number
+          id?: string
+          impact?: number
+          item_id: string
+          item_type?: string
+          reach?: number
+          user_id: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          effort?: number
+          id?: string
+          impact?: number
+          item_id?: string
+          item_type?: string
+          reach?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      roadmap_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          end_month: number
+          id: string
+          key_result_id: string | null
+          kr_contribution: number | null
+          objective_id: string | null
+          quarter: string
+          start_month: number
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string
+          end_month?: number
+          id?: string
+          key_result_id?: string | null
+          kr_contribution?: number | null
+          objective_id?: string | null
+          quarter: string
+          start_month?: number
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          end_month?: number
+          id?: string
+          key_result_id?: string | null
+          kr_contribution?: number | null
+          objective_id?: string | null
+          quarter?: string
+          start_month?: number
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_items_key_result_id_fkey"
+            columns: ["key_result_id"]
+            isOneToOne: false
+            referencedRelation: "key_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_items_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      schedule_activities: {
+        Row: {
+          activity_date: string
+          created_at: string
+          description: string
+          end_time: string | null
+          id: string
+          sprint_id: string | null
+          start_time: string | null
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity_date: string
+          created_at?: string
+          description?: string
+          end_time?: string | null
+          id?: string
+          sprint_id?: string | null
+          start_time?: string | null
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          created_at?: string
+          description?: string
+          end_time?: string | null
+          id?: string
+          sprint_id?: string | null
+          start_time?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_activities_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sprints: {
+        Row: {
+          created_at: string
+          end_date: string
+          goal: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          goal?: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          goal?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
