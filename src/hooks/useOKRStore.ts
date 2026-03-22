@@ -10,8 +10,8 @@ export const useOKRStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setObjectives([]); setLoading(false); return; }
-    const { data: objs } = await supabase.from('objectives').select('*').eq('user_id', user.id);
-    const { data: krs } = await supabase.from('key_results').select('*').eq('user_id', user.id);
+    const { data: objs } = await (supabase.from('objectives') as any).select('*').eq('user_id', user.id);
+    const { data: krs } = await (supabase.from('key_results') as any).select('*').eq('user_id', user.id);
     if (objs) {
       const mapped: Objective[] = objs.map(o => ({
         id: o.id, title: o.title, quarter: o.quarter,
