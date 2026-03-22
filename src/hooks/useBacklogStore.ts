@@ -27,7 +27,7 @@ export const useBacklogStore = () => {
 
   const addTask = useCallback(async (data: Omit<BacklogTask, 'id' | 'createdAt'>) => {
     if (!user) return;
-    await supabase.from('backlog_tasks').insert({
+    await (supabase.from('backlog_tasks') as any).insert({
       user_id: user.id, title: data.title, description: data.description,
       priority: data.priority, status: data.status, category: data.category,
       initiative_id: data.initiativeId || null, objective_id: data.objectiveId || null,
