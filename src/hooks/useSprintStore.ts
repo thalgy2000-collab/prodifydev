@@ -50,7 +50,7 @@ export const useSprintStore = () => {
   }, [fetchAll]);
 
   const deleteSprint = useCallback(async (id: string) => {
-    await supabase.from('sprints').delete().eq('id', id);
+    await (supabase.from('sprints') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 

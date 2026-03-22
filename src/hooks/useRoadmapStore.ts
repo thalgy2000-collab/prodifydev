@@ -50,7 +50,7 @@ export const useRoadmapStore = () => {
   }, [fetchAll]);
 
   const deleteItem = useCallback(async (id: string) => {
-    await supabase.from('roadmap_items').delete().eq('id', id);
+    await (supabase.from('roadmap_items') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 

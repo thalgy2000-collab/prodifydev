@@ -45,7 +45,7 @@ export const useOpportunityTreeStore = () => {
   }, [fetchAll]);
 
   const deleteNode = useCallback(async (id: string) => {
-    await supabase.from('opportunity_nodes').delete().eq('id', id);
+    await (supabase.from('opportunity_nodes') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 

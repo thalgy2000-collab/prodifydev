@@ -64,7 +64,7 @@ export const useOKRStore = () => {
   }, [user, fetchAll]);
 
   const deleteObjective = useCallback(async (id: string) => {
-    await supabase.from('objectives').delete().eq('id', id);
+    await (supabase.from('objectives') as any).delete().eq('id', id);
     await fetchAll();
   }, [fetchAll]);
 

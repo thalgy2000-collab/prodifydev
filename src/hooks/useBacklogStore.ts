@@ -59,7 +59,7 @@ export const useBacklogStore = () => {
   }, [fetchAll]);
 
   const assignToSprint = useCallback(async (taskId: string, sprintId: string | undefined) => {
-    await supabase.from('backlog_tasks').update({ sprint_id: sprintId || null }).eq('id', taskId);
+    await (supabase.from('backlog_tasks') as any).update({ sprint_id: sprintId || null }).eq('id', taskId);
     await fetchAll();
   }, [fetchAll]);
 

@@ -41,7 +41,7 @@ export const useRiceStore = () => {
   const deleteScore = useCallback(async (itemId: string) => {
     const existing = scores.find(s => s.itemId === itemId);
     if (existing) {
-      await supabase.from('rice_scores').delete().eq('id', existing.id);
+      await (supabase.from('rice_scores') as any).delete().eq('id', existing.id);
       await fetchAll();
     }
   }, [scores, fetchAll]);
