@@ -37,7 +37,7 @@ export const useSprintStore = () => {
     if (patch.startDate !== undefined) dbPatch.start_date = patch.startDate;
     if (patch.endDate !== undefined) dbPatch.end_date = patch.endDate;
     if (patch.status !== undefined) dbPatch.status = patch.status;
-    await supabase.from('sprints').update(dbPatch).eq('id', id);
+    await (supabase.from('sprints') as any).update(dbPatch).eq('id', id);
 
     if (patch.status === 'completed') {
       await supabase
