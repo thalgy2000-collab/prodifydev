@@ -9,7 +9,7 @@ export const useSprintStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setSprints([]); return; }
-    const { data } = await supabase.from('sprints').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('sprints') as any).select('*').eq('user_id', user.id);
     if (data) {
       setSprints(data.map(d => ({
         id: d.id, name: d.name, goal: d.goal,
