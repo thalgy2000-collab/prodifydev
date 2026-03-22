@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Objective, KeyResult, OKRCategory } from '@/types/okr';
-import { Trash2, Target, Pencil } from 'lucide-react';
+import { Trash2, Target, Pencil, TreePine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import EditOKRDialog from './EditOKRDialog';
