@@ -14,6 +14,7 @@ import OpportunityTreePage from "./pages/OpportunityTreePage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
 import AgendaPage from "./pages/AgendaPage";
+import SwotPage from "./pages/SwotPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
