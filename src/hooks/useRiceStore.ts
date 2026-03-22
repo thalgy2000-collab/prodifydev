@@ -27,7 +27,7 @@ export const useRiceStore = () => {
     if (existing) {
       await (supabase.from('rice_scores') as any).update(patch).eq('id', existing.id);
     } else {
-      await supabase.from('rice_scores').insert({
+      await (supabase.from('rice_scores') as any).insert({
         user_id: user.id, item_id: itemId, item_type: itemType,
         reach: patch.reach ?? 5, impact: patch.impact ?? 1,
         confidence: patch.confidence ?? 0.8, effort: patch.effort ?? 1,
