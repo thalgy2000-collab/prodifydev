@@ -40,8 +40,7 @@ export const useSprintStore = () => {
     await (supabase.from('sprints') as any).update(dbPatch).eq('id', id);
 
     if (patch.status === 'completed') {
-      await supabase
-        .from('backlog_tasks')
+      await (supabase.from('backlog_tasks') as any)
         .update({ sprint_id: null, returned_from_sprint_id: id })
         .eq('sprint_id', id)
         .neq('status', 'done');
