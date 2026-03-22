@@ -25,7 +25,7 @@ export const useRoadmapStore = () => {
 
   const addItem = useCallback(async (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => {
     if (!user) return;
-    await supabase.from('roadmap_items').insert({
+    await (supabase.from('roadmap_items') as any).insert({
       user_id: user.id, title: data.title, description: data.description, quarter: data.quarter,
       status: data.status, category: data.category, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, kr_contribution: data.krContribution ?? null,
