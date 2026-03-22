@@ -9,7 +9,7 @@ export const useRiceStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user) { setScores([]); return; }
-    const { data } = await supabase.from('rice_scores').select('*').eq('user_id', user.id);
+    const { data } = await (supabase.from('rice_scores') as any).select('*').eq('user_id', user.id);
     if (data) {
       setScores(data.map(d => ({
         id: d.id, itemId: d.item_id, itemType: d.item_type as RiceScore['itemType'],
