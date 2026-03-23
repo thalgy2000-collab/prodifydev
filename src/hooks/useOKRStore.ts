@@ -2,16 +2,18 @@ import { useState, useCallback, useEffect } from 'react';
 import { Objective, KeyResult, OKRCategory } from '@/types/okr';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
 
 export const useOKRStore = () => {
   const { user } = useAuth();
+  const { activeProduct } = useProduct();
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
-    if (!user) { setObjectives([]); setLoading(false); return; }
-    const { data: objs } = await (supabase.from('objectives') as any).select('*').eq('user_id', user.id);
-    const { data: krs } = await (supabase.from('key_results') as any).select('*').eq('user_id', user.id);
+    if (!user || !activeProduct) { setObjectives([]); setLoading(false); return; }
+    const { data: objs } = await (supabase.from('objectives') as any).select('*').eq('product_id', activeProduct.id);
+    const { data: krs } = await (supabase.from('key_results') as any).select('*').eq('product_id', activeProduct.id);
     if (objs) {
       const mapped: Objective[] = objs.map(o => ({
         id: o.id, title: o.title, quarter: o.quarter,
@@ -24,21 +26,21 @@ export const useOKRStore = () => {
       setObjectives(mapped);
     }
     setLoading(false);
-  }, [user]);
+  }, [user, activeProduct]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const addObjective = useCallback(async (title: string, quarter: string, category: OKRCategory, keyResults: Omit<KeyResult, 'id'>[]) => {
-    if (!user) return;
-    const { data: obj } = await (supabase.from('objectives') as any).insert({ title, quarter, category, user_id: user.id }).select().single();
+    if (!user || !activeProduct) return;
+    const { data: obj } = await (supabase.from('objectives') as any).insert({ title, quarter, category, user_id: user.id, product_id: activeProduct.id }).select().single();
     if (obj && keyResults.length > 0) {
       await (supabase.from('key_results') as any).insert(keyResults.map(kr => ({
-        title: kr.title, unit: kr.unit, objective_id: obj.id, user_id: user.id,
+        title: kr.title, unit: kr.unit, objective_id: obj.id, user_id: user.id, product_id: activeProduct.id,
         current_value: kr.currentValue, target_value: kr.targetValue,
       })));
     }
     await fetchAll();
-  }, [user, fetchAll]);
+  }, [user, activeProduct, fetchAll]);
 
   const updateKeyResult = useCallback(async (objectiveId: string, krId: string, currentValue: number) => {
     await (supabase.from('key_results') as any).update({ current_value: currentValue }).eq('id', krId);
@@ -46,7 +48,7 @@ export const useOKRStore = () => {
   }, [fetchAll]);
 
   const updateObjective = useCallback(async (id: string, updates: { title?: string; category?: OKRCategory; keyResults?: Omit<KeyResult, 'id'>[] }) => {
-    if (!user) return;
+    if (!user || !activeProduct) return;
     if (updates.title || updates.category) {
       await (supabase.from('objectives') as any).update({
         ...(updates.title && { title: updates.title }),
@@ -56,12 +58,12 @@ export const useOKRStore = () => {
     if (updates.keyResults) {
       await (supabase.from('key_results') as any).delete().eq('objective_id', id);
       await (supabase.from('key_results') as any).insert(updates.keyResults.map(kr => ({
-        title: kr.title, unit: kr.unit, objective_id: id, user_id: user.id,
+        title: kr.title, unit: kr.unit, objective_id: id, user_id: user.id, product_id: activeProduct.id,
         current_value: kr.currentValue, target_value: kr.targetValue,
       })));
     }
     await fetchAll();
-  }, [user, fetchAll]);
+  }, [user, activeProduct, fetchAll]);
 
   const deleteObjective = useCallback(async (id: string) => {
     await (supabase.from('objectives') as any).delete().eq('id', id);

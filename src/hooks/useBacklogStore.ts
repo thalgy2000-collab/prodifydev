@@ -2,14 +2,16 @@ import { useState, useCallback, useEffect } from 'react';
 import { BacklogTask } from '@/types/backlog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
 
 export const useBacklogStore = () => {
   const { user } = useAuth();
+  const { activeProduct } = useProduct();
   const [tasks, setTasks] = useState<BacklogTask[]>([]);
 
   const fetchAll = useCallback(async () => {
-    if (!user) { setTasks([]); return; }
-    const { data } = await (supabase.from('backlog_tasks') as any).select('*').eq('user_id', user.id);
+    if (!user || !activeProduct) { setTasks([]); return; }
+    const { data } = await (supabase.from('backlog_tasks') as any).select('*').eq('product_id', activeProduct.id);
     if (data) {
       setTasks(data.map(d => ({
         id: d.id, title: d.title, description: d.description,
@@ -21,21 +23,21 @@ export const useBacklogStore = () => {
         createdAt: d.created_at,
       })));
     }
-  }, [user]);
+  }, [user, activeProduct]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const addTask = useCallback(async (data: Omit<BacklogTask, 'id' | 'createdAt'>) => {
-    if (!user) return;
+    if (!user || !activeProduct) return;
     await (supabase.from('backlog_tasks') as any).insert({
-      user_id: user.id, title: data.title, description: data.description,
+      user_id: user.id, product_id: activeProduct.id, title: data.title, description: data.description,
       priority: data.priority, status: data.status, category: data.category,
       initiative_id: data.initiativeId || null, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, story_points: data.storyPoints ?? null,
       sprint_id: data.sprintId || null,
     });
     await fetchAll();
-  }, [user, fetchAll]);
+  }, [user, activeProduct, fetchAll]);
 
   const updateTask = useCallback(async (id: string, patch: Partial<BacklogTask>) => {
     const dbPatch: Record<string, unknown> = {};
