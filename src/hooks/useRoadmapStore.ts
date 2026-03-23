@@ -2,14 +2,16 @@ import { useState, useCallback, useEffect } from 'react';
 import { RoadmapItem } from '@/types/roadmap';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
 
 export const useRoadmapStore = () => {
   const { user } = useAuth();
+  const { activeProduct } = useProduct();
   const [items, setItems] = useState<RoadmapItem[]>([]);
 
   const fetchAll = useCallback(async () => {
-    if (!user) { setItems([]); return; }
-    const { data } = await (supabase.from('roadmap_items') as any).select('*').eq('user_id', user.id);
+    if (!user || !activeProduct) { setItems([]); return; }
+    const { data } = await (supabase.from('roadmap_items') as any).select('*').eq('product_id', activeProduct.id);
     if (data) {
       setItems(data.map(d => ({
         id: d.id, title: d.title, description: d.description, quarter: d.quarter,
@@ -19,20 +21,20 @@ export const useRoadmapStore = () => {
         startMonth: d.start_month, endMonth: d.end_month, createdAt: d.created_at,
       })));
     }
-  }, [user]);
+  }, [user, activeProduct]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const addItem = useCallback(async (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => {
-    if (!user) return;
+    if (!user || !activeProduct) return;
     await (supabase.from('roadmap_items') as any).insert({
-      user_id: user.id, title: data.title, description: data.description, quarter: data.quarter,
+      user_id: user.id, product_id: activeProduct.id, title: data.title, description: data.description, quarter: data.quarter,
       status: data.status, category: data.category, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, kr_contribution: data.krContribution ?? null,
       start_month: data.startMonth, end_month: data.endMonth,
     });
     await fetchAll();
-  }, [user, fetchAll]);
+  }, [user, activeProduct, fetchAll]);
 
   const updateStatus = useCallback(async (id: string, status: RoadmapItem['status']) => {
     await (supabase.from('roadmap_items') as any).update({ status }).eq('id', id);

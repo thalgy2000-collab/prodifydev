@@ -2,14 +2,16 @@ import { useState, useCallback, useEffect } from 'react';
 import { Sprint } from '@/types/sprint';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
 
 export const useSprintStore = () => {
   const { user } = useAuth();
+  const { activeProduct } = useProduct();
   const [sprints, setSprints] = useState<Sprint[]>([]);
 
   const fetchAll = useCallback(async () => {
-    if (!user) { setSprints([]); return; }
-    const { data } = await (supabase.from('sprints') as any).select('*').eq('user_id', user.id);
+    if (!user || !activeProduct) { setSprints([]); return; }
+    const { data } = await (supabase.from('sprints') as any).select('*').eq('product_id', activeProduct.id);
     if (data) {
       setSprints(data.map(d => ({
         id: d.id, name: d.name, goal: d.goal,
@@ -17,18 +19,18 @@ export const useSprintStore = () => {
         status: d.status as Sprint['status'], createdAt: d.created_at,
       })));
     }
-  }, [user]);
+  }, [user, activeProduct]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const addSprint = useCallback(async (data: Omit<Sprint, 'id' | 'createdAt'>) => {
-    if (!user) return;
+    if (!user || !activeProduct) return;
     await (supabase.from('sprints') as any).insert({
-      user_id: user.id, name: data.name, goal: data.goal,
+      user_id: user.id, product_id: activeProduct.id, name: data.name, goal: data.goal,
       start_date: data.startDate, end_date: data.endDate, status: data.status,
     });
     await fetchAll();
-  }, [user, fetchAll]);
+  }, [user, activeProduct, fetchAll]);
 
   const updateSprint = useCallback(async (id: string, patch: Partial<Sprint>) => {
     const dbPatch: Record<string, unknown> = {};

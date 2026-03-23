@@ -2,14 +2,16 @@ import { useState, useCallback, useEffect } from 'react';
 import { OpportunityNode } from '@/types/opportunityTree';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
 
 export const useOpportunityTreeStore = () => {
   const { user } = useAuth();
+  const { activeProduct } = useProduct();
   const [nodes, setNodes] = useState<OpportunityNode[]>([]);
 
   const fetchAll = useCallback(async () => {
-    if (!user) { setNodes([]); return; }
-    const { data } = await (supabase.from('opportunity_nodes') as any).select('*').eq('user_id', user.id);
+    if (!user || !activeProduct) { setNodes([]); return; }
+    const { data } = await (supabase.from('opportunity_nodes') as any).select('*').eq('product_id', activeProduct.id);
     if (data) {
       setNodes(data.map(d => ({
         id: d.id, objectiveId: d.objective_id, parentId: d.parent_id,
@@ -17,14 +19,14 @@ export const useOpportunityTreeStore = () => {
         description: d.description, createdAt: d.created_at,
       })));
     }
-  }, [user]);
+  }, [user, activeProduct]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const addNode = useCallback(async (data: Omit<OpportunityNode, 'id' | 'createdAt'>) => {
-    if (!user) return { id: '', ...data, createdAt: '' } as OpportunityNode;
+    if (!user || !activeProduct) return { id: '', ...data, createdAt: '' } as OpportunityNode;
     const { data: inserted } = await (supabase.from('opportunity_nodes') as any).insert({
-      user_id: user.id, objective_id: data.objectiveId, parent_id: data.parentId,
+      user_id: user.id, product_id: activeProduct.id, objective_id: data.objectiveId, parent_id: data.parentId,
       type: data.type, title: data.title, description: data.description,
     }).select().single();
     await fetchAll();
@@ -33,7 +35,7 @@ export const useOpportunityTreeStore = () => {
       type: inserted.type as OpportunityNode['type'], title: inserted.title,
       description: inserted.description, createdAt: inserted.created_at,
     } : { id: '', ...data, createdAt: '' } as OpportunityNode;
-  }, [user, fetchAll]);
+  }, [user, activeProduct, fetchAll]);
 
   const updateNode = useCallback(async (id: string, patch: Partial<OpportunityNode>) => {
     const dbPatch: Record<string, unknown> = {};

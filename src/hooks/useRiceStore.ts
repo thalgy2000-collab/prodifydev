@@ -2,14 +2,16 @@ import { useState, useCallback, useEffect } from 'react';
 import { RiceScore } from '@/types/rice';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
 
 export const useRiceStore = () => {
   const { user } = useAuth();
+  const { activeProduct } = useProduct();
   const [scores, setScores] = useState<RiceScore[]>([]);
 
   const fetchAll = useCallback(async () => {
-    if (!user) { setScores([]); return; }
-    const { data } = await (supabase.from('rice_scores') as any).select('*').eq('user_id', user.id);
+    if (!user || !activeProduct) { setScores([]); return; }
+    const { data } = await (supabase.from('rice_scores') as any).select('*').eq('product_id', activeProduct.id);
     if (data) {
       setScores(data.map(d => ({
         id: d.id, itemId: d.item_id, itemType: d.item_type as RiceScore['itemType'],
@@ -17,24 +19,24 @@ export const useRiceStore = () => {
         confidence: Number(d.confidence), effort: Number(d.effort),
       })));
     }
-  }, [user]);
+  }, [user, activeProduct]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const setScore = useCallback(async (itemId: string, itemType: 'task' | 'initiative', patch: Partial<Pick<RiceScore, 'reach' | 'impact' | 'confidence' | 'effort'>>) => {
-    if (!user) return;
+    if (!user || !activeProduct) return;
     const existing = scores.find(s => s.itemId === itemId);
     if (existing) {
       await (supabase.from('rice_scores') as any).update(patch).eq('id', existing.id);
     } else {
       await (supabase.from('rice_scores') as any).insert({
-        user_id: user.id, item_id: itemId, item_type: itemType,
+        user_id: user.id, product_id: activeProduct.id, item_id: itemId, item_type: itemType,
         reach: patch.reach ?? 5, impact: patch.impact ?? 1,
         confidence: patch.confidence ?? 0.8, effort: patch.effort ?? 1,
       });
     }
     await fetchAll();
-  }, [user, scores, fetchAll]);
+  }, [user, activeProduct, scores, fetchAll]);
 
   const getScore = useCallback((itemId: string) => scores.find(s => s.itemId === itemId), [scores]);
 

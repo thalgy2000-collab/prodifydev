@@ -24,6 +24,7 @@ export type Database = {
           key_result_id: string | null
           objective_id: string | null
           priority: string
+          product_id: string | null
           returned_from_sprint_id: string | null
           sprint_id: string | null
           status: string
@@ -40,6 +41,7 @@ export type Database = {
           key_result_id?: string | null
           objective_id?: string | null
           priority?: string
+          product_id?: string | null
           returned_from_sprint_id?: string | null
           sprint_id?: string | null
           status?: string
@@ -56,6 +58,7 @@ export type Database = {
           key_result_id?: string | null
           objective_id?: string | null
           priority?: string
+          product_id?: string | null
           returned_from_sprint_id?: string | null
           sprint_id?: string | null
           status?: string
@@ -76,6 +79,13 @@ export type Database = {
             columns: ["objective_id"]
             isOneToOne: false
             referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlog_tasks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
@@ -100,6 +110,7 @@ export type Database = {
           current_value: number
           id: string
           objective_id: string
+          product_id: string | null
           target_value: number
           title: string
           unit: string
@@ -110,6 +121,7 @@ export type Database = {
           current_value?: number
           id?: string
           objective_id: string
+          product_id?: string | null
           target_value?: number
           title: string
           unit?: string
@@ -120,6 +132,7 @@ export type Database = {
           current_value?: number
           id?: string
           objective_id?: string
+          product_id?: string | null
           target_value?: number
           title?: string
           unit?: string
@@ -133,6 +146,13 @@ export type Database = {
             referencedRelation: "objectives"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "key_results_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
         ]
       }
       objectives: {
@@ -140,6 +160,7 @@ export type Database = {
           category: string
           created_at: string
           id: string
+          product_id: string | null
           quarter: string
           title: string
           user_id: string
@@ -148,6 +169,7 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          product_id?: string | null
           quarter: string
           title: string
           user_id: string
@@ -156,11 +178,20 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          product_id?: string | null
           quarter?: string
           title?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "objectives_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       opportunity_nodes: {
         Row: {
@@ -169,6 +200,7 @@ export type Database = {
           id: string
           objective_id: string
           parent_id: string | null
+          product_id: string | null
           title: string
           type: string
           user_id: string
@@ -179,6 +211,7 @@ export type Database = {
           id?: string
           objective_id: string
           parent_id?: string | null
+          product_id?: string | null
           title: string
           type?: string
           user_id: string
@@ -189,6 +222,7 @@ export type Database = {
           id?: string
           objective_id?: string
           parent_id?: string | null
+          product_id?: string | null
           title?: string
           type?: string
           user_id?: string
@@ -208,7 +242,76 @@ export type Database = {
             referencedRelation: "opportunity_nodes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "opportunity_nodes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      product_members: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_members_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          color: string
+          created_at: string
+          description: string
+          emoji: string
+          id: string
+          name: string
+          owner_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string
+          emoji?: string
+          id?: string
+          name: string
+          owner_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string
+          emoji?: string
+          id?: string
+          name?: string
+          owner_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -243,6 +346,7 @@ export type Database = {
           impact: number
           item_id: string
           item_type: string
+          product_id: string | null
           reach: number
           user_id: string
         }
@@ -254,6 +358,7 @@ export type Database = {
           impact?: number
           item_id: string
           item_type?: string
+          product_id?: string | null
           reach?: number
           user_id: string
         }
@@ -265,10 +370,19 @@ export type Database = {
           impact?: number
           item_id?: string
           item_type?: string
+          product_id?: string | null
           reach?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "rice_scores_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roadmap_items: {
         Row: {
@@ -280,6 +394,7 @@ export type Database = {
           key_result_id: string | null
           kr_contribution: number | null
           objective_id: string | null
+          product_id: string | null
           quarter: string
           start_month: number
           status: string
@@ -295,6 +410,7 @@ export type Database = {
           key_result_id?: string | null
           kr_contribution?: number | null
           objective_id?: string | null
+          product_id?: string | null
           quarter: string
           start_month?: number
           status?: string
@@ -310,6 +426,7 @@ export type Database = {
           key_result_id?: string | null
           kr_contribution?: number | null
           objective_id?: string | null
+          product_id?: string | null
           quarter?: string
           start_month?: number
           status?: string
@@ -331,6 +448,13 @@ export type Database = {
             referencedRelation: "objectives"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "roadmap_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
         ]
       }
       schedule_activities: {
@@ -340,6 +464,7 @@ export type Database = {
           description: string
           end_time: string | null
           id: string
+          product_id: string | null
           sprint_id: string | null
           start_time: string | null
           status: string
@@ -352,6 +477,7 @@ export type Database = {
           description?: string
           end_time?: string | null
           id?: string
+          product_id?: string | null
           sprint_id?: string | null
           start_time?: string | null
           status?: string
@@ -364,6 +490,7 @@ export type Database = {
           description?: string
           end_time?: string | null
           id?: string
+          product_id?: string | null
           sprint_id?: string | null
           start_time?: string | null
           status?: string
@@ -371,6 +498,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "schedule_activities_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "schedule_activities_sprint_id_fkey"
             columns: ["sprint_id"]
@@ -387,6 +521,7 @@ export type Database = {
           goal: string
           id: string
           name: string
+          product_id: string | null
           start_date: string
           status: string
           user_id: string
@@ -397,6 +532,7 @@ export type Database = {
           goal?: string
           id?: string
           name: string
+          product_id?: string | null
           start_date: string
           status?: string
           user_id: string
@@ -407,11 +543,20 @@ export type Database = {
           goal?: string
           id?: string
           name?: string
+          product_id?: string | null
           start_date?: string
           status?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sprints_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       swot_analyses: {
         Row: {
@@ -420,6 +565,7 @@ export type Database = {
           created_at: string
           id: string
           objective_id: string | null
+          product_id: string | null
           user_id: string
         }
         Insert: {
@@ -428,6 +574,7 @@ export type Database = {
           created_at?: string
           id?: string
           objective_id?: string | null
+          product_id?: string | null
           user_id: string
         }
         Update: {
@@ -436,6 +583,7 @@ export type Database = {
           created_at?: string
           id?: string
           objective_id?: string | null
+          product_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -446,6 +594,13 @@ export type Database = {
             referencedRelation: "objectives"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "swot_analyses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -453,7 +608,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_product_role: {
+        Args: { _product_id: string; _role: string; _user_id: string }
+        Returns: boolean
+      }
+      invite_product_member: {
+        Args: { _email: string; _product_id: string; _role: string }
+        Returns: Json
+      }
+      is_product_member: {
+        Args: { _product_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

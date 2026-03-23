@@ -2,14 +2,16 @@ import { useState, useCallback, useEffect } from 'react';
 import { ScheduleActivity } from '@/types/schedule';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
 
 export const useScheduleStore = () => {
   const { user } = useAuth();
+  const { activeProduct } = useProduct();
   const [activities, setActivities] = useState<ScheduleActivity[]>([]);
 
   const fetchAll = useCallback(async () => {
-    if (!user) { setActivities([]); return; }
-    const { data } = await supabase.from('schedule_activities' as any).select('*').eq('user_id', user.id);
+    if (!user || !activeProduct) { setActivities([]); return; }
+    const { data } = await supabase.from('schedule_activities' as any).select('*').eq('product_id', activeProduct.id);
     if (data) {
       setActivities((data as any[]).map((d: any) => ({
         id: d.id, title: d.title, description: d.description,
@@ -18,19 +20,19 @@ export const useScheduleStore = () => {
         status: d.status as ScheduleActivity['status'], createdAt: d.created_at,
       })));
     }
-  }, [user]);
+  }, [user, activeProduct]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const addActivity = useCallback(async (data: Omit<ScheduleActivity, 'id' | 'createdAt'>) => {
-    if (!user) return;
+    if (!user || !activeProduct) return;
     await supabase.from('schedule_activities' as any).insert({
-      user_id: user.id, title: data.title, description: data.description,
+      user_id: user.id, product_id: activeProduct.id, title: data.title, description: data.description,
       activity_date: data.activityDate, start_time: data.startTime || null,
       end_time: data.endTime || null, sprint_id: data.sprintId || null, status: data.status,
     } as any);
     await fetchAll();
-  }, [user, fetchAll]);
+  }, [user, activeProduct, fetchAll]);
 
   const updateActivity = useCallback(async (id: string, patch: Partial<ScheduleActivity>) => {
     const dbPatch: any = {};
