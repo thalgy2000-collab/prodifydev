@@ -39,7 +39,7 @@ const AuthPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10"><Target className="h-6 w-6 text-primary" /></div>
+          <img src={prodifyLogo} alt="Prodify" className="mx-auto mb-2 h-20 w-20 object-contain" />
           <CardTitle className="text-2xl">Prodify</CardTitle>
           <CardDescription>{isLogin ? 'Entre na sua conta para acessar seus dados' : 'Crie sua conta para começar'}</CardDescription>
         </CardHeader>
