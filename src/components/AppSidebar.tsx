@@ -1,13 +1,14 @@
-import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, CalendarDays, ChevronDown, Shield } from 'lucide-react';
+import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, CalendarDays, ChevronDown, Shield, Users, ArrowLeft } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
-  SidebarFooter, useSidebar,
+  SidebarFooter, SidebarHeader, useSidebar,
 } from '@/components/ui/sidebar';
 
 const groups = [
@@ -46,16 +47,47 @@ const groups = [
       { title: 'Análises', url: '/analises', icon: BarChart3 },
     ],
   },
+  {
+    label: '⚙️ Configurações',
+    items: [
+      { title: 'Membros', url: '/membros', icon: Users },
+    ],
+  },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const { signOut, user } = useAuth();
+  const { activeProduct, setActiveProductId } = useProduct();
   const { isDark, toggle } = useTheme();
 
   return (
     <Sidebar collapsible="icon">
+      <SidebarHeader>
+        {!collapsed && activeProduct && (
+          <div className="px-3 py-2">
+            <button
+              onClick={() => setActiveProductId(null)}
+              className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-1"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              Trocar produto
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{activeProduct.emoji}</span>
+              <span className="text-sm font-semibold truncate">{activeProduct.name}</span>
+            </div>
+          </div>
+        )}
+        {collapsed && activeProduct && (
+          <div className="flex justify-center py-2">
+            <button onClick={() => setActiveProductId(null)} title="Trocar produto">
+              <span className="text-lg">{activeProduct.emoji}</span>
+            </button>
+          </div>
+        )}
+      </SidebarHeader>
       <SidebarContent>
         {groups.map(group => (
           <Collapsible key={group.label} defaultOpen className="group/collapsible">

@@ -4,7 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ProductProvider, useProduct } from "@/contexts/ProductContext";
 import AppLayout from "./components/AppLayout";
+import PortfolioPage from "./pages/PortfolioPage";
 import OKRPage from "./pages/OKRPage";
 import RoadmapPage from "./pages/RoadmapPage";
 import BacklogPage from "./pages/BacklogPage";
@@ -15,15 +17,19 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
 import AgendaPage from "./pages/AgendaPage";
 import SwotPage from "./pages/SwotPage";
+import MembersPage from "./pages/MembersPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const ProtectedRoutes = () => {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+const ProductRoutes = () => {
+  const { activeProduct } = useProduct();
+
+  if (!activeProduct) {
+    return <PortfolioPage />;
+  }
+
   return (
     <AppLayout>
       <Routes>
@@ -37,9 +43,21 @@ const ProtectedRoutes = () => {
         <Route path="/analises" element={<AnalyticsPage />} />
         <Route path="/rice" element={<RicePage />} />
         <Route path="/agenda" element={<AgendaPage />} />
+        <Route path="/membros" element={<MembersPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
+  );
+};
+
+const ProtectedRoutes = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  return (
+    <ProductProvider>
+      <ProductRoutes />
+    </ProductProvider>
   );
 };
 
