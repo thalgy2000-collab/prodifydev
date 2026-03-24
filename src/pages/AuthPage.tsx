@@ -129,7 +129,7 @@ const AuthPage = () => {
             <img
               src={prodifyLogo}
               alt="Prodify"
-              className="h-14 w-14 object-contain"
+              className="h-14 w-14 rounded-full object-cover"
             />
             <span
               className="text-white text-xl font-semibold tracking-tight"
