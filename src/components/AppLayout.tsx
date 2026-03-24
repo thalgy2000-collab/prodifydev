@@ -10,7 +10,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="flex-1 flex flex-col">
           <header className="h-12 flex items-center border-b border-border bg-card gap-2">
             <SidebarTrigger className="ml-3" />
-            <img src={prodifyLogo} alt="Prodify" className="h-7 w-7 object-contain" />
+            <img src={prodifyLogo} alt="Prodify" className="h-7 w-7 rounded-full object-cover" />
             <span className="text-sm font-semibold text-foreground">Prodify</span>
           </header>
           <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
