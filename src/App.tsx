@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProductProvider, useProduct } from "@/contexts/ProductContext";
+import { GlobalSidebar } from "./components/GlobalSidebar";
+import { MobileHeader } from "./components/MobileHeader";
 import AppLayout from "./components/AppLayout";
 import PortfolioPage from "./pages/PortfolioPage";
 import OKRPage from "./pages/OKRPage";
@@ -23,11 +26,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const ProductRoutes = () => {
+const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   const { activeProduct } = useProduct();
 
   if (!activeProduct) {
-    return <PortfolioPage />;
+    return <PortfolioPage searchQuery={searchQuery} />;
   }
 
   return (
@@ -52,11 +55,20 @@ const ProductRoutes = () => {
 
 const ProtectedRoutes = () => {
   const { user, loading } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
+
   return (
     <ProductProvider>
-      <ProductRoutes />
+      <div className="min-h-screen flex w-full">
+        <GlobalSidebar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+        <div className="flex-1 flex flex-col min-w-0">
+          <MobileHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+          <ProductRoutes searchQuery={searchQuery} />
+        </div>
+      </div>
     </ProductProvider>
   );
 };
