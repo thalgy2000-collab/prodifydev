@@ -6,20 +6,30 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Trash2, Users } from 'lucide-react';
+import { Plus, Trash2, Users, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
 import prodifyLogo from '@/assets/prodify-logo.png';
 
 const EMOJIS = ['📦', '🚀', '💡', '🎯', '🛒', '📱', '🎨', '⚡', '🔧', '📊', '🌍', '💎'];
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#14b8a6'];
 
-const PortfolioPage = () => {
+interface PortfolioPageProps {
+  searchQuery?: string;
+}
+
+const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const { products, loading, createProduct, deleteProduct, setActiveProductId } = useProduct();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [emoji, setEmoji] = useState('📦');
   const [color, setColor] = useState('#6366f1');
+  const [localSearch, setLocalSearch] = useState('');
+
+  const searchQuery = externalQuery ?? localSearch;
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleCreate = async () => {
     if (!name.trim()) { toast.error('Nome é obrigatório'); return; }
@@ -34,91 +44,122 @@ const PortfolioPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="w-full">
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="flex items-center gap-3 mb-2">
-          <img src={prodifyLogo} alt="Prodify" className="h-9 w-9 object-contain" />
+          <img src={prodifyLogo} alt="Prodify" className="h-9 w-9 object-contain rounded-full" />
           <h1 className="text-2xl font-bold tracking-tight">Meus Produtos</h1>
         </div>
-        <p className="text-sm text-muted-foreground mb-8">Selecione um produto para gerenciar ou crie um novo.</p>
+        <p className="text-sm text-muted-foreground mb-6">Selecione um produto para gerenciar ou crie um novo.</p>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map(product => (
-            <Card
-              key={product.id}
-              className="group relative cursor-pointer transition-shadow hover:shadow-lg border-2"
-              style={{ borderColor: product.color + '33' }}
-              onClick={() => setActiveProductId(product.id)}
+        {/* Search bar */}
+        <div className="relative mb-6 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={externalQuery === undefined ? localSearch : externalQuery}
+            onChange={e => {
+              if (externalQuery === undefined) setLocalSearch(e.target.value);
+            }}
+            placeholder="Buscar produto..."
+            className="pl-9 pr-8"
+            readOnly={externalQuery !== undefined}
+          />
+          {searchQuery && externalQuery === undefined && (
+            <button
+              onClick={() => setLocalSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-3">
-                  <span className="text-3xl">{product.emoji}</span>
-                  <Button
-                    variant="ghost" size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
-                    onClick={(e) => { e.stopPropagation(); deleteProduct(product.id); toast.success('Produto removido'); }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                  </Button>
-                </div>
-                <h3 className="font-semibold text-base mb-1">{product.name}</h3>
-                {product.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
-                )}
-                <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Users className="h-3.5 w-3.5" />
-                  <span>Membro</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
 
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Card className="cursor-pointer border-2 border-dashed border-border hover:border-primary/40 transition-colors">
-                <CardContent className="p-5 flex flex-col items-center justify-center h-full min-h-[140px] text-muted-foreground">
-                  <Plus className="h-8 w-8 mb-2" />
-                  <span className="text-sm font-medium">Novo Produto</span>
+        {filteredProducts.length === 0 && searchQuery ? (
+          <div className="text-center py-16 text-muted-foreground">
+            <Search className="h-10 w-10 mx-auto mb-3 opacity-40" />
+            <p className="text-sm">Nenhum produto encontrado para "{searchQuery}"</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.map(product => (
+              <Card
+                key={product.id}
+                className="group relative cursor-pointer transition-shadow hover:shadow-lg border-2"
+                style={{ borderColor: product.color + '33' }}
+                onClick={() => setActiveProductId(product.id)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <span className="text-3xl">{product.emoji}</span>
+                    <Button
+                      variant="ghost" size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+                      onClick={(e) => { e.stopPropagation(); deleteProduct(product.id); toast.success('Produto removido'); }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </div>
+                  <h3 className="font-semibold text-base mb-1">{product.name}</h3>
+                  {product.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+                  )}
+                  <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground">
+                    <Users className="h-3.5 w-3.5" />
+                    <span>Membro</span>
+                  </div>
                 </CardContent>
               </Card>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Criar Produto</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Nome</Label>
-                  <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome do produto" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Descrição</Label>
-                  <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Breve descrição" rows={2} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Emoji</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {EMOJIS.map(e => (
-                      <button key={e} onClick={() => setEmoji(e)}
-                        className={`text-xl p-1.5 rounded-md transition-colors ${emoji === e ? 'bg-primary/15 ring-2 ring-primary' : 'hover:bg-muted'}`}
-                      >{e}</button>
-                    ))}
+            ))}
+
+            {!searchQuery && (
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Card className="cursor-pointer border-2 border-dashed border-border hover:border-primary/40 transition-colors">
+                    <CardContent className="p-5 flex flex-col items-center justify-center h-full min-h-[140px] text-muted-foreground">
+                      <Plus className="h-8 w-8 mb-2" />
+                      <span className="text-sm font-medium">Novo Produto</span>
+                    </CardContent>
+                  </Card>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Criar Produto</DialogTitle></DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Nome</Label>
+                      <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome do produto" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Descrição</Label>
+                      <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Breve descrição" rows={2} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Emoji</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {EMOJIS.map(e => (
+                          <button key={e} onClick={() => setEmoji(e)}
+                            className={`text-xl p-1.5 rounded-md transition-colors ${emoji === e ? 'bg-primary/15 ring-2 ring-primary' : 'hover:bg-muted'}`}
+                          >{e}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cor</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {COLORS.map(c => (
+                          <button key={c} onClick={() => setColor(c)}
+                            className={`h-7 w-7 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <Button onClick={handleCreate} className="w-full">Criar Produto</Button>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Cor</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {COLORS.map(c => (
-                      <button key={c} onClick={() => setColor(c)}
-                        className={`h-7 w-7 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
-                        style={{ backgroundColor: c }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <Button onClick={handleCreate} className="w-full">Criar Produto</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

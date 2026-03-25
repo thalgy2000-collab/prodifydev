@@ -104,6 +104,33 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          created_at: string | null
+          event_name: string
+          id: string
+          page: string | null
+          properties: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_name: string
+          id?: string
+          page?: string | null
+          properties?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_name?: string
+          id?: string
+          page?: string | null
+          properties?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       key_results: {
         Row: {
           created_at: string
@@ -319,6 +346,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          full_name: string | null
           id: string
         }
         Insert: {
@@ -326,6 +354,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          full_name?: string | null
           id: string
         }
         Update: {
@@ -333,6 +362,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          full_name?: string | null
           id?: string
         }
         Relationships: []
