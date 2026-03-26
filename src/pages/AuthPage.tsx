@@ -117,7 +117,7 @@ const AuthPage = () => {
                 />
               ))}
             </div>
-            <span className="text-[#8892a4] text-sm">+200 times já usam Prodify</span>
+            
           </div>
         </div>
       </div>
