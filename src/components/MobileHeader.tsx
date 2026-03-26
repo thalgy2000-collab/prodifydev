@@ -53,8 +53,8 @@ export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps)
           </button>
         </SheetTrigger>
         <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
-          {/* User */}
-          <div className="p-4 border-b border-border">
+          {/* User - clickable to profile */}
+          <button onClick={() => go('/perfil')} className="p-4 border-b border-border w-full text-left hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-3">
               <div
                 className="h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
@@ -69,7 +69,7 @@ export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps)
                 <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
               </div>
             </div>
-          </div>
+          </button>
 
           <nav className="flex-1 p-3 space-y-1">
             {navItems.map(item => (
