@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProductProvider, useProduct } from "@/contexts/ProductContext";
 import { GlobalSidebar } from "./components/GlobalSidebar";
@@ -22,14 +22,19 @@ import AgendaPage from "./pages/AgendaPage";
 import SwotPage from "./pages/SwotPage";
 import MembersPage from "./pages/MembersPage";
 import AuthPage from "./pages/AuthPage";
+import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   const { activeProduct } = useProduct();
+  const location = useLocation();
 
   if (!activeProduct) {
+    if (location.pathname === '/perfil') {
+      return <ProfilePage />;
+    }
     return <PortfolioPage searchQuery={searchQuery} />;
   }
 
