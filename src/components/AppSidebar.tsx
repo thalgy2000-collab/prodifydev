@@ -1,10 +1,11 @@
-import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, CalendarDays, ChevronDown, Shield, Users, ArrowLeft } from 'lucide-react';
+import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, CalendarDays, ChevronDown, Shield, Users, ArrowLeft, Check } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -59,7 +60,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const { signOut, user } = useAuth();
-  const { activeProduct, setActiveProductId } = useProduct();
+  const { activeProduct, setActiveProductId, products } = useProduct();
   const { isDark, toggle } = useTheme();
 
   return (
@@ -74,17 +75,52 @@ export function AppSidebar() {
               <ArrowLeft className="h-3 w-3" />
               Trocar produto
             </button>
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{activeProduct.emoji}</span>
-              <span className="text-sm font-semibold truncate">{activeProduct.name}</span>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 hover:bg-muted/50 transition-colors focus:outline-none">
+                <span className="text-lg">{activeProduct.emoji}</span>
+                <span className="text-sm font-semibold truncate flex-1 text-left">{activeProduct.name}</span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[220px]">
+                {products.map(product => (
+                  <DropdownMenuItem
+                    key={product.id}
+                    onClick={() => setActiveProductId(product.id)}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="text-base">{product.emoji}</span>
+                    <span className="truncate flex-1">{product.name}</span>
+                    {product.id === activeProduct.id && (
+                      <Check className="h-4 w-4 text-primary shrink-0" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
         {collapsed && activeProduct && (
           <div className="flex justify-center py-2">
-            <button onClick={() => setActiveProductId(null)} title="Trocar produto">
-              <span className="text-lg">{activeProduct.emoji}</span>
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="focus:outline-none" title={activeProduct.name}>
+                <span className="text-lg">{activeProduct.emoji}</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="right" align="start" className="w-[220px]">
+                {products.map(product => (
+                  <DropdownMenuItem
+                    key={product.id}
+                    onClick={() => setActiveProductId(product.id)}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="text-base">{product.emoji}</span>
+                    <span className="truncate flex-1">{product.name}</span>
+                    {product.id === activeProduct.id && (
+                      <Check className="h-4 w-4 text-primary shrink-0" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </SidebarHeader>
