@@ -53,22 +53,30 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   );
 };
 
+const AuthenticatedLayout = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const { activeProduct } = useProduct();
+
+  return (
+    <div className="min-h-screen flex w-full">
+      {!activeProduct && <GlobalSidebar searchQuery={searchQuery} onSearchChange={setSearchQuery} />}
+      <div className="flex-1 flex flex-col min-w-0">
+        {!activeProduct && <MobileHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />}
+        <ProductRoutes searchQuery={searchQuery} />
+      </div>
+    </div>
+  );
+};
+
 const ProtectedRoutes = () => {
   const { user, loading } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/login" replace />;
 
   return (
     <ProductProvider>
-      <div className="min-h-screen flex w-full">
-        <GlobalSidebar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-        <div className="flex-1 flex flex-col min-w-0">
-          <MobileHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
-          <ProductRoutes searchQuery={searchQuery} />
-        </div>
-      </div>
+      <AuthenticatedLayout />
     </ProductProvider>
   );
 };
