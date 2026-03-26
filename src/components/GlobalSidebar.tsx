@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Package, Search, Settings, LogOut, Moon, Sun, X } from 'lucide-react';
+import { Home, Package, Settings, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { useProfile } from '@/hooks/useProfile';
