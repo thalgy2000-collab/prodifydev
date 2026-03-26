@@ -22,6 +22,7 @@ import AgendaPage from "./pages/AgendaPage";
 import SwotPage from "./pages/SwotPage";
 import MembersPage from "./pages/MembersPage";
 import AuthPage from "./pages/AuthPage";
+import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
