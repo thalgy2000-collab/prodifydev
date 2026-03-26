@@ -24,7 +24,6 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
   const { isDark, toggle } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showSearch, setShowSearch] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
