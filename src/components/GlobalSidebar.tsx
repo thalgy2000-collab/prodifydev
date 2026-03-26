@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Package, Settings, LogOut, Moon, Sun } from 'lucide-react';
+import prodifyLogo from '@/assets/prodify-logo.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { useProfile } from '@/hooks/useProfile';
@@ -35,10 +36,19 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
   return (
     <aside className="hidden md:flex flex-col w-[260px] min-h-screen border-r border-border bg-sidebar-background shrink-0">
       {/* User info */}
+      {/* Logo */}
       <div className="p-4 border-b border-border">
+        <div className="flex items-center gap-2.5">
+          <img src={prodifyLogo} alt="Prodify" className="h-8 w-8 rounded-full object-cover shrink-0" />
+          <span className="text-base font-bold text-sidebar-foreground">Prodify</span>
+        </div>
+      </div>
+
+      {/* User info */}
+      <div className="px-4 py-3 border-b border-border">
         <div className="flex items-center gap-3">
           <div
-            className="h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
+            className="h-9 w-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shrink-0"
             style={{ backgroundColor: avatarColor }}
           >
             {initial}

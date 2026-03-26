@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Trash2, Users, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
-import prodifyLogo from '@/assets/prodify-logo.png';
+
 
 const EMOJIS = ['📦', '🚀', '💡', '🎯', '🛒', '📱', '🎨', '⚡', '🔧', '📊', '🌍', '💎'];
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#14b8a6'];
@@ -47,7 +47,6 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
     <div className="w-full">
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="flex items-center gap-3 mb-2">
-          <img src={prodifyLogo} alt="Prodify" className="h-9 w-9 object-contain rounded-full" />
           <h1 className="text-2xl font-bold tracking-tight">Meus Produtos</h1>
         </div>
         <p className="text-sm text-muted-foreground mb-6">Selecione um produto para gerenciar ou crie um novo.</p>
