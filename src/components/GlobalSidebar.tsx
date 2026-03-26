@@ -1,12 +1,9 @@
-import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Package, Search, Settings, LogOut, Moon, Sun, X } from 'lucide-react';
+import { Home, Package, Settings, LogOut, Moon, Sun } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useTheme } from '@/hooks/useTheme';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -27,7 +24,6 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
   const { isDark, toggle } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showSearch, setShowSearch] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -73,42 +69,6 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
             {item.title}
           </button>
         ))}
-
-        {/* Search toggle */}
-        <button
-          onClick={() => setShowSearch(!showSearch)}
-          className={cn(
-            'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-            showSearch
-              ? 'bg-primary/10 text-primary'
-              : 'text-sidebar-foreground hover:bg-sidebar-accent'
-          )}
-        >
-          <Search className="h-4 w-4" />
-          Pesquisar Produto
-        </button>
-
-        {showSearch && (
-          <div className="px-1 pb-1">
-            <div className="relative">
-              <Input
-                value={searchQuery}
-                onChange={e => onSearchChange(e.target.value)}
-                placeholder="Buscar produto..."
-                className="pr-8 h-9 text-sm"
-                autoFocus
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => onSearchChange('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
         <button
           onClick={() => navigate('/configuracoes')}
