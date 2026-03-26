@@ -31,6 +31,9 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   const { activeProduct } = useProduct();
 
   if (!activeProduct) {
+    if (location.pathname === '/perfil') {
+      return <ProfilePage />;
+    }
     return <PortfolioPage searchQuery={searchQuery} />;
   }
 
