@@ -29,6 +29,7 @@ const queryClient = new QueryClient();
 
 const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   const { activeProduct } = useProduct();
+  const location = useLocation();
 
   if (!activeProduct) {
     if (location.pathname === '/perfil') {
