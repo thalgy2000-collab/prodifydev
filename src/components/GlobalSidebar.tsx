@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, Package, Settings, LogOut, Moon, Sun } from 'lucide-react';
+import prodifyLogo from '@/assets/prodify-logo.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { useProfile } from '@/hooks/useProfile';
