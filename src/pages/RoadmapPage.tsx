@@ -3,7 +3,7 @@ import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import CreateRoadmapDialog from '@/components/CreateRoadmapDialog';
 import EditRoadmapDialog from '@/components/EditRoadmapDialog';
-import { getCurrentQuarter, getQuarters, getQuarterMonths } from '@/types/okr';
+import { getCurrentQuarter, getQuarterMonths } from '@/types/okr';
 import { RoadmapItem } from '@/types/roadmap';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Map, Pencil, Trash2, Circle, Loader2, CheckCircle2 } from 'lucide-react';

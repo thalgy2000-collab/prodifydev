@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
-import { getCurrentQuarter, getQuarters } from '@/types/okr';
+import { getCurrentQuarter } from '@/types/okr';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Target } from 'lucide-react';
 
