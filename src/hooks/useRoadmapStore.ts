@@ -18,7 +18,8 @@ export const useRoadmapStore = () => {
         status: d.status as RoadmapItem['status'], category: d.category as RoadmapItem['category'],
         objectiveId: d.objective_id ?? undefined, keyResultId: d.key_result_id ?? undefined,
         krContribution: d.kr_contribution ? Number(d.kr_contribution) : undefined,
-        startMonth: d.start_month, endMonth: d.end_month, createdAt: d.created_at,
+        startMonth: d.start_month, endMonth: d.end_month, color: d.color || '#6366f1',
+        createdAt: d.created_at,
       })));
     }
   }, [user, activeProduct]);
@@ -31,7 +32,7 @@ export const useRoadmapStore = () => {
       user_id: user.id, product_id: activeProduct.id, title: data.title, description: data.description, quarter: data.quarter,
       status: data.status, category: data.category, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, kr_contribution: data.krContribution ?? null,
-      start_month: data.startMonth, end_month: data.endMonth,
+      start_month: data.startMonth, end_month: data.endMonth, color: data.color || '#6366f1',
     });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
@@ -46,7 +47,7 @@ export const useRoadmapStore = () => {
       title: updated.title, description: updated.description, quarter: updated.quarter,
       status: updated.status, category: updated.category, objective_id: updated.objectiveId || null,
       key_result_id: updated.keyResultId || null, kr_contribution: updated.krContribution ?? null,
-      start_month: updated.startMonth, end_month: updated.endMonth,
+      start_month: updated.startMonth, end_month: updated.endMonth, color: updated.color || '#6366f1',
     }).eq('id', updated.id);
     await fetchAll();
   }, [fetchAll]);

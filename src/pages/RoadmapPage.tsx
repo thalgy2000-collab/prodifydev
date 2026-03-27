@@ -1,19 +1,31 @@
 import { useState } from 'react';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
-import RoadmapCard from '@/components/RoadmapCard';
 import CreateRoadmapDialog from '@/components/CreateRoadmapDialog';
 import EditRoadmapDialog from '@/components/EditRoadmapDialog';
-import { getCurrentQuarter, getQuarters, getQuarterMonths, getCategoryConfig } from '@/types/okr';
+import { getCurrentQuarter, getQuarters, getQuarterMonths } from '@/types/okr';
 import { RoadmapItem } from '@/types/roadmap';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Map, Pencil } from 'lucide-react';
+import { Map, Pencil, Trash2, ChevronLeft, ChevronRight, Circle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+const statusIcons = {
+  planned: Circle,
+  in_progress: Loader2,
+  done: CheckCircle2,
+};
+
+const statusLabels = {
+  planned: 'Planejado',
+  in_progress: 'Em andamento',
+  done: 'Concluído',
+};
 
 const RoadmapPage = () => {
-  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
-  const quarters = getQuarters(currentYear);
+  const quarters = getQuarters(selectedYear);
   const months = getQuarterMonths(selectedQuarter);
 
   const { items, addItem, updateStatus, updateItem, deleteItem, getByQuarter } = useRoadmapStore();
@@ -22,74 +34,169 @@ const RoadmapPage = () => {
   const [editItem, setEditItem] = useState<RoadmapItem | null>(null);
   const filtered = getByQuarter(selectedQuarter);
 
-  const getItemsByMonth = (monthIndex: number) =>
-    filtered.filter(i => monthIndex >= i.startMonth && monthIndex <= i.endMonth);
+  const changeYear = (delta: number) => {
+    const newYear = selectedYear + delta;
+    setSelectedYear(newYear);
+    const qNum = selectedQuarter.match(/Q(\d)/)?.[1] || '1';
+    setSelectedQuarter(`Q${qNum} ${newYear}`);
+  };
+
+  const handleQuarterChange = (val: string) => {
+    setSelectedQuarter(val);
+    const yearMatch = val.match(/(\d{4})/);
+    if (yearMatch) setSelectedYear(parseInt(yearMatch[1]));
+  };
+
+  // Sort by startMonth then endMonth
+  const sorted = [...filtered].sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Roadmap</h1>
-          <p className="text-sm text-muted-foreground">Planeje e acompanhe suas iniciativas</p>
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Roadmap</h1>
+            <p className="text-sm text-muted-foreground">Cronograma visual das iniciativas</p>
+          </div>
+          <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} onAdd={addItem} />
         </div>
-        <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} onAdd={addItem} />
-      </div>
 
-      <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
-        <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {quarters.map(q => <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>)}
-        </SelectContent>
-      </Select>
-
-      {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
-          <Map className="mb-3 h-10 w-10 text-muted-foreground/50" />
-          <p className="font-medium text-muted-foreground">Nenhuma iniciativa encontrada</p>
-          <p className="mt-1 text-sm text-muted-foreground/70">Crie sua primeira iniciativa para este trimestre</p>
+        {/* Quarter & Year Navigation */}
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => changeYear(-1)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Select value={selectedQuarter} onValueChange={handleQuarterChange}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {quarters.map(q => <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => changeYear(1)}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-3">
-          {months.map((month, mIdx) => (
-            <div key={month} className="space-y-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{month}</h2>
-              <div className="space-y-3">
-                {getItemsByMonth(mIdx).map(item => (
-                  <div key={item.id} className="relative">
-                    <RoadmapCard
-                      item={item}
-                      objective={objectives.find(o => o.id === item.objectiveId)}
-                      onUpdateStatus={updateStatus}
-                      onDelete={deleteItem}
-                    />
-                    <Button
-                      variant="ghost" size="icon"
-                      className="absolute right-10 top-3 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100 hover:opacity-100"
-                      onClick={() => setEditItem(item)}
-                    >
-                      <Pencil className="h-4 w-4 text-muted-foreground" />
-                    </Button>
+
+        {/* Gantt Chart */}
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+            <Map className="mb-3 h-10 w-10 text-muted-foreground/50" />
+            <p className="font-medium text-muted-foreground">Nenhuma iniciativa encontrada</p>
+            <p className="mt-1 text-sm text-muted-foreground/70">Crie sua primeira iniciativa para este trimestre</p>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            {/* Month Headers */}
+            <div className="grid grid-cols-[240px_1fr] border-b border-border">
+              <div className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border">
+                Iniciativa
+              </div>
+              <div className="grid grid-cols-3">
+                {months.map((month, i) => (
+                  <div
+                    key={i}
+                    className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center ${i < 2 ? 'border-r border-border/50' : ''}`}
+                  >
+                    {month}
                   </div>
                 ))}
-                {getItemsByMonth(mIdx).length === 0 && (
-                  <p className="py-8 text-center text-sm text-muted-foreground/50">Sem iniciativas</p>
-                )}
               </div>
             </div>
-          ))}
-        </div>
-      )}
 
-      {editItem && (
-        <EditRoadmapDialog
-          item={editItem}
-          objectives={objectives}
-          open={!!editItem}
-          onOpenChange={(open) => !open && setEditItem(null)}
-          onSave={updateItem}
-        />
-      )}
-    </div>
+            {/* Rows */}
+            {sorted.map((item) => {
+              const StatusIcon = statusIcons[item.status];
+              return (
+                <div
+                  key={item.id}
+                  className="group grid grid-cols-[240px_1fr] border-b border-border/50 last:border-b-0 hover:bg-muted/30 transition-colors"
+                >
+                  {/* Left: Initiative name */}
+                  <div className="flex items-center gap-2 px-4 py-3 border-r border-border min-h-[52px]">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            const next = { planned: 'in_progress', in_progress: 'done', done: 'planned' } as const;
+                            updateStatus(item.id, next[item.status]);
+                          }}
+                          className="shrink-0 rounded p-0.5 hover:bg-secondary transition-colors"
+                        >
+                          <StatusIcon className={`h-4 w-4 ${
+                            item.status === 'in_progress' ? 'animate-spin text-primary' :
+                            item.status === 'done' ? 'text-accent' : 'text-muted-foreground'
+                          }`} />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>{statusLabels[item.status]}</TooltipContent>
+                    </Tooltip>
+                    <span className={`text-sm font-medium truncate ${item.status === 'done' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      {item.title}
+                    </span>
+                    <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <button onClick={() => setEditItem(item)} className="rounded p-1 hover:bg-secondary transition-colors">
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                      <button onClick={() => deleteItem(item.id)} className="rounded p-1 hover:bg-destructive/10 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right: Gantt bar */}
+                  <div className="grid grid-cols-3 relative">
+                    {[0, 1, 2].map(i => (
+                      <div key={i} className={`${i < 2 ? 'border-r border-border/30' : ''}`} />
+                    ))}
+                    {/* Bar overlay */}
+                    <div
+                      className="absolute top-0 bottom-0 flex items-center pointer-events-none"
+                      style={{
+                        left: `${(item.startMonth / 3) * 100}%`,
+                        width: `${((item.endMonth - item.startMonth + 1) / 3) * 100}%`,
+                      }}
+                    >
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md"
+                            style={{
+                              backgroundColor: item.color,
+                              opacity: item.status === 'done' ? 0.5 : 0.85,
+                            }}
+                            onClick={() => setEditItem(item)}
+                          >
+                            <span className="text-xs font-medium text-white truncate drop-shadow-sm">
+                              {item.title}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <p className="font-semibold">{item.title}</p>
+                          {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+                          <p className="text-xs mt-1">{months[item.startMonth]} — {months[item.endMonth]} · {statusLabels[item.status]}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {editItem && (
+          <EditRoadmapDialog
+            item={editItem}
+            objectives={objectives}
+            open={!!editItem}
+            onOpenChange={(open) => !open && setEditItem(null)}
+            onSave={updateItem}
+          />
+        )}
+      </div>
+    </TooltipProvider>
   );
 };
 
