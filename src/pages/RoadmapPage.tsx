@@ -3,10 +3,10 @@ import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import CreateRoadmapDialog from '@/components/CreateRoadmapDialog';
 import EditRoadmapDialog from '@/components/EditRoadmapDialog';
-import { getCurrentQuarter, getQuarters, getQuarterMonths } from '@/types/okr';
+import { getCurrentQuarter, getQuarterMonths } from '@/types/okr';
 import { RoadmapItem } from '@/types/roadmap';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Map, Pencil, Trash2, ChevronLeft, ChevronRight, Circle, Loader2, CheckCircle2 } from 'lucide-react';
+import QuarterSelector from '@/components/QuarterSelector';
+import { Map, Pencil, Trash2, Circle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -23,9 +23,7 @@ const statusLabels = {
 };
 
 const RoadmapPage = () => {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
-  const quarters = getQuarters(selectedYear);
   const months = getQuarterMonths(selectedQuarter);
 
   const { items, addItem, updateStatus, updateItem, deleteItem, getByQuarter } = useRoadmapStore();
@@ -34,17 +32,8 @@ const RoadmapPage = () => {
   const [editItem, setEditItem] = useState<RoadmapItem | null>(null);
   const filtered = getByQuarter(selectedQuarter);
 
-  const changeYear = (delta: number) => {
-    const newYear = selectedYear + delta;
-    setSelectedYear(newYear);
-    const qNum = selectedQuarter.match(/Q(\d)/)?.[1] || '1';
-    setSelectedQuarter(`Q${qNum} ${newYear}`);
-  };
-
   const handleQuarterChange = (val: string) => {
     setSelectedQuarter(val);
-    const yearMatch = val.match(/(\d{4})/);
-    if (yearMatch) setSelectedYear(parseInt(yearMatch[1]));
   };
 
   // Sort by startMonth then endMonth
@@ -63,20 +52,7 @@ const RoadmapPage = () => {
         </div>
 
         {/* Quarter & Year Navigation */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => changeYear(-1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Select value={selectedQuarter} onValueChange={handleQuarterChange}>
-            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {quarters.map(q => <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => changeYear(1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={handleQuarterChange} />
 
         {/* Gantt Chart */}
         {filtered.length === 0 ? (

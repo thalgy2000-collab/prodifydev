@@ -2,14 +2,12 @@ import { useState } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
-import { getCurrentQuarter, getQuarters } from '@/types/okr';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCurrentQuarter } from '@/types/okr';
+import QuarterSelector from '@/components/QuarterSelector';
 import { Target } from 'lucide-react';
 
 const OKRPage = () => {
-  const currentYear = new Date().getFullYear();
   const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
-  const quarters = getQuarters(currentYear);
 
   const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress } = useOKRStore();
 
@@ -29,12 +27,7 @@ const OKRPage = () => {
         <CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} />
       </div>
 
-      <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
-        <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {quarters.map(q => <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>)}
-        </SelectContent>
-      </Select>
+      <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={setSelectedQuarter} />
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
