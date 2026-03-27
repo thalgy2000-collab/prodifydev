@@ -1,0 +1,1 @@
+ALTER TABLE public.roadmap_items ADD COLUMN color text NOT NULL DEFAULT '#6366f1';

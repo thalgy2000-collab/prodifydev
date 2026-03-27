@@ -47,7 +47,7 @@ export const useRoadmapStore = () => {
       title: updated.title, description: updated.description, quarter: updated.quarter,
       status: updated.status, category: updated.category, objective_id: updated.objectiveId || null,
       key_result_id: updated.keyResultId || null, kr_contribution: updated.krContribution ?? null,
-      start_month: updated.startMonth, end_month: updated.endMonth,
+      start_month: updated.startMonth, end_month: updated.endMonth, color: updated.color || '#6366f1',
     }).eq('id', updated.id);
     await fetchAll();
   }, [fetchAll]);

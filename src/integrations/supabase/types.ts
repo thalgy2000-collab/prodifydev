@@ -417,6 +417,7 @@ export type Database = {
       roadmap_items: {
         Row: {
           category: string
+          color: string
           created_at: string
           description: string
           end_month: number
@@ -433,6 +434,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          color?: string
           created_at?: string
           description?: string
           end_month?: number
@@ -449,6 +451,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          color?: string
           created_at?: string
           description?: string
           end_month?: number
