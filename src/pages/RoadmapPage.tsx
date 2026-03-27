@@ -23,9 +23,7 @@ const statusLabels = {
 };
 
 const RoadmapPage = () => {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
-  const quarters = getQuarters(selectedYear);
   const months = getQuarterMonths(selectedQuarter);
 
   const { items, addItem, updateStatus, updateItem, deleteItem, getByQuarter } = useRoadmapStore();
@@ -34,17 +32,8 @@ const RoadmapPage = () => {
   const [editItem, setEditItem] = useState<RoadmapItem | null>(null);
   const filtered = getByQuarter(selectedQuarter);
 
-  const changeYear = (delta: number) => {
-    const newYear = selectedYear + delta;
-    setSelectedYear(newYear);
-    const qNum = selectedQuarter.match(/Q(\d)/)?.[1] || '1';
-    setSelectedQuarter(`Q${qNum} ${newYear}`);
-  };
-
   const handleQuarterChange = (val: string) => {
     setSelectedQuarter(val);
-    const yearMatch = val.match(/(\d{4})/);
-    if (yearMatch) setSelectedYear(parseInt(yearMatch[1]));
   };
 
   // Sort by startMonth then endMonth
