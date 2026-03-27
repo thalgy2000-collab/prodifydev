@@ -32,7 +32,7 @@ export const useRoadmapStore = () => {
       user_id: user.id, product_id: activeProduct.id, title: data.title, description: data.description, quarter: data.quarter,
       status: data.status, category: data.category, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, kr_contribution: data.krContribution ?? null,
-      start_month: data.startMonth, end_month: data.endMonth,
+      start_month: data.startMonth, end_month: data.endMonth, color: data.color || '#6366f1',
     });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
