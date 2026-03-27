@@ -5,8 +5,8 @@ import CreateRoadmapDialog from '@/components/CreateRoadmapDialog';
 import EditRoadmapDialog from '@/components/EditRoadmapDialog';
 import { getCurrentQuarter, getQuarters, getQuarterMonths } from '@/types/okr';
 import { RoadmapItem } from '@/types/roadmap';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Map, Pencil, Trash2, ChevronLeft, ChevronRight, Circle, Loader2, CheckCircle2 } from 'lucide-react';
+import QuarterSelector from '@/components/QuarterSelector';
+import { Map, Pencil, Trash2, Circle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 

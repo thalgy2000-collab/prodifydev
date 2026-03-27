@@ -3,7 +3,7 @@ import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
 import { getCurrentQuarter, getQuarters } from '@/types/okr';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import QuarterSelector from '@/components/QuarterSelector';
 import { Target } from 'lucide-react';
 
 const OKRPage = () => {
