@@ -52,20 +52,7 @@ const RoadmapPage = () => {
         </div>
 
         {/* Quarter & Year Navigation */}
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => changeYear(-1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Select value={selectedQuarter} onValueChange={handleQuarterChange}>
-            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {quarters.map(q => <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => changeYear(1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={handleQuarterChange} />
 
         {/* Gantt Chart */}
         {filtered.length === 0 ? (

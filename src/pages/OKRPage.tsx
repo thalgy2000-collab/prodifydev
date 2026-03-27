@@ -27,12 +27,7 @@ const OKRPage = () => {
         <CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} />
       </div>
 
-      <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
-        <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {quarters.map(q => <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>)}
-        </SelectContent>
-      </Select>
+      <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={setSelectedQuarter} />
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
