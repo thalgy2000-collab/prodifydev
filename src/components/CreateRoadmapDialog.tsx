@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
-import { RoadmapItem } from '@/types/roadmap';
+import { RoadmapItem, ROADMAP_COLORS } from '@/types/roadmap';
 import { Objective, OKR_CATEGORIES, OKRCategory, getQuarterMonths } from '@/types/okr';
 
 interface Props {
@@ -26,6 +26,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
   const [krContribution, setKrContribution] = useState<number>(1);
   const [startMonth, setStartMonth] = useState(0);
   const [endMonth, setEndMonth] = useState(0);
+  const [color, setColor] = useState(ROADMAP_COLORS[0]);
 
   const months = getQuarterMonths(quarter);
   const selectedObjective = objectives.find(o => o.id === objectiveId);
@@ -33,7 +34,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
   const handleSubmit = () => {
     if (!title.trim()) return;
     onAdd({
-      title, description, quarter, status, category,
+      title, description, quarter, status, category, color,
       objectiveId: objectiveId && objectiveId !== 'none' ? objectiveId : undefined,
       keyResultId: keyResultId && keyResultId !== 'none' ? keyResultId : undefined,
       krContribution: keyResultId && keyResultId !== 'none' ? krContribution : undefined,
@@ -41,7 +42,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
     });
     setTitle(''); setDescription(''); setStatus('planned'); setCategory('professional');
     setObjectiveId(''); setKeyResultId(''); setKrContribution(1);
-    setStartMonth(0); setEndMonth(0); setOpen(false);
+    setStartMonth(0); setEndMonth(0); setColor(ROADMAP_COLORS[0]); setOpen(false);
   };
 
   return (
@@ -55,6 +56,20 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
           <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lançar MVP do produto" value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2"><Label>Descrição</Label><Textarea placeholder="Detalhes da iniciativa..." value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
           <div className="space-y-2"><Label>Status</Label><Select value={status} onValueChange={(v) => setStatus(v as RoadmapItem['status'])}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="planned">Planejado</SelectItem><SelectItem value="in_progress">Em andamento</SelectItem><SelectItem value="done">Concluído</SelectItem></SelectContent></Select></div>
+          <div className="space-y-2">
+            <Label>Cor da barra</Label>
+            <div className="flex flex-wrap gap-2">
+              {ROADMAP_COLORS.map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`h-7 w-7 rounded-full border-2 transition-all ${color === c ? 'border-foreground scale-110' : 'border-transparent hover:border-muted-foreground/50'}`}
+                  style={{ backgroundColor: c }}
+                  onClick={() => setColor(c)}
+                />
+              ))}
+            </div>
+          </div>
           <div className="flex gap-3">
             <div className="flex-1 space-y-2"><Label>Mês início</Label><Select value={String(startMonth)} onValueChange={(v) => setStartMonth(Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{months.map((m, i) => (<SelectItem key={i} value={String(i)}>{m}</SelectItem>))}</SelectContent></Select></div>
             <div className="flex-1 space-y-2"><Label>Mês fim</Label><Select value={String(endMonth)} onValueChange={(v) => setEndMonth(Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{months.map((m, i) => (<SelectItem key={i} value={String(i)}>{m}</SelectItem>))}</SelectContent></Select></div>
