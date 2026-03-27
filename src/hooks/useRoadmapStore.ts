@@ -18,7 +18,8 @@ export const useRoadmapStore = () => {
         status: d.status as RoadmapItem['status'], category: d.category as RoadmapItem['category'],
         objectiveId: d.objective_id ?? undefined, keyResultId: d.key_result_id ?? undefined,
         krContribution: d.kr_contribution ? Number(d.kr_contribution) : undefined,
-        startMonth: d.start_month, endMonth: d.end_month, createdAt: d.created_at,
+        startMonth: d.start_month, endMonth: d.end_month, color: d.color || '#6366f1',
+        createdAt: d.created_at,
       })));
     }
   }, [user, activeProduct]);
