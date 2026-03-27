@@ -7,9 +7,7 @@ import QuarterSelector from '@/components/QuarterSelector';
 import { Target } from 'lucide-react';
 
 const OKRPage = () => {
-  const currentYear = new Date().getFullYear();
   const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
-  const quarters = getQuarters(currentYear);
 
   const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress } = useOKRStore();
 
