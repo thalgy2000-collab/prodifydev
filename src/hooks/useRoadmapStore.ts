@@ -38,9 +38,28 @@ export const useRoadmapStore = () => {
   }, [user, activeProduct, fetchAll]);
 
   const updateStatus = useCallback(async (id: string, status: RoadmapItem['status']) => {
+    // Find the item to check for KR contribution
+    const item = items.find(i => i.id === id);
     await (supabase.from('roadmap_items') as any).update({ status }).eq('id', id);
+
+    // Update linked KR progress
+    if (item?.keyResultId && item.krContribution) {
+      const { data: kr } = await (supabase.from('key_results') as any)
+        .select('current_value')
+        .eq('id', item.keyResultId)
+        .single();
+      if (kr) {
+        const currentVal = Number(kr.current_value);
+        const delta = status === 'done' ? item.krContribution : -item.krContribution;
+        const newVal = Math.max(0, currentVal + delta);
+        await (supabase.from('key_results') as any)
+          .update({ current_value: newVal })
+          .eq('id', item.keyResultId);
+      }
+    }
+
     await fetchAll();
-  }, [fetchAll]);
+  }, [fetchAll, items]);
 
   const updateItem = useCallback(async (updated: RoadmapItem) => {
     await (supabase.from('roadmap_items') as any).update({
