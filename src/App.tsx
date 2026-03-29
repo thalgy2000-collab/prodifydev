@@ -50,7 +50,7 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/historico" element={<SprintHistoryPage />} />
         <Route path="/analises" element={<AnalyticsPage />} />
         <Route path="/rice" element={<RicePage />} />
-        <Route path="/agenda" element={<AgendaPage />} />
+        <Route path="/releases" element={<ReleasePlanningPage />} />
         <Route path="/membros" element={<MembersPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

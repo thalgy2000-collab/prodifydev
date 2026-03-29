@@ -18,7 +18,7 @@ const groups = [
     items: [
       { title: 'OKRs', url: '/', icon: Target },
       { title: 'Roadmap', url: '/roadmap', icon: Map },
-      { title: 'Agenda', url: '/agenda', icon: CalendarDays },
+      { title: 'Release Planning', url: '/releases', icon: Package },
     ],
   },
   {
