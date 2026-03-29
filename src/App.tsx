@@ -18,7 +18,7 @@ import SprintHistoryPage from "./pages/SprintHistoryPage";
 import OpportunityTreePage from "./pages/OpportunityTreePage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
-import AgendaPage from "./pages/AgendaPage";
+import ReleasePlanningPage from "./pages/ReleasePlanningPage";
 import SwotPage from "./pages/SwotPage";
 import MembersPage from "./pages/MembersPage";
 import AuthPage from "./pages/AuthPage";
