@@ -102,15 +102,24 @@ const RoadmapPage = () => {
                           className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md"
                           style={{
                             backgroundColor: item.color,
-                            opacity: item.status === 'done' ? 0.5 : 0.85,
+                            opacity: item.status === 'done' ? 0.45 : 0.85,
                           }}
-                          onClick={() => setEditItem(item)}
+                          onClick={() => {
+                            const newStatus = item.status === 'done' ? 'planned' : 'done';
+                            updateStatus(item.id, newStatus);
+                          }}
                         >
                           <Link2 className="h-3.5 w-3.5 text-white/80 shrink-0" />
-                          <span className="text-xs font-medium text-white truncate drop-shadow-sm">
+                          <span className={`text-xs font-medium text-white truncate drop-shadow-sm ${item.status === 'done' ? 'line-through opacity-70' : ''}`}>
                             {item.title}
                           </span>
                           <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEditItem(item); }}
+                              className="rounded p-0.5 hover:bg-white/20 transition-colors"
+                            >
+                              <Pencil className="h-3 w-3 text-white/80" />
+                            </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}
                               className="rounded p-0.5 hover:bg-white/20 transition-colors"
