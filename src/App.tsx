@@ -18,7 +18,7 @@ import SprintHistoryPage from "./pages/SprintHistoryPage";
 import OpportunityTreePage from "./pages/OpportunityTreePage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
-import AgendaPage from "./pages/AgendaPage";
+import ReleasePlanningPage from "./pages/ReleasePlanningPage";
 import SwotPage from "./pages/SwotPage";
 import MembersPage from "./pages/MembersPage";
 import AuthPage from "./pages/AuthPage";
@@ -50,7 +50,7 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/historico" element={<SprintHistoryPage />} />
         <Route path="/analises" element={<AnalyticsPage />} />
         <Route path="/rice" element={<RicePage />} />
-        <Route path="/agenda" element={<AgendaPage />} />
+        <Route path="/releases" element={<ReleasePlanningPage />} />
         <Route path="/membros" element={<MembersPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

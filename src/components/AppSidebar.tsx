@@ -1,4 +1,4 @@
-import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, CalendarDays, ChevronDown, Shield, Users, ArrowLeft, Check } from 'lucide-react';
+import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, Package, ChevronDown, Shield, Users, ArrowLeft, Check } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
@@ -18,7 +18,7 @@ const groups = [
     items: [
       { title: 'OKRs', url: '/', icon: Target },
       { title: 'Roadmap', url: '/roadmap', icon: Map },
-      { title: 'Agenda', url: '/agenda', icon: CalendarDays },
+      { title: 'Release Planning', url: '/releases', icon: Package },
     ],
   },
   {
