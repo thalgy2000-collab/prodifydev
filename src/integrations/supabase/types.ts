@@ -367,6 +367,83 @@ export type Database = {
         }
         Relationships: []
       }
+      release_items: {
+        Row: {
+          created_at: string
+          id: string
+          release_id: string
+          roadmap_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          release_id: string
+          roadmap_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          release_id?: string
+          roadmap_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "release_items_release_id_fkey"
+            columns: ["release_id"]
+            isOneToOne: false
+            referencedRelation: "releases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "release_items_roadmap_item_id_fkey"
+            columns: ["roadmap_item_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      releases: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          planned_date: string
+          product_id: string | null
+          status: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          planned_date: string
+          product_id?: string | null
+          status?: string
+          user_id: string
+          version?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          planned_date?: string
+          product_id?: string | null
+          status?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "releases_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rice_scores: {
         Row: {
           confidence: number
