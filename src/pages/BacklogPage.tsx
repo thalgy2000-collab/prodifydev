@@ -1,7 +1,8 @@
-import { useState, useRef, DragEvent } from 'react';
+import { useState, useRef, useEffect, DragEvent } from 'react';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
+import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import EditBacklogTaskDialog from '@/components/EditBacklogTaskDialog';
 import { BacklogTask, PRIORITY_CONFIG, TASK_STATUS_CONFIG, TaskPriority, TaskStatus } from '@/types/backlog';
 import { OKR_CATEGORIES, OKRCategory } from '@/types/okr';
@@ -13,12 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck } from 'lucide-react';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
+  const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
 
   const [editTask, setEditTask] = useState<BacklogTask | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -38,6 +40,13 @@ const BacklogPage = () => {
   const [dragOverSprintId, setDragOverSprintId] = useState<string | null>(null);
   const [dragOverBacklog, setDragOverBacklog] = useState(false);
   const dragTaskId = useRef<string | null>(null);
+
+  // Fetch criteria for all tasks
+  useEffect(() => {
+    if (tasks.length > 0) {
+      fetchByTasks(tasks.map(t => t.id));
+    }
+  }, [tasks, fetchByTasks]);
 
   const activeSprints = sprints.filter(s => s.status !== 'completed');
   const unassigned = getUnassigned();
@@ -87,6 +96,7 @@ const BacklogPage = () => {
   const TaskRow = ({ task, showDrag = true }: { task: BacklogTask; showDrag?: boolean }) => {
     const pCfg = PRIORITY_CONFIG[task.priority];
     const sCfg = TASK_STATUS_CONFIG[task.status];
+    const progress = getProgress(task.id);
     return (
       <div
         draggable
@@ -100,6 +110,12 @@ const BacklogPage = () => {
             <Badge variant="secondary" style={{ backgroundColor: `hsl(${pCfg.color} / 0.15)`, color: `hsl(${pCfg.color})` }}>{pCfg.label}</Badge>
             <Badge variant="outline">{sCfg.label}</Badge>
             {task.storyPoints && <span className="font-mono text-xs text-muted-foreground">{task.storyPoints} pts</span>}
+            {progress && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <ClipboardCheck className="h-3 w-3" />
+                {progress.done}/{progress.total} critérios
+              </span>
+            )}
           </div>
           {task.description && <p className="mt-1 text-sm text-muted-foreground truncate">{task.description}</p>}
         </div>

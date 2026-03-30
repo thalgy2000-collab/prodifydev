@@ -1,6 +1,7 @@
-import { useState, useRef, DragEvent } from 'react';
+import { useState, useRef, useEffect, DragEvent } from 'react';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
+import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import { Sprint, SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
 import { BacklogTask, PRIORITY_CONFIG, TaskStatus } from '@/types/backlog';
 import { Button } from '@/components/ui/button';
@@ -8,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Zap, Trash2, AlertTriangle, ArrowUp, ArrowDown, Minus, CircleAlert, User } from 'lucide-react';
+import { Plus, Zap, Trash2, AlertTriangle, ArrowUp, ArrowDown, Minus, CircleAlert, User, ClipboardCheck } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface KanbanColumn {
@@ -41,6 +43,7 @@ const PRIORITY_ICONS: Record<string, { icon: typeof ArrowUp; color: string }> = 
 const SprintsPage = () => {
   const { sprints, addSprint, updateSprint, deleteSprint, getActiveSprint } = useSprintStore();
   const { tasks, updateTask, addTask } = useBacklogStore();
+  const { fetchByTasks, getProgress, allCompleted } = useAcceptanceCriteriaStore();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState('');
@@ -52,19 +55,29 @@ const SprintsPage = () => {
   const [addColumnOpen, setAddColumnOpen] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
 
-  // Quick-add task in column
   const [quickAddColumn, setQuickAddColumn] = useState<string | null>(null);
   const [quickAddTitle, setQuickAddTitle] = useState('');
 
-  // Drag state
   const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
   const dragTaskId = useRef<string | null>(null);
+
+  // Done confirmation dialog
+  const [confirmDoneOpen, setConfirmDoneOpen] = useState(false);
+  const [pendingDoneTaskId, setPendingDoneTaskId] = useState<string | null>(null);
+  const [pendingDoneProgress, setPendingDoneProgress] = useState<{ done: number; total: number } | null>(null);
 
   const activeSprint = getActiveSprint();
   const activeSprints = sprints.filter(s => s.status !== 'completed');
   const selectedSprint = activeSprint || activeSprints[0];
 
   const sprintTasks = selectedSprint ? tasks.filter(t => t.sprintId === selectedSprint.id) : [];
+
+  // Fetch criteria for sprint tasks
+  useEffect(() => {
+    if (sprintTasks.length > 0) {
+      fetchByTasks(sprintTasks.map(t => t.id));
+    }
+  }, [sprintTasks.length, fetchByTasks]);
 
   const handleCreate = () => {
     if (!name.trim() || !startDate || !endDate) return;
@@ -97,12 +110,37 @@ const SprintsPage = () => {
     e.dataTransfer.effectAllowed = 'move';
   };
 
+  const tryMoveToDone = (taskId: string) => {
+    const isComplete = allCompleted(taskId);
+    if (!isComplete) {
+      const progress = getProgress(taskId);
+      setPendingDoneTaskId(taskId);
+      setPendingDoneProgress(progress);
+      setConfirmDoneOpen(true);
+    } else {
+      updateTask(taskId, { status: 'done' });
+    }
+  };
+
+  const confirmMoveToDone = () => {
+    if (pendingDoneTaskId) {
+      updateTask(pendingDoneTaskId, { status: 'done' });
+    }
+    setPendingDoneTaskId(null);
+    setPendingDoneProgress(null);
+    setConfirmDoneOpen(false);
+  };
+
   const onDrop = (e: DragEvent, colId: string) => {
     e.preventDefault();
     setDragOverColumnId(null);
     if (!dragTaskId.current) return;
     const targetStatus = STATUS_FOR_COLUMN[colId] || 'open';
-    updateTask(dragTaskId.current, { status: targetStatus });
+    if (targetStatus === 'done') {
+      tryMoveToDone(dragTaskId.current);
+    } else {
+      updateTask(dragTaskId.current, { status: targetStatus });
+    }
     dragTaskId.current = null;
   };
 
@@ -126,6 +164,7 @@ const SprintsPage = () => {
     const pIcon = PRIORITY_ICONS[task.priority];
     const PriorityIcon = pIcon?.icon || Minus;
     const sprintOverdue = selectedSprint && isOverdue(selectedSprint) && task.status !== 'done';
+    const progress = getProgress(task.id);
 
     return (
       <div
@@ -137,23 +176,32 @@ const SprintsPage = () => {
           <p className="text-sm font-medium leading-tight flex-1">{task.title}</p>
         </div>
 
+        {/* Criteria progress */}
+        {progress && (
+          <div className="mt-2 flex items-center gap-2">
+            <ClipboardCheck className="h-3 w-3 text-muted-foreground" />
+            <div className="flex-1 h-1 rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${(progress.done / progress.total) * 100}%` }}
+              />
+            </div>
+            <span className="text-[10px] font-medium text-muted-foreground">{progress.done}/{progress.total}</span>
+          </div>
+        )}
+
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {/* Date + overdue alert */}
             {selectedSprint && (
               <div className={`flex items-center gap-1 text-xs ${sprintOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {sprintOverdue && <AlertTriangle className="h-3 w-3" />}
                 <span>{selectedSprint.endDate}</span>
               </div>
             )}
-
-            {/* Priority icon */}
             <div className="flex items-center gap-1" title={pCfg.label}>
               <PriorityIcon className="h-3.5 w-3.5" style={{ color: pIcon?.color }} />
             </div>
           </div>
-
-          {/* Avatar */}
           <Avatar className="h-6 w-6">
             <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
               <User className="h-3 w-3" />
@@ -174,12 +222,7 @@ const SprintsPage = () => {
         </div>
         <div className="flex items-center gap-2">
           {activeSprints.length > 1 && (
-            <Select
-              value={selectedSprint?.id || ''}
-              onValueChange={v => {
-                // Sprint selection for viewing — uses the first active by default
-              }}
-            >
+            <Select value={selectedSprint?.id || ''} onValueChange={() => {}}>
               <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {activeSprints.map(s => (
@@ -256,7 +299,6 @@ const SprintsPage = () => {
                 onDragLeave={() => setDragOverColumnId(null)}
                 onDrop={e => onDrop(e, col.id)}
               >
-                {/* Column header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-semibold">{col.title}</h3>
@@ -271,7 +313,6 @@ const SprintsPage = () => {
                   )}
                 </div>
 
-                {/* Cards */}
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
                   {colTasks.map(task => (
                     <TaskCard key={task.id} task={task} />
@@ -283,7 +324,6 @@ const SprintsPage = () => {
                   )}
                 </div>
 
-                {/* Footer: quick add */}
                 <div className="px-3 pb-3">
                   {quickAddColumn === col.id ? (
                     <div className="space-y-2">
@@ -313,7 +353,6 @@ const SprintsPage = () => {
             );
           })}
 
-          {/* Add column button */}
           <div className="shrink-0">
             <Dialog open={addColumnOpen} onOpenChange={setAddColumnOpen}>
               <DialogTrigger asChild>
@@ -335,6 +374,32 @@ const SprintsPage = () => {
           </div>
         </div>
       )}
+
+      {/* Alert dialog for incomplete criteria */}
+      <AlertDialog open={confirmDoneOpen} onOpenChange={setConfirmDoneOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Critérios de aceite incompletos
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDoneProgress
+                ? `Esta tarefa tem apenas ${pendingDoneProgress.done} de ${pendingDoneProgress.total} critérios de aceite concluídos.`
+                : 'Esta tarefa possui critérios de aceite pendentes.'}
+              {' '}Deseja mover para "Concluído" mesmo assim?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => { setPendingDoneTaskId(null); setPendingDoneProgress(null); }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmMoveToDone}>
+              Mover mesmo assim
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
