@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      acceptance_criteria: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          sort_order: number
+          task_id: string
+          title: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          task_id: string
+          title: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          sort_order?: number
+          task_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "acceptance_criteria_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "backlog_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       backlog_tasks: {
         Row: {
           category: string
