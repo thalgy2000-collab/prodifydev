@@ -88,6 +88,28 @@ const SprintsPage = () => {
     }
   }, [sprintTasks.length, fetchByTasks]);
 
+  // Fetch product members for assignee dropdown
+  useEffect(() => {
+    if (!activeProduct) return;
+    const fetchMembers = async () => {
+      const { data: pmData } = await (supabase.from('product_members') as any)
+        .select('user_id')
+        .eq('product_id', activeProduct.id);
+      if (!pmData || pmData.length === 0) return;
+      const userIds = pmData.map((pm: any) => pm.user_id);
+      const { data: profiles } = await (supabase.from('profiles') as any)
+        .select('id, display_name, email')
+        .in('id', userIds);
+      if (profiles) {
+        setMembers(profiles.map((p: any) => ({
+          id: p.id,
+          displayName: p.display_name || p.email || 'Sem nome',
+        })));
+      }
+    };
+    fetchMembers();
+  }, [activeProduct]);
+
   const handleCreate = () => {
     if (!name.trim() || !startDate || !endDate) return;
     addSprint({ name, goal, startDate, endDate, status: 'planning' });
