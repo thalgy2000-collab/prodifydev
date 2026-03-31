@@ -20,6 +20,7 @@ export const useBacklogStore = () => {
         initiativeId: d.initiative_id ?? undefined, objectiveId: d.objective_id ?? undefined,
         keyResultId: d.key_result_id ?? undefined, storyPoints: d.story_points ?? undefined,
         sprintId: d.sprint_id ?? undefined, returnedFromSprintId: d.returned_from_sprint_id ?? undefined,
+        dueDate: d.due_date ?? undefined, assigneeId: d.assignee_id ?? undefined,
         createdAt: d.created_at,
       })));
     }
