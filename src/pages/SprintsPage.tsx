@@ -70,6 +70,11 @@ const SprintsPage = () => {
   const [pendingDoneTaskId, setPendingDoneTaskId] = useState<string | null>(null);
   const [pendingDoneProgress, setPendingDoneProgress] = useState<{ done: number; total: number } | null>(null);
 
+  // Edit task dialog
+  const [editTask, setEditTask] = useState<BacklogTask | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [members, setMembers] = useState<{ id: string; displayName: string }[]>([]);
+
   const activeSprint = getActiveSprint();
   const activeSprints = sprints.filter(s => s.status !== 'completed');
   const selectedSprint = activeSprint || activeSprints[0];
