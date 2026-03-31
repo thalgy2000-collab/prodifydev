@@ -190,18 +190,34 @@ const SprintsPage = () => {
     setQuickAddColumn(null);
   };
 
+  const handleOpenEditTask = (task: BacklogTask) => {
+    setEditTask(task);
+    setEditOpen(true);
+  };
+
+  const handleEditSave = (id: string, patch: Partial<BacklogTask>) => {
+    updateTask(id, patch);
+  };
+
+  const handleEditDelete = (id: string) => {
+    deleteTask(id);
+  };
+
   const TaskCard = ({ task }: { task: BacklogTask }) => {
     const pCfg = PRIORITY_CONFIG[task.priority];
     const pIcon = PRIORITY_ICONS[task.priority];
     const PriorityIcon = pIcon?.icon || Minus;
     const sprintOverdue = selectedSprint && isOverdue(selectedSprint) && task.status !== 'done';
     const progress = getProgress(task.id);
+    const assignee = task.assigneeId ? members.find(m => m.id === task.assigneeId) : null;
+    const taskOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done';
 
     return (
       <div
         draggable
         onDragStart={e => onDragStart(e, task.id)}
-        className="rounded-lg border border-border bg-card p-3 shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group"
+        onClick={() => handleOpenEditTask(task)}
+        className="rounded-lg border border-border bg-card p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow group"
       >
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-medium leading-tight flex-1">{task.title}</p>
@@ -223,19 +239,25 @@ const SprintsPage = () => {
 
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {selectedSprint && (
+            {task.dueDate ? (
+              <div className={`flex items-center gap-1 text-xs ${taskOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {taskOverdue && <AlertTriangle className="h-3 w-3" />}
+                <Calendar className="h-3 w-3" />
+                <span>{task.dueDate}</span>
+              </div>
+            ) : selectedSprint ? (
               <div className={`flex items-center gap-1 text-xs ${sprintOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {sprintOverdue && <AlertTriangle className="h-3 w-3" />}
                 <span>{selectedSprint.endDate}</span>
               </div>
-            )}
+            ) : null}
             <div className="flex items-center gap-1" title={pCfg.label}>
               <PriorityIcon className="h-3.5 w-3.5" style={{ color: pIcon?.color }} />
             </div>
           </div>
           <Avatar className="h-6 w-6">
             <AvatarFallback className="text-[10px] bg-muted text-muted-foreground">
-              <User className="h-3 w-3" />
+              {assignee ? assignee.displayName.charAt(0).toUpperCase() : <User className="h-3 w-3" />}
             </AvatarFallback>
           </Avatar>
         </div>
