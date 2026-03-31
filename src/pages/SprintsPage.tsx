@@ -453,6 +453,16 @@ const SprintsPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit sprint task dialog */}
+      <EditSprintTaskDialog
+        task={editTask}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSave={handleEditSave}
+        onDelete={handleEditDelete}
+        members={members}
+      />
     </div>
   );
 };
