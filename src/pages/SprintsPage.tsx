@@ -45,8 +45,9 @@ const PRIORITY_ICONS: Record<string, { icon: typeof ArrowUp; color: string }> = 
 
 const SprintsPage = () => {
   const { sprints, addSprint, updateSprint, deleteSprint, getActiveSprint } = useSprintStore();
-  const { tasks, updateTask, addTask } = useBacklogStore();
+  const { tasks, updateTask, addTask, deleteTask } = useBacklogStore();
   const { fetchByTasks, getProgress, allCompleted } = useAcceptanceCriteriaStore();
+  const { activeProduct } = useProduct();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState('');
