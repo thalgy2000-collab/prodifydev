@@ -51,9 +51,11 @@ export type Database = {
       }
       backlog_tasks: {
         Row: {
+          assignee_id: string | null
           category: string
           created_at: string
           description: string
+          due_date: string | null
           id: string
           initiative_id: string | null
           key_result_id: string | null
@@ -68,9 +70,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assignee_id?: string | null
           category?: string
           created_at?: string
           description?: string
+          due_date?: string | null
           id?: string
           initiative_id?: string | null
           key_result_id?: string | null
@@ -85,9 +89,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assignee_id?: string | null
           category?: string
           created_at?: string
           description?: string
+          due_date?: string | null
           id?: string
           initiative_id?: string | null
           key_result_id?: string | null
