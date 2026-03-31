@@ -5,7 +5,6 @@ import { useSprintStore } from '@/hooks/useSprintStore';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import EditBacklogTaskDialog from '@/components/EditBacklogTaskDialog';
 import { BacklogTask, PRIORITY_CONFIG, TASK_STATUS_CONFIG, TaskPriority, TaskStatus } from '@/types/backlog';
-import { OKR_CATEGORIES, OKRCategory } from '@/types/okr';
 import { SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +28,6 @@ const BacklogPage = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newPriority, setNewPriority] = useState<TaskPriority>('medium');
-  const [newCategory, setNewCategory] = useState<OKRCategory>('professional');
   const [newInitiativeId, setNewInitiativeId] = useState('none');
   const [newStoryPoints, setNewStoryPoints] = useState(1);
 
@@ -57,10 +55,10 @@ const BacklogPage = () => {
     const init = initiatives.find(i => i.id === newInitiativeId);
     addTask({
       title: newTitle, description: newDesc, priority: newPriority, status: 'open',
-      category: newCategory, initiativeId: newInitiativeId !== 'none' ? newInitiativeId : undefined,
+      category: 'professional', initiativeId: newInitiativeId !== 'none' ? newInitiativeId : undefined,
       objectiveId: init?.objectiveId, keyResultId: init?.keyResultId, storyPoints: newStoryPoints,
     });
-    setNewTitle(''); setNewDesc(''); setNewPriority('medium'); setNewCategory('professional');
+    setNewTitle(''); setNewDesc(''); setNewPriority('medium');
     setNewInitiativeId('none'); setNewStoryPoints(1); setCreateOpen(false);
   };
 
@@ -165,7 +163,6 @@ const BacklogPage = () => {
                 <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Implementar login social" value={newTitle} onChange={e => setNewTitle(e.target.value)} /></div>
                 <div className="space-y-2"><Label>Descrição</Label><Textarea placeholder="Detalhes..." value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={2} /></div>
                 <div className="flex gap-3">
-                  <div className="flex-1 space-y-2"><Label>Categoria</Label><Select value={newCategory} onValueChange={v => setNewCategory(v as OKRCategory)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{OKR_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent></Select></div>
                   <div className="flex-1 space-y-2"><Label>Prioridade</Label><Select value={newPriority} onValueChange={v => setNewPriority(v as TaskPriority)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(PRIORITY_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent></Select></div>
                 </div>
                 <div className="flex gap-3">
