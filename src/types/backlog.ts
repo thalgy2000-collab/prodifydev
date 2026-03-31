@@ -16,6 +16,8 @@ export interface BacklogTask {
   storyPoints?: number;
   sprintId?: string;
   returnedFromSprintId?: string;
+  dueDate?: string;
+  assigneeId?: string;
   createdAt: string;
 }
 
