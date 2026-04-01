@@ -72,7 +72,6 @@ const SprintsPage = () => {
 
   // Close sprint confirmation
   const [confirmCloseSprintOpen, setConfirmCloseSprintOpen] = useState(false);
-  const [pendingDoneProgress, setPendingDoneProgress] = useState<{ done: number; total: number } | null>(null);
 
   // Edit task dialog
   const [editTask, setEditTask] = useState<BacklogTask | null>(null);
