@@ -252,7 +252,7 @@ const AuthPage = () => {
               {/* Submit */}
               <button
                 type="submit"
-                disabled={loading || !emailValue || !passwordValue}
+                disabled={loading || !emailValue || !passwordValue || (!isLogin && (!fullNameValue || fullNameValue.trim().length < 3))}
                 className="w-full h-12 rounded-xl bg-[#4F8EF7] hover:bg-[#3d7de6] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-[0_4px_20px_rgba(79,142,247,0.3)] hover:shadow-[0_4px_30px_rgba(79,142,247,0.45)]"
               >
                 {loading ? (
