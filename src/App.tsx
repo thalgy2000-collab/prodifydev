@@ -23,6 +23,7 @@ import SwotPage from "./pages/SwotPage";
 import PrdPage from "./pages/PrdPage";
 import MembersPage from "./pages/MembersPage";
 import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
@@ -104,6 +105,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<AuthRoute />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>

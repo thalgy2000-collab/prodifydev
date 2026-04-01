@@ -6,6 +6,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, User } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import prodifyLogo from '@/assets/prodify-logo.png';
 
 const REMEMBERED_EMAIL_KEY = 'remembered_email';
@@ -24,12 +31,19 @@ const signupSchema = z.object({
 
 type FormData = z.infer<typeof signupSchema>;
 
+const forgotEmailSchema = z.string().trim().email('Insira um e-mail válido');
+
 const AuthPage = () => {
   const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY) || '';
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(!!savedEmail);
   const [loading, setLoading] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotError, setForgotError] = useState<string | null>(null);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   const {
     register,
@@ -89,6 +103,37 @@ const AuthPage = () => {
   const handleSocialLogin = async (provider: 'google' | 'github') => {
     const { error } = await supabase.auth.signInWithOAuth({ provider });
     if (error) toast.error(error.message);
+  };
+
+  const openForgotPassword = () => {
+    setForgotEmail(emailValue?.trim() || '');
+    setForgotError(null);
+    setForgotSent(false);
+    setForgotOpen(true);
+  };
+
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError(null);
+    const parsed = forgotEmailSchema.safeParse(forgotEmail);
+    if (!parsed.success) {
+      setForgotError(parsed.error.issues[0]?.message ?? 'E-mail inválido');
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      const redirectTo = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, { redirectTo });
+      if (error) throw error;
+      setForgotSent(true);
+      toast.success('Verifique seu e-mail para redefinir sua senha');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Não foi possível enviar o e-mail. Tente novamente.';
+      setForgotError(message);
+      toast.error(message);
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   return (
@@ -243,8 +288,12 @@ const AuthPage = () => {
                       Lembrar de mim
                     </label>
                   </div>
-                  <button type="button" className="text-sm text-[#4F8EF7] hover:text-[#6ba3ff] transition-colors">
-                    Esqueceu a senha?
+                  <button
+                    type="button"
+                    onClick={openForgotPassword}
+                    className="text-sm text-[#4F8EF7] hover:text-[#6ba3ff] transition-colors"
+                  >
+                    Esqueci minha senha
                   </button>
                 </div>
               )}
@@ -308,6 +357,61 @@ const AuthPage = () => {
           </p>
         </div>
       </div>
+
+      <Dialog open={forgotOpen} onOpenChange={(open) => { setForgotOpen(open); if (!open) { setForgotSent(false); setForgotError(null); } }}>
+        <DialogContent className="sm:max-w-md border-white/[0.08] bg-[#1a1a1a] text-white shadow-[0_8px_40px_rgba(0,0,0,0.5)]">
+          <DialogHeader>
+            <DialogTitle className="text-white" style={{ fontFamily: 'Outfit, sans-serif' }}>
+              Recuperar senha
+            </DialogTitle>
+            <DialogDescription className="text-[#8892a4]">
+              Informe seu e-mail para receber o link de redefinição.
+            </DialogDescription>
+          </DialogHeader>
+
+          {forgotSent ? (
+            <p className="text-sm text-[#4ade80] py-2">
+              Verifique seu e-mail para redefinir sua senha
+            </p>
+          ) : (
+            <form onSubmit={handleForgotPasswordSubmit} className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#8892a4] uppercase tracking-wider">E-mail</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555]" />
+                  <input
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="w-full h-11 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-[#555] text-sm outline-none focus:border-[#4F8EF7]/60 focus:ring-2 focus:ring-[#4F8EF7]/20"
+                  />
+                </div>
+                {forgotError && (
+                  <p className="flex items-center gap-1.5 text-xs text-red-400">
+                    <AlertCircle className="h-3 w-3" />
+                    {forgotError}
+                  </p>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={forgotLoading || !forgotEmail.trim()}
+                className="w-full h-11 rounded-xl bg-[#4F8EF7] hover:bg-[#3d7de6] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-sm flex items-center justify-center gap-2"
+              >
+                {forgotLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  'Enviar link'
+                )}
+              </button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
