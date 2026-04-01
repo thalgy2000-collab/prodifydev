@@ -45,6 +45,7 @@ const AuthPage = () => {
 
   const emailValue = watch('email');
   const passwordValue = watch('password');
+  const fullNameValue = watch('fullName');
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
