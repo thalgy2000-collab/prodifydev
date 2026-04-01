@@ -20,6 +20,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
 import ReleasePlanningPage from "./pages/ReleasePlanningPage";
 import SwotPage from "./pages/SwotPage";
+import PrdPage from "./pages/PrdPage";
 import MembersPage from "./pages/MembersPage";
 import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
