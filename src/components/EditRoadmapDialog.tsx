@@ -29,7 +29,8 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
   const [color, setColor] = useState(item.color || ROADMAP_COLORS[0]);
 
   const months = getQuarterMonths(item.quarter);
-  const selectedObjective = objectives.find(o => o.id === objectiveId);
+  const quarterObjectives = objectives.filter(o => o.quarter === item.quarter);
+  const selectedObjective = quarterObjectives.find(o => o.id === objectiveId);
 
   useEffect(() => {
     setTitle(item.title); setDescription(item.description); setStatus(item.status);
@@ -38,6 +39,16 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
     setStartMonth(item.startMonth); setEndMonth(item.endMonth);
     setColor(item.color || ROADMAP_COLORS[0]);
   }, [item]);
+
+  // Se existir vínculo antigo com OKR de outro quarter, limpar seleção
+  useEffect(() => {
+    if (!objectiveId || objectiveId === 'none') return;
+    const isInQuarter = quarterObjectives.some(o => o.id === objectiveId);
+    if (!isInQuarter) {
+      setObjectiveId('none');
+      setKeyResultId('none');
+    }
+  }, [objectiveId, quarterObjectives]);
 
   const handleSubmit = () => {
     if (!title.trim()) return;
@@ -77,9 +88,9 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
             <div className="flex-1 space-y-2"><Label>Mês início</Label><Select value={String(startMonth)} onValueChange={(v) => setStartMonth(Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{months.map((m, i) => (<SelectItem key={i} value={String(i)}>{m}</SelectItem>))}</SelectContent></Select></div>
             <div className="flex-1 space-y-2"><Label>Mês fim</Label><Select value={String(endMonth)} onValueChange={(v) => setEndMonth(Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{months.map((m, i) => (<SelectItem key={i} value={String(i)}>{m}</SelectItem>))}</SelectContent></Select></div>
           </div>
-          {objectives.length > 0 && (
+          {quarterObjectives.length > 0 && (
             <>
-              <div className="space-y-2"><Label>Vincular a OKR</Label><Select value={objectiveId || 'none'} onValueChange={(v) => { setObjectiveId(v); setKeyResultId(''); }}><SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhum</SelectItem>{objectives.map(o => (<SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>))}</SelectContent></Select></div>
+              <div className="space-y-2"><Label>Vincular a OKR</Label><Select value={objectiveId || 'none'} onValueChange={(v) => { setObjectiveId(v); setKeyResultId('none'); }}><SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhum</SelectItem>{quarterObjectives.map(o => (<SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>))}</SelectContent></Select></div>
               {selectedObjective && selectedObjective.keyResults.length > 0 && (
                 <div className="space-y-2"><Label>Vincular a Key Result</Label><Select value={keyResultId || 'none'} onValueChange={setKeyResultId}><SelectTrigger><SelectValue placeholder="Selecione um KR" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhum</SelectItem>{selectedObjective.keyResults.map(kr => (<SelectItem key={kr.id} value={kr.id}>{kr.title} ({kr.currentValue}/{kr.targetValue} {kr.unit})</SelectItem>))}</SelectContent></Select></div>
               )}
