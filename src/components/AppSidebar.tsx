@@ -19,6 +19,7 @@ const groups = [
       { title: 'OKRs', url: '/', icon: Target },
       { title: 'Roadmap', url: '/roadmap', icon: Map },
       { title: 'Release Planning', url: '/releases', icon: Package },
+      { title: 'PRD', url: '/prd', icon: FileText },
     ],
   },
   {
