@@ -319,6 +319,71 @@ export type Database = {
           },
         ]
       }
+      prds: {
+        Row: {
+          created_at: string
+          estimated_timeline: string
+          functional_requirements: Json
+          id: string
+          non_functional_requirements: Json
+          objective: string
+          out_of_scope: string
+          problem: string
+          product_id: string | null
+          status: string
+          success_metrics: Json
+          target_audience: string
+          title: string
+          updated_at: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_timeline?: string
+          functional_requirements?: Json
+          id?: string
+          non_functional_requirements?: Json
+          objective?: string
+          out_of_scope?: string
+          problem?: string
+          product_id?: string | null
+          status?: string
+          success_metrics?: Json
+          target_audience?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+          version?: string
+        }
+        Update: {
+          created_at?: string
+          estimated_timeline?: string
+          functional_requirements?: Json
+          id?: string
+          non_functional_requirements?: Json
+          objective?: string
+          out_of_scope?: string
+          problem?: string
+          product_id?: string | null
+          status?: string
+          success_metrics?: Json
+          target_audience?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prds_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_members: {
         Row: {
           created_at: string
