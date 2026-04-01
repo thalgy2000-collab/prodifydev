@@ -327,11 +327,51 @@ const SprintsPage = () => {
             <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>{Object.entries(SPRINT_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
           </Select>
+          {selectedSprint.status !== 'completed' && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setConfirmCloseSprintOpen(true)}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Encerrar
+            </Button>
+          )}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteSprint(selectedSprint.id)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       )}
+
+      {/* Close sprint confirmation */}
+      <AlertDialog open={confirmCloseSprintOpen} onOpenChange={setConfirmCloseSprintOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Encerrar Sprint</AlertDialogTitle>
+            <AlertDialogDescription>
+              {(() => {
+                const notDone = sprintTasks.filter(t => t.status !== 'done').length;
+                const done = sprintTasks.filter(t => t.status === 'done').length;
+                return notDone > 0
+                  ? `${done} tarefa(s) concluída(s) e ${notDone} tarefa(s) não concluída(s) serão devolvidas ao backlog. Deseja encerrar a sprint?`
+                  : 'Todas as tarefas foram concluídas. Deseja encerrar a sprint?';
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (selectedSprint) {
+                updateSprint(selectedSprint.id, { status: 'completed' });
+              }
+              setConfirmCloseSprintOpen(false);
+            }}>
+              Encerrar Sprint
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Kanban board */}
       {!selectedSprint ? (
