@@ -62,7 +62,7 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
                 <div className="flex gap-2">
                   <div className="flex-1 space-y-1">
                     <Label className="text-xs text-muted-foreground">Meta</Label>
-                    <Input type="number" value={kr.targetValue} onChange={e => updateKR(i, 'targetValue', Number(e.target.value))} />
+                    <Input type="number" value={kr.targetValue || ''} onChange={e => updateKR(i, 'targetValue', e.target.value === '' ? 0 : Number(e.target.value))} placeholder="100" />
                   </div>
                   <div className="w-20 space-y-1">
                     <Label className="text-xs text-muted-foreground">Unidade</Label>

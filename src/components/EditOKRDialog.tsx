@@ -54,8 +54,8 @@ const EditOKRDialog = ({ objective, open, onOpenChange, onSave }: Props) => {
                   {krs.length > 1 && (<Button variant="ghost" size="icon" onClick={() => removeKR(i)} className="h-8 w-8 shrink-0"><X className="h-3 w-3" /></Button>)}
                 </div>
                 <div className="flex gap-2">
-                  <div className="flex-1 space-y-1"><Label className="text-xs text-muted-foreground">Atual</Label><Input type="number" value={kr.currentValue} onChange={e => updateKR(i, 'currentValue', Number(e.target.value))} /></div>
-                  <div className="flex-1 space-y-1"><Label className="text-xs text-muted-foreground">Meta</Label><Input type="number" value={kr.targetValue} onChange={e => updateKR(i, 'targetValue', Number(e.target.value))} /></div>
+                  <div className="flex-1 space-y-1"><Label className="text-xs text-muted-foreground">Atual</Label><Input type="number" value={kr.currentValue || ''} onChange={e => updateKR(i, 'currentValue', e.target.value === '' ? 0 : Number(e.target.value))} placeholder="0" /></div>
+                  <div className="flex-1 space-y-1"><Label className="text-xs text-muted-foreground">Meta</Label><Input type="number" value={kr.targetValue || ''} onChange={e => updateKR(i, 'targetValue', e.target.value === '' ? 0 : Number(e.target.value))} placeholder="100" /></div>
                   <div className="w-20 space-y-1"><Label className="text-xs text-muted-foreground">Unidade</Label><Input value={kr.unit} onChange={e => updateKR(i, 'unit', e.target.value)} /></div>
                 </div>
               </div>
