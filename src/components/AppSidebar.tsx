@@ -38,8 +38,8 @@ const groups = [
   {
     label: '🚀 Delivery',
     items: [
-      { title: 'Backlog', url: '/backlog', icon: ListTodo },
-      { title: 'Sprints', url: '/sprints', icon: Zap },
+      { title: 'Backlog', url: '/backlog', icon: ListTodo, tourId: 'backlog' },
+      { title: 'Sprints', url: '/sprints', icon: Zap, tourId: 'sprints' },
       { title: 'Histórico', url: '/historico', icon: History },
     ],
   },
