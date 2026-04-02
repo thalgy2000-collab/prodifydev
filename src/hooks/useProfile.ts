@@ -28,6 +28,7 @@ export function useProfile() {
         email: data.email,
         avatarUrl: data.avatar_url,
         onboardingCompleted: (data as any).onboarding_completed ?? false,
+        termsAcceptedAt: (data as any).terms_accepted_at ?? null,
       });
     }
     setLoading(false);

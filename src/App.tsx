@@ -9,6 +9,8 @@ import { ProductProvider, useProduct } from "@/contexts/ProductContext";
 import { GlobalSidebar } from "./components/GlobalSidebar";
 import { MobileHeader } from "./components/MobileHeader";
 import AppLayout from "./components/AppLayout";
+import TermsModal from "./components/TermsModal";
+import { useProfile } from "./hooks/useProfile";
 import PortfolioPage from "./pages/PortfolioPage";
 import OKRPage from "./pages/OKRPage";
 import RoadmapPage from "./pages/RoadmapPage";
