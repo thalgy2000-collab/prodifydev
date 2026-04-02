@@ -139,7 +139,7 @@ export function AppSidebar() {
                     {group.items.map(item => (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild>
-                          <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
+                          <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium" data-tour={(item as any).tourId}>
                             <item.icon className="mr-2 h-4 w-4" />
                             {!collapsed && <span>{item.title}</span>}
                           </NavLink>
