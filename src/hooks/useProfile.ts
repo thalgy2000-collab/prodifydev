@@ -9,6 +9,7 @@ export interface Profile {
   email: string | null;
   avatarUrl: string | null;
   onboardingCompleted: boolean;
+  termsAcceptedAt: string | null;
 }
 
 export function useProfile() {
@@ -27,6 +28,7 @@ export function useProfile() {
         email: data.email,
         avatarUrl: data.avatar_url,
         onboardingCompleted: (data as any).onboarding_completed ?? false,
+        termsAcceptedAt: (data as any).terms_accepted_at ?? null,
       });
     }
     setLoading(false);
