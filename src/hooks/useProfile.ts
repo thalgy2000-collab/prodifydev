@@ -8,6 +8,7 @@ export interface Profile {
   fullName: string | null;
   email: string | null;
   avatarUrl: string | null;
+  onboardingCompleted: boolean;
 }
 
 export function useProfile() {
@@ -25,6 +26,7 @@ export function useProfile() {
         fullName: data.full_name,
         email: data.email,
         avatarUrl: data.avatar_url,
+        onboardingCompleted: (data as any).onboarding_completed ?? false,
       });
     }
     setLoading(false);

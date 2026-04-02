@@ -16,8 +16,8 @@ const groups = [
   {
     label: '📍 Planejamento',
     items: [
-      { title: 'OKRs', url: '/', icon: Target },
-      { title: 'Roadmap', url: '/roadmap', icon: Map },
+      { title: 'OKRs', url: '/', icon: Target, tourId: 'okrs' },
+      { title: 'Roadmap', url: '/roadmap', icon: Map, tourId: 'roadmap' },
       { title: 'Release Planning', url: '/releases', icon: Package },
       { title: 'PRD', url: '/prd', icon: FileText },
     ],
@@ -38,8 +38,8 @@ const groups = [
   {
     label: '🚀 Delivery',
     items: [
-      { title: 'Backlog', url: '/backlog', icon: ListTodo },
-      { title: 'Sprints', url: '/sprints', icon: Zap },
+      { title: 'Backlog', url: '/backlog', icon: ListTodo, tourId: 'backlog' },
+      { title: 'Sprints', url: '/sprints', icon: Zap, tourId: 'sprints' },
       { title: 'Histórico', url: '/historico', icon: History },
     ],
   },
@@ -139,7 +139,7 @@ export function AppSidebar() {
                     {group.items.map(item => (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild>
-                          <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
+                          <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium" data-tour={(item as any).tourId}>
                             <item.icon className="mr-2 h-4 w-4" />
                             {!collapsed && <span>{item.title}</span>}
                           </NavLink>

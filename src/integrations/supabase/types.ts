@@ -454,6 +454,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          onboarding_completed: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -462,6 +463,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          onboarding_completed?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -470,6 +472,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          onboarding_completed?: boolean
         }
         Relationships: []
       }
