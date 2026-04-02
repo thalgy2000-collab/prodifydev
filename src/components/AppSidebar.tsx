@@ -16,8 +16,8 @@ const groups = [
   {
     label: '📍 Planejamento',
     items: [
-      { title: 'OKRs', url: '/', icon: Target },
-      { title: 'Roadmap', url: '/roadmap', icon: Map },
+      { title: 'OKRs', url: '/', icon: Target, tourId: 'okrs' },
+      { title: 'Roadmap', url: '/roadmap', icon: Map, tourId: 'roadmap' },
       { title: 'Release Planning', url: '/releases', icon: Package },
       { title: 'PRD', url: '/prd', icon: FileText },
     ],
