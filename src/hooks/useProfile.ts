@@ -8,8 +8,16 @@ export interface Profile {
   fullName: string | null;
   email: string | null;
   avatarUrl: string | null;
+  bio: string | null;
+  lastLogin: string | null;
+  emailUpdates: boolean;
+  sprintReminders: boolean;
+  weeklySummary: boolean;
+  theme: string;
+  language: string;
   onboardingCompleted: boolean;
   termsAcceptedAt: string | null;
+  createdAt: string | null;
 }
 
 export function useProfile() {
@@ -27,8 +35,16 @@ export function useProfile() {
         fullName: data.full_name,
         email: data.email,
         avatarUrl: data.avatar_url,
+        bio: data.bio,
+        lastLogin: data.last_login,
+        emailUpdates: data.email_updates ?? true,
+        sprintReminders: data.sprint_reminders ?? true,
+        weeklySummary: data.weekly_summary ?? true,
+        theme: data.theme ?? 'dark',
+        language: data.language ?? 'pt-BR',
         onboardingCompleted: (data as any).onboarding_completed ?? false,
         termsAcceptedAt: (data as any).terms_accepted_at ?? null,
+        createdAt: data.created_at,
       });
     }
     setLoading(false);
