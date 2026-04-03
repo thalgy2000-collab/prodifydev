@@ -9,15 +9,9 @@ export interface Profile {
   email: string | null;
   avatarUrl: string | null;
   bio: string | null;
-  lastLogin: string | null;
-  emailUpdates: boolean;
-  sprintReminders: boolean;
-  weeklySummary: boolean;
-  theme: string;
-  language: string;
+  createdAt: string | null;
   onboardingCompleted: boolean;
   termsAcceptedAt: string | null;
-  createdAt: string | null;
 }
 
 export function useProfile() {
@@ -25,29 +19,65 @@ export function useProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const mapProfile = (data: any): Profile => ({
+    id: data.id,
+    displayName: data.display_name ?? null,
+    fullName: data.full_name ?? null,
+    email: data.email ?? null,
+    avatarUrl: data.avatar_url ?? null,
+    bio: data.bio ?? null,
+    createdAt: data.created_at ?? null,
+    onboardingCompleted: data.onboarding_completed ?? false,
+    termsAcceptedAt: data.terms_accepted_at ?? null,
+  });
+
   const fetchProfile = useCallback(async () => {
-    if (!user) { setProfile(null); setLoading(false); return; }
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-    if (data) {
-      setProfile({
-        id: data.id,
-        displayName: data.display_name,
-        fullName: data.full_name,
-        email: data.email,
-        avatarUrl: data.avatar_url,
-        bio: data.bio,
-        lastLogin: data.last_login,
-        emailUpdates: data.email_updates ?? true,
-        sprintReminders: data.sprint_reminders ?? true,
-        weeklySummary: data.weekly_summary ?? true,
-        theme: data.theme ?? 'dark',
-        language: data.language ?? 'pt-BR',
-        onboardingCompleted: (data as any).onboarding_completed ?? false,
-        termsAcceptedAt: (data as any).terms_accepted_at ?? null,
-        createdAt: data.created_at,
-      });
+    if (!user) {
+      setProfile(null);
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name, full_name, email, avatar_url, bio, created_at, onboarding_completed, terms_accepted_at')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Erro ao buscar perfil:', error);
+        setProfile(null);
+        return;
+      }
+
+      if (!data) {
+        // Perfil não existe, cria
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            display_name: user.email?.split('@')[0] || 'User',
+          })
+          .select('id, display_name, full_name, email, avatar_url, bio, created_at, onboarding_completed, terms_accepted_at')
+          .single();
+
+        if (insertError) {
+          console.error('Erro ao criar perfil:', insertError);
+          setProfile(null);
+        } else if (newProfile) {
+          setProfile(mapProfile(newProfile));
+        }
+      } else {
+        setProfile(mapProfile(data));
+      }
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
 
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
@@ -56,7 +86,7 @@ export function useProfile() {
   const initial = nameOrEmail.charAt(0).toUpperCase() || '?';
 
   const avatarColor = (() => {
-    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#14b8a6'];
+    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '3b82f6', '#8b5cf6', '#ef4444', '#14b8a6'];
     let hash = 0;
     for (let i = 0; i < nameOrEmail.length; i++) hash = nameOrEmail.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];

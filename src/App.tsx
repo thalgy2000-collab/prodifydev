@@ -35,10 +35,12 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   const { activeProduct } = useProduct();
   const location = useLocation();
 
+  // Always render profile page when on /perfil route
+  if (location.pathname === '/perfil') {
+    return <ProfilePage />;
+  }
+
   if (!activeProduct) {
-    if (location.pathname === '/perfil') {
-      return <ProfilePage />;
-    }
     return <PortfolioPage searchQuery={searchQuery} />;
   }
 
@@ -83,7 +85,9 @@ const ProtectedRoutes = () => {
   const { profile, loading: profileLoading, refetch } = useProfile();
 
   if (loading || profileLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   if (profile && !profile.termsAcceptedAt) {
     return <TermsModal onAccepted={refetch} />;
