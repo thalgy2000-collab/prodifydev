@@ -1,5 +1,10 @@
 import { OKRCategory } from './okr';
 
+export interface RoadmapItemKR {
+  keyResultId: string;
+  krContribution: number;
+}
+
 export interface RoadmapItem {
   id: string;
   title: string;
@@ -8,8 +13,11 @@ export interface RoadmapItem {
   status: 'planned' | 'in_progress' | 'done';
   category: OKRCategory;
   objectiveId?: string;
+  /** @deprecated use linkedKRs instead */
   keyResultId?: string;
+  /** @deprecated use linkedKRs instead */
   krContribution?: number;
+  linkedKRs: RoadmapItemKR[];
   startMonth: number;
   endMonth: number;
   color: string;
