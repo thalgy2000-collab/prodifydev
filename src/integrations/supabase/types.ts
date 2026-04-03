@@ -606,6 +606,45 @@ export type Database = {
           },
         ]
       }
+      roadmap_item_key_results: {
+        Row: {
+          created_at: string | null
+          id: string
+          key_result_id: string
+          kr_contribution: number | null
+          roadmap_item_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          key_result_id: string
+          kr_contribution?: number | null
+          roadmap_item_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          key_result_id?: string
+          kr_contribution?: number | null
+          roadmap_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_item_key_results_key_result_id_fkey"
+            columns: ["key_result_id"]
+            isOneToOne: false
+            referencedRelation: "key_results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_item_key_results_roadmap_item_id_fkey"
+            columns: ["roadmap_item_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roadmap_items: {
         Row: {
           category: string
