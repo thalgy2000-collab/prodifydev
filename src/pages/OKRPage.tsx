@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
@@ -12,6 +12,13 @@ const OKRPage = () => {
   const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress } = useOKRStore();
 
   const filtered = getObjectivesByQuarter(selectedQuarter);
+
+  const overallProgress = useMemo(() => {
+    const allKRs = filtered.flatMap(o => o.keyResults);
+    if (allKRs.length === 0) return 0;
+    const total = allKRs.reduce((acc, kr) => acc + (kr.targetValue > 0 ? (kr.currentValue / kr.targetValue) * 100 : 0), 0);
+    return Math.round(total / allKRs.length);
+  }, [filtered]);
 
   if (loading) {
     return <div className="flex items-center justify-center py-20 text-muted-foreground">Carregando OKRs...</div>;
@@ -28,6 +35,23 @@ const OKRPage = () => {
       </div>
 
       <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={setSelectedQuarter} />
+
+      {/* Barra de progresso geral */}
+      {filtered.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <p className="text-sm text-muted-foreground mb-2">Progresso geral — {selectedQuarter}</p>
+          <div className="flex items-end justify-between mb-3">
+            <span className="text-3xl font-bold text-foreground">{overallProgress}%</span>
+            <span className="text-sm font-medium text-muted-foreground">{filtered.length} {filtered.length === 1 ? 'objetivo' : 'objetivos'}</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${overallProgress >= 70 ? 'bg-success' : overallProgress >= 40 ? 'bg-warning' : 'bg-destructive'}`}
+              style={{ width: `${overallProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
