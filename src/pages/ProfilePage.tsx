@@ -77,29 +77,71 @@ const ProfilePage = () => {
     if (!profile) return;
     setSaving(true);
     
-    const updateData: any = {
-      display_name: displayName.trim() || null,
-      full_name: fullName.trim() || null,
-      bio: bio.trim() || null,
-      email_updates: emailUpdates,
-      sprint_reminders: sprintReminders,
-      weekly_summary: weeklySummary,
-      theme,
-      language,
-    };
+    try {
+      let avatarUrl = profile.avatarUrl;
+      
+      // Upload avatar if there's a new one
+      if (avatarPreview && avatarPreview !== profile.avatarUrl) {
+        const file = fileInputRef.current?.files?.[0];
+        if (file) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${profile.id}/avatar.${fileExt}`;
+          
+          // Upload to Supabase Storage
+          const { error: uploadError, data } = await supabase.storage
+            .from('avatars')
+            .upload(fileName, file, {
+              upsert: true,
+              contentType: file.type
+            });
+          
+          if (uploadError) {
+            throw new Error('Erro ao fazer upload do avatar: ' + uploadError.message);
+          }
+          
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+          
+          avatarUrl = publicUrl;
+        }
+      }
+      
+      const updateData: any = {
+        display_name: displayName.trim() || null,
+        full_name: fullName.trim() || null,
+        bio: bio.trim() || null,
+        avatar_url: avatarUrl,
+        email_updates: emailUpdates,
+        sprint_reminders: sprintReminders,
+        weekly_summary: weeklySummary,
+        theme,
+        language,
+      };
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(updateData)
-      .eq('id', profile.id);
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', profile.id);
 
-    if (error) {
-      toast.error('Erro ao salvar alterações');
-    } else {
+      if (error) {
+        throw new Error('Erro ao salvar alterações: ' + error.message);
+      }
+
       toast.success('Perfil atualizado com sucesso');
       await refetch();
+      
+      // Clear avatar preview after successful save
+      if (avatarPreview && avatarPreview !== profile.avatarUrl) {
+        setAvatarPreview(null);
+      }
+      
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao salvar alterações');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handlePasswordReset = async () => {
@@ -183,14 +225,15 @@ const ProfilePage = () => {
                         <div className="relative group">
                           <div
                             className="h-32 w-32 rounded-full flex items-center justify-center text-white font-bold text-2xl cursor-pointer overflow-hidden"
-                            style={{ backgroundColor: avatarColor }}
+                            style={{ 
+                              backgroundColor: (!avatarPreview && !profile.avatarUrl) ? avatarColor : 'transparent',
+                              backgroundImage: (avatarPreview || profile.avatarUrl) ? `url(${avatarPreview || profile.avatarUrl})` : 'none',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}
                             onClick={() => fileInputRef.current?.click()}
                           >
-                            {avatarPreview ? (
-                              <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
-                            ) : (
-                              initial
-                            )}
+                            {!avatarPreview && !profile.avatarUrl && initial}
                           </div>
                           <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                             <Camera className="h-6 w-6 text-white" />
