@@ -86,12 +86,20 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
               : 'text-sidebar-foreground hover:bg-sidebar-accent'
           )}
         >
-          <div
-            className="h-8 w-8 rounded-full flex items-center justify-center text-white font-semibold text-xs shrink-0"
-            style={{ backgroundColor: avatarColor }}
-          >
-            {initial}
-          </div>
+          {profile?.avatarUrl ? (
+            <img
+              src={profile.avatarUrl}
+              alt="avatar"
+              className="h-8 w-8 rounded-full object-cover shrink-0"
+            />
+          ) : (
+            <div
+              className="h-8 w-8 rounded-full flex items-center justify-center text-white font-semibold text-xs shrink-0"
+              style={{ backgroundColor: avatarColor }}
+            >
+              {initial}
+            </div>
+          )}
           <div className="min-w-0 text-left">
             <p className="text-sm font-semibold truncate">
               {profile?.displayName || profile?.fullName || 'Usuário'}
