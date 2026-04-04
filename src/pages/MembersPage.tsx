@@ -53,11 +53,9 @@ const MembersPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">Membros</h1>
           <p className="text-sm text-muted-foreground">Gerencie quem tem acesso a {activeProduct?.name}</p>
         </div>
-        {isOwner && (
-          <Button onClick={() => setInviteOpen(true)} className="gap-2">
-            <UserPlus className="h-4 w-4" /> Convidar Membro
-          </Button>
-        )}
+        <Button onClick={() => setInviteOpen(true)} className="gap-2">
+          <UserPlus className="h-4 w-4" /> Convidar Membro
+        </Button>
       </div>
 
       {/* Members list */}
@@ -108,7 +106,7 @@ const MembersPage = () => {
       </Card>
 
       {/* Pending invites */}
-      {isOwner && invites.length > 0 && (
+      {invites.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Mail className="h-4 w-4" /> Convites Pendentes ({invites.length})</CardTitle></CardHeader>
           <CardContent>
