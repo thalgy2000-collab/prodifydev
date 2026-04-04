@@ -53,11 +53,9 @@ const MembersPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">Membros</h1>
           <p className="text-sm text-muted-foreground">Gerencie quem tem acesso a {activeProduct?.name}</p>
         </div>
-        {isOwner && (
-          <Button onClick={() => setInviteOpen(true)} className="gap-2">
-            <UserPlus className="h-4 w-4" /> Convidar Membro
-          </Button>
-        )}
+        <Button onClick={() => setInviteOpen(true)} className="gap-2">
+          <UserPlus className="h-4 w-4" /> Convidar Membro
+        </Button>
       </div>
 
       {/* Members list */}
