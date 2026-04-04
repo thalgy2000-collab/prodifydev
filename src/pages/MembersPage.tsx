@@ -106,7 +106,7 @@ const MembersPage = () => {
       </Card>
 
       {/* Pending invites */}
-      {isOwner && invites.length > 0 && (
+      {invites.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="text-base flex items-center gap-2"><Mail className="h-4 w-4" /> Convites Pendentes ({invites.length})</CardTitle></CardHeader>
           <CardContent>
