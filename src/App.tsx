@@ -124,6 +124,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<AuthRoute />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/invite/:token" element={<InviteAcceptPage />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>
