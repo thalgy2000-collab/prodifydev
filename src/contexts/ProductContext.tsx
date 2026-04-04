@@ -22,6 +22,17 @@ export interface ProductMember {
   createdAt: string;
 }
 
+export interface ProductInvite {
+  id: string;
+  productId: string;
+  email: string;
+  role: string;
+  status: string;
+  token: string;
+  createdAt: string;
+  expiresAt: string | null;
+}
+
 interface ProductContextType {
   products: Product[];
   activeProduct: Product | null;
@@ -36,6 +47,10 @@ interface ProductContextType {
   removeMember: (memberId: string) => Promise<void>;
   updateMemberRole: (memberId: string, role: string) => Promise<void>;
   userRole: string | null;
+  invites: ProductInvite[];
+  fetchInvites: () => Promise<void>;
+  createInvite: (email: string, role: string) => Promise<{ error?: string }>;
+  cancelInvite: (inviteId: string) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType>({} as ProductContextType);
@@ -52,6 +67,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   );
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<ProductMember[]>([]);
+  const [invites, setInvites] = useState<ProductInvite[]>([]);
 
   const setActiveProductId = useCallback((id: string | null) => {
     setActiveProductIdState(id);
@@ -118,6 +134,22 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
 
+  const fetchInvites = useCallback(async () => {
+    if (!activeProductId) { setInvites([]); return; }
+    const { data } = await (supabase.from('product_invites') as any)
+      .select('*')
+      .eq('product_id', activeProductId)
+      .eq('status', 'pending');
+    if (data) {
+      setInvites(data.map((d: any) => ({
+        id: d.id, productId: d.product_id, email: d.email, role: d.role,
+        status: d.status, token: d.token, createdAt: d.created_at, expiresAt: d.expires_at,
+      })));
+    }
+  }, [activeProductId]);
+
+  useEffect(() => { fetchInvites(); }, [fetchInvites]);
+
   const inviteMember = useCallback(async (email: string, role: string) => {
     if (!activeProductId) return { error: 'Nenhum produto ativo' };
     const { data } = await supabase.rpc('invite_product_member' as any, {
@@ -127,6 +159,24 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     await fetchMembers();
     return {};
   }, [activeProductId, fetchMembers]);
+
+  const createInvite = useCallback(async (email: string, role: string) => {
+    if (!activeProductId || !user) return { error: 'Nenhum produto ativo' };
+    const { error } = await (supabase.from('product_invites') as any).insert({
+      product_id: activeProductId,
+      invited_by: user.id,
+      email,
+      role,
+    });
+    if (error) return { error: error.message };
+    await fetchInvites();
+    return {};
+  }, [activeProductId, user, fetchInvites]);
+
+  const cancelInvite = useCallback(async (inviteId: string) => {
+    await (supabase.from('product_invites') as any).delete().eq('id', inviteId);
+    await fetchInvites();
+  }, [fetchInvites]);
 
   const removeMember = useCallback(async (memberId: string) => {
     await (supabase.from('product_members') as any).delete().eq('id', memberId);
@@ -145,6 +195,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       products, activeProduct, setActiveProductId, loading, fetchProducts,
       createProduct, deleteProduct, members, fetchMembers,
       inviteMember, removeMember, updateMemberRole, userRole,
+      invites, fetchInvites, createInvite, cancelInvite,
     }}>
       {children}
     </ProductContext.Provider>

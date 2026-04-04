@@ -3,18 +3,21 @@ import { useProduct } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { UserPlus, Trash2, Users } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { UserPlus, Trash2, Users, Mail, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 const ROLE_LABELS: Record<string, string> = { owner: 'Dono', editor: 'Editor', viewer: 'Visualizador' };
 
 const MembersPage = () => {
-  const { members, inviteMember, removeMember, updateMemberRole, userRole, activeProduct } = useProduct();
+  const { members, removeMember, updateMemberRole, userRole, activeProduct, invites, createInvite, cancelInvite } = useProduct();
   const { user } = useAuth();
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('editor');
   const [inviting, setInviting] = useState(false);
@@ -24,49 +27,58 @@ const MembersPage = () => {
   const handleInvite = async () => {
     if (!email.trim()) return;
     setInviting(true);
-    const result = await inviteMember(email, role);
+    const result = await createInvite(email.trim(), role);
     if (result.error) toast.error(result.error);
-    else { toast.success('Membro convidado!'); setEmail(''); }
+    else { toast.success('Convite enviado!'); setEmail(''); setRole('editor'); setInviteOpen(false); }
     setInviting(false);
+  };
+
+  const getInitial = (name?: string, email?: string) => {
+    const val = name || email || '?';
+    return val.charAt(0).toUpperCase();
+  };
+
+  const getAvatarColor = (name?: string) => {
+    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#14b8a6'];
+    const val = name || '';
+    let hash = 0;
+    for (let i = 0; i < val.length; i++) hash = val.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Membros</h1>
-        <p className="text-sm text-muted-foreground">Gerencie quem tem acesso a {activeProduct?.name}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Membros</h1>
+          <p className="text-sm text-muted-foreground">Gerencie quem tem acesso a {activeProduct?.name}</p>
+        </div>
+        {isOwner && (
+          <Button onClick={() => setInviteOpen(true)} className="gap-2">
+            <UserPlus className="h-4 w-4" /> Convidar Membro
+          </Button>
+        )}
       </div>
 
-      {isOwner && (
-        <Card>
-          <CardHeader><CardTitle className="text-base flex items-center gap-2"><UserPlus className="h-4 w-4" /> Convidar Membro</CardTitle></CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" className="flex-1" />
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="viewer">Visualizador</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={handleInvite} disabled={inviting}>Convidar</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
+      {/* Members list */}
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4" /> Membros ({members.length})</CardTitle></CardHeader>
         <CardContent>
-          <div className="divide-y">
+          <div className="divide-y divide-border">
             {members.map(member => (
               <div key={member.id} className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-sm font-medium">{member.displayName || member.email || 'Usuário'}</p>
-                  {member.email && member.displayName && (
-                    <p className="text-xs text-muted-foreground">{member.email}</p>
-                  )}
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback style={{ backgroundColor: getAvatarColor(member.displayName || member.email) }} className="text-white text-sm font-semibold">
+                      {getInitial(member.displayName, member.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{member.displayName || member.email || 'Usuário'}</p>
+                    {member.email && member.displayName && (
+                      <p className="text-xs text-muted-foreground">{member.email}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {isOwner && member.role !== 'owner' ? (
@@ -94,6 +106,73 @@ const MembersPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pending invites */}
+      {isOwner && invites.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base flex items-center gap-2"><Mail className="h-4 w-4" /> Convites Pendentes ({invites.length})</CardTitle></CardHeader>
+          <CardContent>
+            <div className="divide-y divide-border">
+              {invites.map(invite => (
+                <div key={invite.id} className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{invite.email}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>Enviado em {format(new Date(invite.createdAt), 'dd/MM/yyyy')}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{ROLE_LABELS[invite.role] || invite.role}</Badge>
+                    <Badge variant="secondary" className="text-xs">Pendente</Badge>
+                    <Button variant="ghost" size="icon" className="h-7 w-7"
+                      onClick={() => { cancelInvite(invite.id); toast.success('Convite cancelado'); }}>
+                      <X className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Invite modal */}
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Convidar Membro</DialogTitle>
+            <DialogDescription>Envie um convite por e-mail para adicionar um novo membro ao produto.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">E-mail</label>
+              <Input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" type="email" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Papel</label>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="editor">Editor</SelectItem>
+                  <SelectItem value="viewer">Visualizador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancelar</Button>
+            <Button onClick={handleInvite} disabled={inviting || !email.trim()}>
+              {inviting ? 'Enviando...' : 'Enviar Convite'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
