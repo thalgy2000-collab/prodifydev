@@ -67,6 +67,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   );
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<ProductMember[]>([]);
+  const [invites, setInvites] = useState<ProductInvite[]>([]);
 
   const setActiveProductId = useCallback((id: string | null) => {
     setActiveProductIdState(id);
