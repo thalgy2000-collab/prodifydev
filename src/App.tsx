@@ -26,6 +26,7 @@ import PrdPage from "./pages/PrdPage";
 import MembersPage from "./pages/MembersPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import InviteAcceptPage from "./pages/InviteAcceptPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 
