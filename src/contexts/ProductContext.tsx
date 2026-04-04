@@ -151,14 +151,39 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => { fetchInvites(); }, [fetchInvites]);
 
   const inviteMember = useCallback(async (email: string, role: string) => {
-    if (!activeProductId) return { error: 'Nenhum produto ativo' };
-    const { data } = await supabase.rpc('invite_product_member' as any, {
-      _product_id: activeProductId, _email: email, _role: role,
+    if (!activeProductId || !user) return { error: 'Nenhum produto ativo' };
+
+    // 1. Insere o convite na tabela product_invites
+    const { data: invite, error: inviteError } = await supabase
+      .from('product_invites' as any)
+      .insert({
+        product_id: activeProductId,
+        invited_by: user.id,
+        email: email.trim().toLowerCase(),
+        role,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (inviteError) {
+      if (inviteError.code === '23505') return { error: 'Este e-mail já foi convidado' };
+      return { error: inviteError.message };
+    }
+
+    // 2. Chama a Edge Function para enviar o e-mail
+    const { error: fnError } = await supabase.functions.invoke('send-invite-email', {
+      body: { invite_id: invite.id },
     });
-    if ((data as any)?.error) return { error: (data as any).error };
+
+    if (fnError) {
+      console.error('Erro ao enviar e-mail:', fnError);
+      // Não bloqueia — convite foi criado mas e-mail falhou
+    }
+
     await fetchMembers();
     return {};
-  }, [activeProductId, fetchMembers]);
+  }, [activeProductId, user, fetchMembers]);
 
   const createInvite = useCallback(async (email: string, role: string) => {
     if (!activeProductId || !user) return { error: 'Nenhum produto ativo' };
