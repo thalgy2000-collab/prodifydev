@@ -22,6 +22,17 @@ export interface ProductMember {
   createdAt: string;
 }
 
+export interface ProductInvite {
+  id: string;
+  productId: string;
+  email: string;
+  role: string;
+  status: string;
+  token: string;
+  createdAt: string;
+  expiresAt: string | null;
+}
+
 interface ProductContextType {
   products: Product[];
   activeProduct: Product | null;
@@ -36,6 +47,10 @@ interface ProductContextType {
   removeMember: (memberId: string) => Promise<void>;
   updateMemberRole: (memberId: string, role: string) => Promise<void>;
   userRole: string | null;
+  invites: ProductInvite[];
+  fetchInvites: () => Promise<void>;
+  createInvite: (email: string, role: string) => Promise<{ error?: string }>;
+  cancelInvite: (inviteId: string) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType>({} as ProductContextType);
