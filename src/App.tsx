@@ -84,10 +84,16 @@ const AuthenticatedLayout = () => {
 const ProtectedRoutes = () => {
   const { user, loading } = useAuth();
   const { profile, loading: profileLoading, refetch } = useProfile();
+  const pendingToken = localStorage.getItem('pending_invite_token');
 
   if (loading || profileLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // If there's a pending invite token, redirect to accept it
+  if (pendingToken) {
+    return <Navigate to={`/invite/${pendingToken}`} replace />;
   }
 
   if (profile && !profile.termsAcceptedAt) {
