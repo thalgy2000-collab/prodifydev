@@ -14,9 +14,9 @@ export const PendingInviteBanner = () => {
 
   if (pendingInvites.length === 0) return null;
 
-  const handleAccept = async (id: string) => {
-    await acceptInvite(id);
-    toast.success('Convite aceito!');
+  const handleAccept = async (invite: typeof pendingInvites[0]) => {
+    await acceptInvite(invite.id);
+    toast.success(`Você agora é membro de ${invite.productName}!`);
   };
 
   const handleReject = async (id: string) => {
