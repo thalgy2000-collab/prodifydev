@@ -14,9 +14,9 @@ export const PendingInviteBanner = () => {
 
   if (pendingInvites.length === 0) return null;
 
-  const handleAccept = async (id: string) => {
-    await acceptInvite(id);
-    toast.success('Convite aceito!');
+  const handleAccept = async (invite: typeof pendingInvites[0]) => {
+    await acceptInvite(invite.id);
+    toast.success(`Você agora é membro de ${invite.productName}!`);
   };
 
   const handleReject = async (id: string) => {
@@ -36,7 +36,7 @@ export const PendingInviteBanner = () => {
             <strong>{roleLabels[invite.role] || invite.role}</strong>
           </p>
           <div className="flex gap-2 shrink-0">
-            <Button size="sm" onClick={() => handleAccept(invite.id)} className="gap-1">
+            <Button size="sm" onClick={() => handleAccept(invite)} className="gap-1">
               <Check className="h-4 w-4" /> Aceitar
             </Button>
             <Button size="sm" variant="outline" onClick={() => handleReject(invite.id)} className="gap-1">
