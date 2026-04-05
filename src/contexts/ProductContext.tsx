@@ -33,6 +33,14 @@ export interface ProductInvite {
   expiresAt: string | null;
 }
 
+export interface PendingInvite {
+  id: string;
+  productId: string;
+  productName: string;
+  role: string;
+  createdAt: string;
+}
+
 interface ProductContextType {
   products: Product[];
   activeProduct: Product | null;
@@ -51,6 +59,10 @@ interface ProductContextType {
   fetchInvites: () => Promise<void>;
   createInvite: (email: string, role: string) => Promise<{ error?: string }>;
   cancelInvite: (inviteId: string) => Promise<void>;
+  pendingInvites: PendingInvite[];
+  fetchPendingInvites: () => Promise<void>;
+  acceptInvite: (inviteId: string) => Promise<void>;
+  rejectInvite: (inviteId: string) => Promise<void>;
 }
 
 const ProductContext = createContext<ProductContextType>({} as ProductContextType);
