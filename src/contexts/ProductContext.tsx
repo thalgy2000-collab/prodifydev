@@ -80,6 +80,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<ProductMember[]>([]);
   const [invites, setInvites] = useState<ProductInvite[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
 
   const setActiveProductId = useCallback((id: string | null) => {
     setActiveProductIdState(id);
@@ -165,9 +166,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const inviteMember = useCallback(async (email: string, role: string) => {
     if (!activeProductId || !user) return { error: 'Nenhum produto ativo' };
 
-    // 1. Insere o convite na tabela product_invites
-    const { data: invite, error: inviteError } = await supabase
-      .from('product_invites' as any)
+    const { data: invite, error: inviteError } = await (supabase.from('product_invites') as any)
       .insert({
         product_id: activeProductId,
         invited_by: user.id,
@@ -183,14 +182,12 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       return { error: inviteError.message };
     }
 
-    // 2. Chama a Edge Function para enviar o e-mail
     const { error: fnError } = await supabase.functions.invoke('send-invite-email', {
-      body: { invite_id: invite.id },
+      body: { invite_id: (invite as any).id },
     });
 
     if (fnError) {
       console.error('Erro ao enviar e-mail:', fnError);
-      // Não bloqueia — convite foi criado mas e-mail falhou
     }
 
     await fetchMembers();
@@ -227,12 +224,58 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
   const userRole = user ? (members.find(m => m.userId === user.id)?.role || null) : null;
 
+  const fetchPendingInvites = useCallback(async () => {
+    if (!user?.email) { setPendingInvites([]); return; }
+    const { data } = await (supabase.from('product_invites') as any)
+      .select('*, products:product_id(name)')
+      .eq('email', user.email.toLowerCase())
+      .eq('status', 'pending');
+    if (data) {
+      setPendingInvites(data.map((d: any) => ({
+        id: d.id,
+        productId: d.product_id,
+        productName: d.products?.name || 'Produto',
+        role: d.role,
+        createdAt: d.created_at,
+      })));
+    }
+  }, [user?.email]);
+
+  useEffect(() => { fetchPendingInvites(); }, [fetchPendingInvites]);
+
+  const acceptInvite = useCallback(async (inviteId: string) => {
+    if (!user) return;
+    const invite = pendingInvites.find(i => i.id === inviteId);
+    if (!invite) return;
+
+    await (supabase.from('product_members') as any).insert({
+      product_id: invite.productId,
+      user_id: user.id,
+      role: invite.role,
+    });
+
+    await (supabase.from('product_invites') as any)
+      .update({ status: 'accepted' })
+      .eq('id', inviteId);
+
+    await fetchProducts();
+    await fetchPendingInvites();
+  }, [user, pendingInvites, fetchProducts, fetchPendingInvites]);
+
+  const rejectInvite = useCallback(async (inviteId: string) => {
+    await (supabase.from('product_invites') as any)
+      .update({ status: 'expired' })
+      .eq('id', inviteId);
+    await fetchPendingInvites();
+  }, [fetchPendingInvites]);
+
   return (
     <ProductContext.Provider value={{
       products, activeProduct, setActiveProductId, loading, fetchProducts,
       createProduct, deleteProduct, members, fetchMembers,
       inviteMember, removeMember, updateMemberRole, userRole,
       invites, fetchInvites, createInvite, cancelInvite,
+      pendingInvites, fetchPendingInvites, acceptInvite, rejectInvite,
     }}>
       {children}
     </ProductContext.Provider>
