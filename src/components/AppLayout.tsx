@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { OnboardingTour } from '@/components/OnboardingTour';
+import { PendingInviteBanner } from '@/components/PendingInviteBanner';
 import { useProfile } from '@/hooks/useProfile';
 import { useProduct } from '@/contexts/ProductContext';
 
@@ -34,6 +35,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <header className="h-12 flex items-center border-b border-border bg-card gap-2">
             <SidebarTrigger className="ml-3" />
           </header>
+          <PendingInviteBanner />
           <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
             {children}
           </main>
