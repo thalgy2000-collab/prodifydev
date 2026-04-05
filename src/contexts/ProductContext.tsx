@@ -258,16 +258,45 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       .update({ status: 'accepted' })
       .eq('id', inviteId);
 
+    // Notify product owner
+    const { data: product } = await (supabase.from('products') as any)
+      .select('owner_id').eq('id', invite.productId).single();
+    if (product?.owner_id) {
+      await (supabase.from('notifications') as any).insert({
+        user_id: product.owner_id,
+        title: 'Convite aceito',
+        message: `${user.email} aceitou o convite para ${invite.productName}`,
+        type: 'success',
+      });
+    }
+
     await fetchProducts();
     await fetchPendingInvites();
   }, [user, pendingInvites, fetchProducts, fetchPendingInvites]);
 
   const rejectInvite = useCallback(async (inviteId: string) => {
+    const invite = pendingInvites.find(i => i.id === inviteId);
+
     await (supabase.from('product_invites') as any)
       .update({ status: 'expired' })
       .eq('id', inviteId);
+
+    // Notify product owner
+    if (invite && user) {
+      const { data: product } = await (supabase.from('products') as any)
+        .select('owner_id').eq('id', invite.productId).single();
+      if (product?.owner_id) {
+        await (supabase.from('notifications') as any).insert({
+          user_id: product.owner_id,
+          title: 'Convite recusado',
+          message: `${user.email} recusou o convite para ${invite.productName}`,
+          type: 'warning',
+        });
+      }
+    }
+
     await fetchPendingInvites();
-  }, [fetchPendingInvites]);
+  }, [user, pendingInvites, fetchPendingInvites]);
 
   return (
     <ProductContext.Provider value={{
