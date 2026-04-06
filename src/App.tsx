@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProductProvider, useProduct } from "@/contexts/ProductContext";
 import { GlobalSidebar } from "./components/GlobalSidebar";
 import { MobileHeader } from "./components/MobileHeader";
+import { NotificationBell } from "./components/NotificationBell";
 import AppLayout from "./components/AppLayout";
 import TermsModal from "./components/TermsModal";
 import { useProfile } from "./hooks/useProfile";
