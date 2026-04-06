@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from 'react';
 import { Bell, Info, CheckCircle, AlertTriangle, Mail, CheckCheck, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -7,22 +6,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useNotifications, AppNotification } from '@/hooks/useNotifications';
+import { useInvites, PendingInvite } from '@/hooks/useInvites';
 import { useProduct } from '@/contexts/ProductContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { toast } from 'sonner';
-
-interface PendingInviteItem {
-  id: string;
-  productId: string;
-  productName: string;
-  role: string;
-  createdAt: string;
-}
 
 const typeIcons: Record<string, React.ElementType> = {
   info: Info,
@@ -76,17 +65,16 @@ const NotificationItem = ({
 const InviteItem = ({
   invite,
   onAccept,
-  onReject,
+  onDecline,
 }: {
-  invite: PendingInviteItem;
-  onAccept: (invite: PendingInviteItem) => void;
-  onReject: (invite: PendingInviteItem) => void;
+  invite: PendingInvite;
+  onAccept: (id: string, productId: string, role: string) => void;
+  onDecline: (id: string) => void;
 }) => {
   const timeAgo = formatDistanceToNow(new Date(invite.createdAt), {
     addSuffix: true,
     locale: ptBR,
   });
-
   const roleLabel = invite.role === 'editor' ? 'Editor' : invite.role === 'viewer' ? 'Visualizador' : invite.role;
 
   return (
@@ -97,11 +85,11 @@ const InviteItem = ({
         <p className="text-xs text-muted-foreground mt-0.5">Você foi convidado como {roleLabel}</p>
         <p className="text-[11px] text-muted-foreground/70 mt-1">{timeAgo}</p>
         <div className="flex gap-2 mt-2">
-          <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={() => onAccept(invite)}>
+          <Button size="sm" variant="default" className="h-7 text-xs gap-1" onClick={() => onAccept(invite.id, invite.productId, invite.role)}>
             <Check className="h-3.5 w-3.5" />
             Aceitar
           </Button>
-          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => onReject(invite)}>
+          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => onDecline(invite.id)}>
             <X className="h-3.5 w-3.5" />
             Recusar
           </Button>
@@ -114,76 +102,12 @@ const InviteItem = ({
 
 export const NotificationBell = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { pendingInvites, acceptInvite, declineInvite } = useInvites();
   const { fetchProducts } = useProduct();
-  const { user } = useAuth();
-  const [pendingInvites, setPendingInvites] = useState<PendingInviteItem[]>([]);
 
-  const fetchPendingInvites = useCallback(async () => {
-    if (!user?.email) return;
-    const { data } = await (supabase.from('product_invites') as any)
-      .select('*, products!product_invites_product_id_fkey(name)')
-      .eq('email', user.email)
-      .eq('status', 'pending');
-    if (data) {
-      setPendingInvites(data.map((d: any) => ({
-        id: d.id,
-        productId: d.product_id,
-        productName: d.products?.name || 'Produto',
-        role: d.role,
-        createdAt: d.created_at,
-      })));
-    }
-  }, [user?.email]);
-
-  useEffect(() => { fetchPendingInvites(); }, [fetchPendingInvites]);
-
-  const handleAcceptInvite = async (invite: PendingInviteItem) => {
-    if (!user) return;
-    const { error: memberError } = await (supabase.from('product_members') as any)
-      .insert({ product_id: invite.productId, user_id: user.id, role: invite.role });
-    if (memberError) {
-      toast.error('Erro ao aceitar convite');
-      return;
-    }
-    await (supabase.from('product_invites') as any)
-      .update({ status: 'accepted' })
-      .eq('id', invite.id);
-
-    // Notify product owner
-    const { data: product } = await supabase.from('products').select('owner_id').eq('id', invite.productId).single();
-    if (product?.owner_id) {
-      await supabase.rpc('create_notification', {
-        _user_id: product.owner_id,
-        _title: 'Convite aceito',
-        _message: `${user.email} aceitou o convite para ${invite.productName}`,
-        _type: 'success',
-      });
-    }
-
-    toast.success(`Você agora é membro de ${invite.productName}!`);
+  const handleAccept = async (id: string, productId: string, role: string) => {
+    await acceptInvite(id, productId, role);
     await fetchProducts();
-    await fetchPendingInvites();
-  };
-
-  const handleRejectInvite = async (invite: PendingInviteItem) => {
-    if (!user) return;
-    await (supabase.from('product_invites') as any)
-      .update({ status: 'expired' })
-      .eq('id', invite.id);
-
-    // Notify product owner
-    const { data: product } = await supabase.from('products').select('owner_id').eq('id', invite.productId).single();
-    if (product?.owner_id) {
-      await supabase.rpc('create_notification', {
-        _user_id: product.owner_id,
-        _title: 'Convite recusado',
-        _message: `${user.email} recusou o convite para ${invite.productName}`,
-        _type: 'warning',
-      });
-    }
-
-    toast.info('Convite recusado');
-    await fetchPendingInvites();
   };
 
   const totalUnread = unreadCount + pendingInvites.length;
@@ -223,7 +147,7 @@ export const NotificationBell = () => {
           ) : (
             <div className="divide-y divide-border">
               {pendingInvites.map((inv) => (
-                <InviteItem key={inv.id} invite={inv} onAccept={handleAcceptInvite} onReject={handleRejectInvite} />
+                <InviteItem key={inv.id} invite={inv} onAccept={handleAccept} onDecline={declineInvite} />
               ))}
               {notifications.map((n) => (
                 <NotificationItem key={n.id} notification={n} onRead={markAsRead} />
