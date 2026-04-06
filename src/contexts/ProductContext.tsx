@@ -262,11 +262,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     const { data: product } = await (supabase.from('products') as any)
       .select('owner_id').eq('id', invite.productId).single();
     if (product?.owner_id) {
-      await (supabase.from('notifications') as any).insert({
-        user_id: product.owner_id,
-        title: 'Convite aceito',
-        message: `${user.email} aceitou o convite para ${invite.productName}`,
-        type: 'success',
+      await supabase.rpc('create_notification', {
+        _user_id: product.owner_id,
+        _title: 'Convite aceito',
+        _message: `${user.email} aceitou o convite para ${invite.productName}`,
+        _type: 'success',
       });
     }
 
@@ -286,11 +286,11 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       const { data: product } = await (supabase.from('products') as any)
         .select('owner_id').eq('id', invite.productId).single();
       if (product?.owner_id) {
-        await (supabase.from('notifications') as any).insert({
-          user_id: product.owner_id,
-          title: 'Convite recusado',
-          message: `${user.email} recusou o convite para ${invite.productName}`,
-          type: 'warning',
+        await supabase.rpc('create_notification', {
+          _user_id: product.owner_id,
+          _title: 'Convite recusado',
+          _message: `${user.email} recusou o convite para ${invite.productName}`,
+          _type: 'warning',
         });
       }
     }
