@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useProfile } from '@/hooks/useProfile';
+import { useProduct } from '@/contexts/ProductContext';
+import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,10 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Save, User, Shield, Settings, Bell, Camera, Lock, LogOut, Mail, Calendar } from 'lucide-react';
+import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, Mail, Calendar, Palette, Trash2 } from 'lucide-react';
 
 const ProfilePage = () => {
   const { profile, loading, initial, avatarColor, refetch } = useProfile();
+  const { activeProduct, deleteProduct } = useProduct();
+  const { isDark, toggle } = useTheme();
 
   // ✅ TODOS os hooks ANTES de qualquer return condicional
   const [displayName, setDisplayName] = useState('');
@@ -19,12 +23,19 @@ const ProfilePage = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activeSection, setActiveSection] = useState('profile');
+  const [productName, setProductName] = useState('');
+  const [productDescription, setProductDescription] = useState('');
+  const [productEmoji, setProductEmoji] = useState('');
+  const [productColor, setProductColor] = useState('');
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [language, setLanguage] = useState(localStorage.getItem('prodify_language') || 'pt-BR');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const menuItems = [
     { id: 'profile', label: 'Perfil', icon: User },
     { id: 'security', label: 'Segurança', icon: Shield },
-    { id: 'notifications', label: 'Notificações', icon: Bell },
+    { id: 'product', label: 'Produto', icon: Settings },
+    { id: 'app', label: 'App', icon: Sliders },
   ];
 
   useEffect(() => {
@@ -34,6 +45,15 @@ const ProfilePage = () => {
       setBio(profile.bio || '');
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (activeProduct) {
+      setProductName(activeProduct.name || '');
+      setProductDescription(activeProduct.description || '');
+      setProductEmoji(activeProduct.emoji || '');
+      setProductColor(activeProduct.color || '');
+    }
+  }, [activeProduct]);
 
   // ✅ Returns condicionais SÓ depois de todos os hooks
   if (loading) {
@@ -111,6 +131,45 @@ const ProfilePage = () => {
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut({ scope: 'global' });
     error ? toast.error('Erro ao sair') : toast.success('Desconectado de todos os dispositivos');
+  };
+
+  const handleSaveProduct = async () => {
+    if (!activeProduct) return;
+    setSavingProduct(true);
+    try {
+      const { error } = await supabase.from('products').update({
+        name: productName.trim(),
+        description: productDescription.trim(),
+        emoji: productEmoji.trim(),
+        color: productColor,
+      }).eq('id', activeProduct.id);
+
+      if (error) throw new Error('Erro ao salvar: ' + error.message);
+
+      toast.success('Produto atualizado com sucesso!');
+      // Refetch products if needed, but since useProduct doesn't have refetch, maybe call fetchProducts
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao salvar alterações');
+    } finally {
+      setSavingProduct(false);
+    }
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!activeProduct) return;
+    if (!window.confirm('Tem certeza que deseja excluir este produto? Esta ação não pode ser desfeita.')) return;
+    try {
+      await deleteProduct(activeProduct.id);
+      toast.success('Produto excluído com sucesso!');
+    } catch (err: any) {
+      toast.error('Erro ao excluir produto');
+    }
+  };
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage);
+    localStorage.setItem('prodify_language', newLanguage);
+    toast.success('Idioma alterado com sucesso!');
   };
 
   return (
@@ -244,12 +303,106 @@ const ProfilePage = () => {
             </div>
           )}
 
-          {activeSection === 'notifications' && (
+          {activeSection === 'product' && (
             <div className="max-w-2xl mx-auto space-y-6">
               <div>
-                <h1 className="text-2xl font-bold tracking-tight">Notificações</h1>
-                <p className="text-muted-foreground mt-1">Em breve você poderá configurar notificações aqui.</p>
+                <h1 className="text-2xl font-bold tracking-tight">Produto</h1>
+                <p className="text-muted-foreground mt-1">Gerencie as configurações do seu produto</p>
               </div>
+              {activeProduct ? (
+                <>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-6 space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="productName">Nome do produto</Label>
+                        <Input id="productName" value={productName} onChange={e => setProductName(e.target.value)} placeholder="Nome do produto" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="productDescription">Descrição</Label>
+                        <Textarea id="productDescription" value={productDescription} onChange={e => setProductDescription(e.target.value)} placeholder="Descrição do produto" rows={3} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="productEmoji">Emoji</Label>
+                          <Input id="productEmoji" value={productEmoji} onChange={e => setProductEmoji(e.target.value)} placeholder="🚀" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="productColor">Cor</Label>
+                          <div className="flex items-center gap-2">
+                            <Input id="productColor" type="color" value={productColor} onChange={e => setProductColor(e.target.value)} className="w-12 h-10 p-1" />
+                            <Input value={productColor} onChange={e => setProductColor(e.target.value)} placeholder="#000000" />
+                          </div>
+                        </div>
+                      </div>
+                      <Button onClick={handleSaveProduct} disabled={savingProduct} className="w-full">
+                        {savingProduct ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                        Salvar alterações
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card border-red-200 dark:border-red-800">
+                    <CardContent className="p-6 space-y-4">
+                      <div>
+                        <h3 className="font-medium text-red-600 dark:text-red-400">Zona de perigo</h3>
+                        <p className="text-sm text-muted-foreground">Ações irreversíveis</p>
+                      </div>
+                      <Button variant="destructive" onClick={handleDeleteProduct} className="w-full">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Excluir Produto
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </>
+              ) : (
+                <Card className="bg-card border-border">
+                  <CardContent className="p-6">
+                    <p className="text-muted-foreground">Nenhum produto ativo selecionado.</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {activeSection === 'app' && (
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">App</h1>
+                <p className="text-muted-foreground mt-1">Configurações gerais do aplicativo</p>
+              </div>
+              <Card className="bg-card border-border">
+                <CardContent className="p-6 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Palette className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <h3 className="font-medium">Modo Escuro</h3>
+                        <p className="text-sm text-muted-foreground">Alternar entre tema claro e escuro</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" onClick={toggle}>
+                      {isDark ? 'Desativar' : 'Ativar'}
+                    </Button>
+                  </div>
+                  <div className="border-t pt-6 space-y-2">
+                    <Label>Idioma</Label>
+                    <select
+                      value={language}
+                      onChange={e => handleLanguageChange(e.target.value)}
+                      className="w-full p-2 border border-border rounded-md bg-background"
+                    >
+                      <option value="pt-BR">Português (pt-BR)</option>
+                      <option value="en">English (en)</option>
+                    </select>
+                  </div>
+                  <div className="border-t pt-6 space-y-2">
+                    <h3 className="font-medium">Sobre</h3>
+                    <p className="text-sm text-muted-foreground">Versão do app: v1.0.0</p>
+                    <Button variant="link" asChild>
+                      <a href="mailto:suporte@prodify.com">Contato com suporte</a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>
