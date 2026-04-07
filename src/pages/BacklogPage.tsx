@@ -144,6 +144,12 @@ const BacklogPage = () => {
           </div>
           {task.description && <p className="mt-1 text-sm text-muted-foreground truncate">{task.description}</p>}
         </div>
+        {assignee && (
+          <Avatar className="h-7 w-7 shrink-0" title={assignee.name}>
+            <AvatarImage src={assignee.avatar || undefined} />
+            <AvatarFallback className="text-[10px]">{assignee.name.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        )}
         <div className="flex items-center gap-1 shrink-0">
           <Select value={task.status} onValueChange={v => updateTask(task.id, { status: v as TaskStatus })}>
             <SelectTrigger className="h-8 w-[130px]"><SelectValue /></SelectTrigger>
