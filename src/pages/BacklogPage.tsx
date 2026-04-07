@@ -29,20 +29,25 @@ const BacklogPage = () => {
 
   const fetchMembersMap = useCallback(async () => {
     if (!activeProduct) return;
-    const { data } = await (supabase.from('product_members') as any)
-      .select('user_id, profiles!product_members_user_id_fkey(display_name, full_name, email, avatar_url)')
+    const { data: membersData } = await (supabase.from('product_members') as any)
+      .select('user_id, role')
       .eq('product_id', activeProduct.id);
-    if (data) {
-      const map: Record<string, { name: string; avatar: string | null }> = {};
-      data.forEach((m: any) => {
-        const p = m.profiles;
-        map[m.user_id] = {
-          name: p?.display_name || p?.full_name || p?.email || '?',
-          avatar: p?.avatar_url || null,
-        };
-      });
-      setMembersMap(map);
-    }
+    if (!membersData || membersData.length === 0) { setMembersMap({}); return; }
+    const userIds = membersData.map((m: any) => m.user_id);
+    const { data: profilesData } = await (supabase.from('profiles') as any)
+      .select('id, display_name, full_name, email, avatar_url')
+      .in('id', userIds);
+    const profilesById: Record<string, any> = {};
+    (profilesData || []).forEach((p: any) => { profilesById[p.id] = p; });
+    const map: Record<string, { name: string; avatar: string | null }> = {};
+    membersData.forEach((m: any) => {
+      const p = profilesById[m.user_id];
+      map[m.user_id] = {
+        name: p?.display_name || p?.full_name || p?.email || '?',
+        avatar: p?.avatar_url || null,
+      };
+    });
+    setMembersMap(map);
   }, [activeProduct]);
 
   useEffect(() => { fetchMembersMap(); }, [fetchMembersMap]);

@@ -46,19 +46,24 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
 
   const fetchMembers = useCallback(async () => {
     if (!activeProduct) return;
-    const { data } = await (supabase.from('product_members') as any)
-      .select('user_id, role, profiles!product_members_user_id_fkey(display_name, full_name, email, avatar_url)')
+    const { data: membersData } = await (supabase.from('product_members') as any)
+      .select('user_id, role')
       .eq('product_id', activeProduct.id);
-    if (data) {
-      setMemberOptions(data.map((m: any) => {
-        const p = m.profiles;
-        return {
-          userId: m.user_id,
-          displayName: p?.display_name || p?.full_name || p?.email || 'Sem nome',
-          avatarUrl: p?.avatar_url || null,
-        };
-      }));
-    }
+    if (!membersData || membersData.length === 0) { setMemberOptions([]); return; }
+    const userIds = membersData.map((m: any) => m.user_id);
+    const { data: profilesData } = await (supabase.from('profiles') as any)
+      .select('id, display_name, full_name, email, avatar_url')
+      .in('id', userIds);
+    const profilesMap: Record<string, any> = {};
+    (profilesData || []).forEach((p: any) => { profilesMap[p.id] = p; });
+    setMemberOptions(membersData.map((m: any) => {
+      const p = profilesMap[m.user_id];
+      return {
+        userId: m.user_id,
+        displayName: p?.display_name || p?.full_name || p?.email || 'Sem nome',
+        avatarUrl: p?.avatar_url || null,
+      };
+    }));
   }, [activeProduct]);
 
   useEffect(() => {
