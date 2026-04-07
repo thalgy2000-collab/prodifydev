@@ -24,6 +24,28 @@ const BacklogPage = () => {
   const { items: initiatives } = useRoadmapStore();
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
+  const { activeProduct } = useProduct();
+  const [membersMap, setMembersMap] = useState<Record<string, { name: string; avatar: string | null }>>({});
+
+  const fetchMembersMap = useCallback(async () => {
+    if (!activeProduct) return;
+    const { data } = await (supabase.from('product_members') as any)
+      .select('user_id, profiles!product_members_user_id_fkey(display_name, full_name, email, avatar_url)')
+      .eq('product_id', activeProduct.id);
+    if (data) {
+      const map: Record<string, { name: string; avatar: string | null }> = {};
+      data.forEach((m: any) => {
+        const p = m.profiles;
+        map[m.user_id] = {
+          name: p?.display_name || p?.full_name || p?.email || '?',
+          avatar: p?.avatar_url || null,
+        };
+      });
+      setMembersMap(map);
+    }
+  }, [activeProduct]);
+
+  useEffect(() => { fetchMembersMap(); }, [fetchMembersMap]);
 
   const [editTask, setEditTask] = useState<BacklogTask | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
