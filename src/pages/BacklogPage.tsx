@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect, DragEvent } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
+import { useProduct } from '@/contexts/ProductContext';
+import { supabase } from '@/integrations/supabase/client';
 import EditBacklogTaskDialog from '@/components/EditBacklogTaskDialog';
 import { BacklogTask, PRIORITY_CONFIG, TASK_STATUS_CONFIG, TaskPriority, TaskStatus } from '@/types/backlog';
 import { SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
@@ -13,7 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck } from 'lucide-react';
+import type { DragEvent } from 'react';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
