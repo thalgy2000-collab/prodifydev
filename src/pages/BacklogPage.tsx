@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect, DragEvent } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
+import { useProduct } from '@/contexts/ProductContext';
+import { supabase } from '@/integrations/supabase/client';
 import EditBacklogTaskDialog from '@/components/EditBacklogTaskDialog';
 import { BacklogTask, PRIORITY_CONFIG, TASK_STATUS_CONFIG, TaskPriority, TaskStatus } from '@/types/backlog';
 import { SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
@@ -13,13 +15,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck } from 'lucide-react';
+import type { DragEvent } from 'react';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
+  const { activeProduct } = useProduct();
+  const [membersMap, setMembersMap] = useState<Record<string, { name: string; avatar: string | null }>>({});
+
+  const fetchMembersMap = useCallback(async () => {
+    if (!activeProduct) return;
+    const { data } = await (supabase.from('product_members') as any)
+      .select('user_id, profiles!product_members_user_id_fkey(display_name, full_name, email, avatar_url)')
+      .eq('product_id', activeProduct.id);
+    if (data) {
+      const map: Record<string, { name: string; avatar: string | null }> = {};
+      data.forEach((m: any) => {
+        const p = m.profiles;
+        map[m.user_id] = {
+          name: p?.display_name || p?.full_name || p?.email || '?',
+          avatar: p?.avatar_url || null,
+        };
+      });
+      setMembersMap(map);
+    }
+  }, [activeProduct]);
+
+  useEffect(() => { fetchMembersMap(); }, [fetchMembersMap]);
 
   const [editTask, setEditTask] = useState<BacklogTask | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -95,6 +121,7 @@ const BacklogPage = () => {
     const pCfg = PRIORITY_CONFIG[task.priority];
     const sCfg = TASK_STATUS_CONFIG[task.status];
     const progress = getProgress(task.id);
+    const assignee = task.assigneeId ? membersMap[task.assigneeId] : null;
     return (
       <div
         draggable
@@ -117,6 +144,12 @@ const BacklogPage = () => {
           </div>
           {task.description && <p className="mt-1 text-sm text-muted-foreground truncate">{task.description}</p>}
         </div>
+        {assignee && (
+          <Avatar className="h-7 w-7 shrink-0" title={assignee.name}>
+            <AvatarImage src={assignee.avatar || undefined} />
+            <AvatarFallback className="text-[10px]">{assignee.name.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        )}
         <div className="flex items-center gap-1 shrink-0">
           <Select value={task.status} onValueChange={v => updateTask(task.id, { status: v as TaskStatus })}>
             <SelectTrigger className="h-8 w-[130px]"><SelectValue /></SelectTrigger>

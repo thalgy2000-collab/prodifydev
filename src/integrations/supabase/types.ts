@@ -952,17 +952,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_notification: {
-        Args: {
-          _action_url?: string
-          _message: string
-          _metadata?: Json
-          _title: string
-          _type?: string
-          _user_id: string
-        }
-        Returns: undefined
-      }
+      create_notification:
+        | {
+            Args: {
+              _message: string
+              _title: string
+              _type?: string
+              _user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              _action_url?: string
+              _message: string
+              _metadata?: Json
+              _title: string
+              _type?: string
+              _user_id: string
+            }
+            Returns: undefined
+          }
       has_product_role: {
         Args: { _product_id: string; _role: string; _user_id: string }
         Returns: boolean

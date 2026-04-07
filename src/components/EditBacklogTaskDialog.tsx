@@ -1,15 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BacklogTask, TaskPriority, PRIORITY_CONFIG } from '@/types/backlog';
 import { RoadmapItem } from '@/types/roadmap';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
+import { useProduct } from '@/contexts/ProductContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Pencil, Check, X, ClipboardCheck } from 'lucide-react';
+
+interface MemberOption {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
 
 interface EditBacklogTaskDialogProps {
   task: BacklogTask | null;
@@ -20,11 +29,14 @@ interface EditBacklogTaskDialogProps {
 }
 
 const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }: EditBacklogTaskDialogProps) => {
+  const { activeProduct } = useProduct();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [initiativeId, setInitiativeId] = useState<string>('none');
   const [storyPoints, setStoryPoints] = useState<number>(1);
+  const [assigneeId, setAssigneeId] = useState<string>('none');
+  const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
 
   const [newCriterionTitle, setNewCriterionTitle] = useState('');
   const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
@@ -32,11 +44,33 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
 
   const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
 
+  const fetchMembers = useCallback(async () => {
+    if (!activeProduct) return;
+    const { data } = await (supabase.from('product_members') as any)
+      .select('user_id, role, profiles!product_members_user_id_fkey(display_name, full_name, email, avatar_url)')
+      .eq('product_id', activeProduct.id);
+    if (data) {
+      setMemberOptions(data.map((m: any) => {
+        const p = m.profiles;
+        return {
+          userId: m.user_id,
+          displayName: p?.display_name || p?.full_name || p?.email || 'Sem nome',
+          avatarUrl: p?.avatar_url || null,
+        };
+      }));
+    }
+  }, [activeProduct]);
+
+  useEffect(() => {
+    if (open) fetchMembers();
+  }, [open, fetchMembers]);
+
   useEffect(() => {
     if (task) {
       setTitle(task.title); setDescription(task.description || '');
       setPriority(task.priority);
       setInitiativeId(task.initiativeId || 'none'); setStoryPoints(task.storyPoints || 1);
+      setAssigneeId(task.assigneeId || 'none');
       fetchByTask(task.id);
     }
   }, [task, fetchByTask]);
@@ -50,6 +84,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       title, description, priority,
       initiativeId: initiativeId !== 'none' ? initiativeId : undefined,
       objectiveId: initiative?.objectiveId, keyResultId: initiative?.keyResultId, storyPoints,
+      assigneeId: assigneeId !== 'none' ? assigneeId : undefined,
     });
     onOpenChange(false);
   };
@@ -99,6 +134,28 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
           <div className="flex gap-3">
             <div className="flex-1 space-y-2"><Label>Iniciativa (Roadmap)</Label><Select value={initiativeId} onValueChange={setInitiativeId}><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhuma</SelectItem>{initiatives.map(i => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}</SelectContent></Select></div>
             <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} value={storyPoints} onChange={e => setStoryPoints(Number(e.target.value))} /></div>
+          </div>
+          <div className="space-y-2">
+            <Label>Responsável</Label>
+            <Select value={assigneeId} onValueChange={setAssigneeId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem responsável</SelectItem>
+                {memberOptions.map(m => (
+                  <SelectItem key={m.userId} value={m.userId}>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={m.avatarUrl || undefined} />
+                        <AvatarFallback className="text-[10px]">{m.displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      {m.displayName}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Acceptance Criteria Section */}
