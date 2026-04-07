@@ -121,6 +121,7 @@ const BacklogPage = () => {
     const pCfg = PRIORITY_CONFIG[task.priority];
     const sCfg = TASK_STATUS_CONFIG[task.status];
     const progress = getProgress(task.id);
+    const assignee = task.assigneeId ? membersMap[task.assigneeId] : null;
     return (
       <div
         draggable
