@@ -61,6 +61,7 @@ const BacklogPage = () => {
   const [newPriority, setNewPriority] = useState<TaskPriority>('medium');
   const [newInitiativeId, setNewInitiativeId] = useState('none');
   const [newStoryPoints, setNewStoryPoints] = useState(1);
+  const [newAssigneeId, setNewAssigneeId] = useState('none');
 
   const [sprintName, setSprintName] = useState('');
   const [sprintStart, setSprintStart] = useState('');
@@ -88,9 +89,10 @@ const BacklogPage = () => {
       title: newTitle, description: newDesc, priority: newPriority, status: 'open',
       category: 'professional', initiativeId: newInitiativeId !== 'none' ? newInitiativeId : undefined,
       objectiveId: init?.objectiveId, keyResultId: init?.keyResultId, storyPoints: newStoryPoints,
+      assigneeId: newAssigneeId !== 'none' ? newAssigneeId : undefined,
     });
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
-    setNewInitiativeId('none'); setNewStoryPoints(1); setCreateOpen(false);
+    setNewInitiativeId('none'); setNewStoryPoints(1); setNewAssigneeId('none'); setCreateOpen(false);
   };
 
   const handleCreateSprint = () => {
@@ -206,6 +208,26 @@ const BacklogPage = () => {
                 <div className="flex gap-3">
                   <div className="flex-1 space-y-2"><Label>Iniciativa</Label><Select value={newInitiativeId} onValueChange={setNewInitiativeId}><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhuma</SelectItem>{initiatives.map(i => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}</SelectContent></Select></div>
                   <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} value={newStoryPoints} onChange={e => setNewStoryPoints(Number(e.target.value))} /></div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Responsável</Label>
+                  <Select value={newAssigneeId} onValueChange={setNewAssigneeId}>
+                    <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem responsável</SelectItem>
+                      {Object.entries(membersMap).map(([uid, m]) => (
+                        <SelectItem key={uid} value={uid}>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-5 w-5">
+                              <AvatarImage src={m.avatar || undefined} />
+                              <AvatarFallback className="text-[10px]">{m.name.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            {m.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button onClick={handleCreate} className="w-full">Criar Tarefa</Button>
               </div>

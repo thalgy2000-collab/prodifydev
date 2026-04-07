@@ -35,7 +35,7 @@ export const useBacklogStore = () => {
       priority: data.priority, status: data.status, category: data.category,
       initiative_id: data.initiativeId || null, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, story_points: data.storyPoints ?? null,
-      sprint_id: data.sprintId || null,
+      sprint_id: data.sprintId || null, assignee_id: data.assigneeId || null,
     });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
