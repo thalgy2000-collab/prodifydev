@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Package, Settings, LogOut, Moon, Sun } from 'lucide-react';
+import { Home, Package, Settings, LogOut, Moon, Sun, CalendarDays } from 'lucide-react';
 import prodifyLogo from '@/assets/prodify-logo.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
@@ -14,8 +14,9 @@ interface GlobalSidebarProps {
 }
 
 const navItems = [
-  { title: 'Início', url: '/', icon: Home },
+  { title: 'Início', url: '/inicio', icon: Home },
   { title: 'Meus Produtos', url: '/produtos', icon: Package },
+  { title: 'Agenda', url: '/agenda', icon: CalendarDays },
 ];
 
 export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProps) {

@@ -10,8 +10,14 @@ export const useScheduleStore = () => {
   const [activities, setActivities] = useState<ScheduleActivity[]>([]);
 
   const fetchAll = useCallback(async () => {
-    if (!user || !activeProduct) { setActivities([]); return; }
-    const { data } = await supabase.from('schedule_activities' as any).select('*').eq('product_id', activeProduct.id);
+    if (!user) { setActivities([]); return; }
+    let query = supabase.from('schedule_activities' as any).select('*');
+    if (activeProduct) {
+      query = query.eq('product_id', activeProduct.id);
+    } else {
+      query = query.eq('user_id', user.id);
+    }
+    const { data } = await query;
     if (data) {
       setActivities((data as any[]).map((d: any) => ({
         id: d.id, title: d.title, description: d.description,
