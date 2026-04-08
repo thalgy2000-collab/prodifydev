@@ -29,6 +29,7 @@ import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import InviteAcceptPage from "./pages/InviteAcceptPage";
 import ProfilePage from "./pages/ProfilePage";
+import HomePage from "./pages/HomePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,11 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   // Always render profile page when on /perfil route
   if (location.pathname === '/perfil') {
     return <ProfilePage />;
+  }
+
+  // Always render home page when on /inicio route
+  if (location.pathname === '/inicio') {
+    return <HomePage />;
   }
 
   if (!activeProduct) {
