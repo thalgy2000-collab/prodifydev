@@ -18,6 +18,7 @@ import RoadmapPage from "./pages/RoadmapPage";
 import BacklogPage from "./pages/BacklogPage";
 import SprintsPage from "./pages/SprintsPage";
 import SprintHistoryPage from "./pages/SprintHistoryPage";
+import AgendaPage from "./pages/AgendaPage";
 import OpportunityTreePage from "./pages/OpportunityTreePage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
@@ -46,6 +47,11 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   // Always render home page when on /inicio route
   if (location.pathname === '/inicio') {
     return <HomePage />;
+  }
+
+  // Always render agenda page when on /agenda route
+  if (location.pathname === '/agenda') {
+    return <AgendaPage />;
   }
 
   if (!activeProduct) {
