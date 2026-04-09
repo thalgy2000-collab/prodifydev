@@ -133,16 +133,25 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchMembers = useCallback(async () => {
     if (!activeProductId) { setMembers([]); return; }
-    const { data } = await (supabase.from('product_members') as any)
-      .select('id, product_id, user_id, role, created_at, profiles!inner(email, display_name, full_name, avatar_url)')
+    const { data: membersData } = await (supabase.from('product_members') as any)
+      .select('id, product_id, user_id, role, created_at')
       .eq('product_id', activeProductId);
-    if (data) {
-      setMembers(data.map((d: any) => ({
-        id: d.id, productId: d.product_id, userId: d.user_id,
-        role: d.role, email: d.profiles?.email, displayName: d.profiles?.display_name,
-        fullName: d.profiles?.full_name, avatarUrl: d.profiles?.avatar_url,
-        createdAt: d.created_at,
-      })));
+    if (membersData && membersData.length > 0) {
+      const userIds = membersData.map((m: any) => m.user_id);
+      const { data: profilesData } = await (supabase.from('profiles') as any)
+        .select('id, email, display_name, full_name, avatar_url')
+        .in('id', userIds);
+      setMembers(membersData.map((m: any) => {
+        const profile = profilesData?.find((p: any) => p.id === m.user_id);
+        return {
+          id: m.id, productId: m.product_id, userId: m.user_id,
+          role: m.role, email: profile?.email, displayName: profile?.display_name,
+          fullName: profile?.full_name, avatarUrl: profile?.avatar_url,
+          createdAt: m.created_at,
+        };
+      }));
+    } else {
+      setMembers([]);
     }
   }, [activeProductId]);
 
