@@ -1,4 +1,4 @@
-import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, Package, ChevronDown, Shield, Users, ArrowLeft, Check, FileText } from 'lucide-react';
+import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, Package, ChevronDown, Shield, Users, ArrowLeft, Check, FileText, Calendar } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
@@ -20,6 +20,7 @@ const groups = [
       { title: 'Roadmap', url: '/roadmap', icon: Map, tourId: 'roadmap' },
       { title: 'Release Planning', url: '/releases', icon: Package },
       { title: 'PRD', url: '/prd', icon: FileText },
+      { title: 'Agenda', url: '/produto-agenda', icon: Calendar },
     ],
   },
   {
