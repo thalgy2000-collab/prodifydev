@@ -365,6 +365,7 @@ const AgendaPage = () => {
               onCreateEvent={(d) => openCreate(format(d, 'yyyy-MM-dd'))}
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
+              getProductInfo={getProductInfo}
             />
           )}
           {viewMode === 'week' && (
@@ -386,6 +387,7 @@ const AgendaPage = () => {
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
               onDeleteEvent={deleteActivity}
+              getProductInfo={getProductInfo}
             />
           )}
         </div>
