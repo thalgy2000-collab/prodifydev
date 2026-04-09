@@ -327,6 +327,11 @@ const AgendaPage = () => {
                         <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>
                           {act.title}
                         </p>
+                        {(() => { const prod = getProductInfo(act.productId); return prod ? (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] bg-background/30 rounded px-1 mt-0.5">
+                            {prod.emoji} {prod.name}
+                          </span>
+                        ) : null; })()}
                         {act.startTime && (
                           <p className="text-[10px] opacity-80 flex items-center gap-1 mt-0.5">
                             <Clock className="h-2.5 w-2.5" />
