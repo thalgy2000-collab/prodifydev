@@ -465,6 +465,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                 >
                   {act.startTime && <span className="mr-1">{act.startTime}</span>}
                   {act.title}
+                  {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? ` ${p.emoji}` : ''; })()}
                 </button>
               ))}
               {dayActs.length > 3 && (
@@ -636,9 +637,16 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                       : <Circle className="h-5 w-5 text-muted-foreground" />}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className={cn('font-semibold text-foreground', act.status === 'done' && 'line-through text-muted-foreground')}>
-                      {act.title}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={cn('font-semibold text-foreground', act.status === 'done' && 'line-through text-muted-foreground')}>
+                        {act.title}
+                      </p>
+                      {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-1">
+                          {p.emoji} {p.name}
+                        </Badge>
+                      ) : null; })()}
+                    </div>
                     {act.startTime && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
                         <Clock className="h-3.5 w-3.5" />
