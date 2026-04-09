@@ -406,9 +406,10 @@ interface MonthViewProps {
   onCreateEvent: (d: Date) => void;
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
+  getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, getProductInfo }: MonthViewProps) => (
   <div className="h-full flex flex-col">
     {/* Header row */}
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
@@ -581,9 +582,10 @@ interface DayViewProps {
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
   onDeleteEvent: (id: string) => void;
+  getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
 }
 
-const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent }: DayViewProps) => (
+const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo }: DayViewProps) => (
   <div className="h-full flex flex-col">
     <div className="p-4 border-b border-border bg-muted/30">
       <div className="flex items-center justify-between">
