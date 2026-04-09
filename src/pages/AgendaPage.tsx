@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
+import { useProduct } from '@/contexts/ProductContext';
 import { ScheduleActivity, ACTIVITY_STATUS_CONFIG } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,12 @@ const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const AgendaPage = () => {
   const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
+  const { products } = useProduct();
+
+  const getProductInfo = (productId?: string) => {
+    if (!productId) return null;
+    return products.find(p => p.id === productId) || null;
+  };
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
