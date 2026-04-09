@@ -8,6 +8,7 @@ export interface ScheduleActivity {
   startTime?: string;
   endTime?: string;
   sprintId?: string;
+  productId?: string;
   status: ActivityStatus;
   createdAt: string;
 }
