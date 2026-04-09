@@ -26,6 +26,7 @@ import ReleasePlanningPage from "./pages/ReleasePlanningPage";
 import SwotPage from "./pages/SwotPage";
 import PrdPage from "./pages/PrdPage";
 import MembersPage from "./pages/MembersPage";
+import ProductAgendaPage from "./pages/ProductAgendaPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import InviteAcceptPage from "./pages/InviteAcceptPage";
@@ -72,6 +73,7 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/rice" element={<RicePage />} />
         <Route path="/releases" element={<ReleasePlanningPage />} />
         <Route path="/prd" element={<PrdPage />} />
+        <Route path="/produto-agenda" element={<ProductAgendaPage />} />
         <Route path="/membros" element={<MembersPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

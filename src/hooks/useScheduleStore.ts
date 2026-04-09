@@ -23,6 +23,7 @@ export const useScheduleStore = () => {
         id: d.id, title: d.title, description: d.description,
         activityDate: d.activity_date, startTime: d.start_time ?? undefined,
         endTime: d.end_time ?? undefined, sprintId: d.sprint_id ?? undefined,
+        productId: d.product_id ?? undefined,
         status: d.status as ScheduleActivity['status'], createdAt: d.created_at,
       })));
     }

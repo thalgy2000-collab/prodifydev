@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
+import { useProduct } from '@/contexts/ProductContext';
 import { ScheduleActivity, ACTIVITY_STATUS_CONFIG } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,12 @@ const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const AgendaPage = () => {
   const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
+  const { products } = useProduct();
+
+  const getProductInfo = (productId?: string) => {
+    if (!productId) return null;
+    return products.find(p => p.id === productId) || null;
+  };
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -320,6 +327,11 @@ const AgendaPage = () => {
                         <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>
                           {act.title}
                         </p>
+                        {(() => { const prod = getProductInfo(act.productId); return prod ? (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] bg-background/30 rounded px-1 mt-0.5">
+                            {prod.emoji} {prod.name}
+                          </span>
+                        ) : null; })()}
                         {act.startTime && (
                           <p className="text-[10px] opacity-80 flex items-center gap-1 mt-0.5">
                             <Clock className="h-2.5 w-2.5" />
@@ -353,6 +365,7 @@ const AgendaPage = () => {
               onCreateEvent={(d) => openCreate(format(d, 'yyyy-MM-dd'))}
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
+              getProductInfo={getProductInfo}
             />
           )}
           {viewMode === 'week' && (
@@ -374,6 +387,7 @@ const AgendaPage = () => {
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
               onDeleteEvent={deleteActivity}
+              getProductInfo={getProductInfo}
             />
           )}
         </div>
@@ -392,9 +406,10 @@ interface MonthViewProps {
   onCreateEvent: (d: Date) => void;
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
+  getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, getProductInfo }: MonthViewProps) => (
   <div className="h-full flex flex-col">
     {/* Header row */}
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
@@ -450,6 +465,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                 >
                   {act.startTime && <span className="mr-1">{act.startTime}</span>}
                   {act.title}
+                  {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? ` ${p.emoji}` : ''; })()}
                 </button>
               ))}
               {dayActs.length > 3 && (
@@ -567,9 +583,10 @@ interface DayViewProps {
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
   onDeleteEvent: (id: string) => void;
+  getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
 }
 
-const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent }: DayViewProps) => (
+const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo }: DayViewProps) => (
   <div className="h-full flex flex-col">
     <div className="p-4 border-b border-border bg-muted/30">
       <div className="flex items-center justify-between">
@@ -620,9 +637,16 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                       : <Circle className="h-5 w-5 text-muted-foreground" />}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className={cn('font-semibold text-foreground', act.status === 'done' && 'line-through text-muted-foreground')}>
-                      {act.title}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className={cn('font-semibold text-foreground', act.status === 'done' && 'line-through text-muted-foreground')}>
+                        {act.title}
+                      </p>
+                      {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-1">
+                          {p.emoji} {p.name}
+                        </Badge>
+                      ) : null; })()}
+                    </div>
                     {act.startTime && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
                         <Clock className="h-3.5 w-3.5" />
