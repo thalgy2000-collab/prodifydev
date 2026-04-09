@@ -3,6 +3,8 @@ import { BacklogTask, TaskPriority, PRIORITY_CONFIG } from '@/types/backlog';
 import { RoadmapItem } from '@/types/roadmap';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import { useProduct } from '@/contexts/ProductContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -30,12 +32,17 @@ interface EditBacklogTaskDialogProps {
 
 const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }: EditBacklogTaskDialogProps) => {
   const { activeProduct } = useProduct();
+  const { user } = useAuth();
+  const { addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [initiativeId, setInitiativeId] = useState<string>('none');
   const [storyPoints, setStoryPoints] = useState<number>(1);
   const [assigneeId, setAssigneeId] = useState<string>('none');
+  const [dueDate, setDueDate] = useState<string>('');
+  const [dueTime, setDueTime] = useState<string>('');
+  const [dueEndTime, setDueEndTime] = useState<string>('');
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
 
   const [newCriterionTitle, setNewCriterionTitle] = useState('');
@@ -76,21 +83,58 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setPriority(task.priority);
       setInitiativeId(task.initiativeId || 'none'); setStoryPoints(task.storyPoints || 1);
       setAssigneeId(task.assigneeId || 'none');
+      setDueDate(task.dueDate || '');
+      setDueTime(task.dueTime || '');
+      setDueEndTime(task.dueEndTime || '');
       fetchByTask(task.id);
     }
   }, [task, fetchByTask]);
 
   const taskCriteria = task ? getCriteriaForTask(task.id) : [];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!task || !title.trim()) return;
     const initiative = initiatives.find(i => i.id === initiativeId);
-    onSave(task.id, {
+    const patch: Partial<BacklogTask> = {
       title, description, priority,
       initiativeId: initiativeId !== 'none' ? initiativeId : undefined,
       objectiveId: initiative?.objectiveId, keyResultId: initiative?.keyResultId, storyPoints,
       assigneeId: assigneeId !== 'none' ? assigneeId : undefined,
-    });
+      dueDate: dueDate || undefined,
+      dueTime: dueTime || undefined,
+      dueEndTime: dueEndTime || undefined,
+    };
+
+    // Handle schedule activity
+    if (dueDate) {
+      if (task.scheduleActivityId) {
+        // Update existing activity
+        await updateActivity(task.scheduleActivityId, {
+          title: `[${title}]`,
+          description: description || '',
+          activityDate: dueDate,
+          startTime: dueTime || undefined,
+          endTime: dueEndTime || undefined,
+        });
+      } else {
+        // Create new activity
+        const newActivity = await addActivity({
+          title: `[${title}]`,
+          description: description || '',
+          activityDate: dueDate,
+          startTime: dueTime || undefined,
+          endTime: dueEndTime || undefined,
+          status: 'pending',
+        });
+        patch.scheduleActivityId = newActivity.id;
+      }
+    } else if (task.scheduleActivityId) {
+      // Remove due date, delete activity
+      await deleteActivity(task.scheduleActivityId);
+      patch.scheduleActivityId = undefined;
+    }
+
+    onSave(task.id, patch);
     onOpenChange(false);
   };
 
@@ -162,6 +206,24 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2">
+            <Label>Data de entrega</Label>
+            <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+          </div>
+
+          {dueDate && (
+            <div className="flex gap-3">
+              <div className="flex-1 space-y-2">
+                <Label>Hora início</Label>
+                <Input type="time" value={dueTime} onChange={e => setDueTime(e.target.value)} />
+              </div>
+              <div className="flex-1 space-y-2">
+                <Label>Hora fim</Label>
+                <Input type="time" value={dueEndTime} onChange={e => setDueEndTime(e.target.value)} />
+              </div>
+            </div>
+          )}
 
           {/* Acceptance Criteria Section */}
           <div className="space-y-3 pt-2 border-t border-border">

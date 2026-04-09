@@ -20,7 +20,8 @@ export const useBacklogStore = () => {
         initiativeId: d.initiative_id ?? undefined, objectiveId: d.objective_id ?? undefined,
         keyResultId: d.key_result_id ?? undefined, storyPoints: d.story_points ?? undefined,
         sprintId: d.sprint_id ?? undefined, returnedFromSprintId: d.returned_from_sprint_id ?? undefined,
-        dueDate: d.due_date ?? undefined, assigneeId: d.assignee_id ?? undefined,
+        dueDate: d.due_date ?? undefined, dueTime: d.due_time ?? undefined, dueEndTime: d.due_end_time ?? undefined,
+        scheduleActivityId: d.schedule_activity_id ?? undefined, assigneeId: d.assignee_id ?? undefined,
         createdAt: d.created_at,
       })));
     }
@@ -53,6 +54,9 @@ export const useBacklogStore = () => {
     if (patch.storyPoints !== undefined) dbPatch.story_points = patch.storyPoints ?? null;
     if (patch.sprintId !== undefined) dbPatch.sprint_id = patch.sprintId || null;
     if (patch.dueDate !== undefined) dbPatch.due_date = patch.dueDate || null;
+    if (patch.dueTime !== undefined) dbPatch.due_time = patch.dueTime || null;
+    if (patch.dueEndTime !== undefined) dbPatch.due_end_time = patch.dueEndTime || null;
+    if (patch.scheduleActivityId !== undefined) dbPatch.schedule_activity_id = patch.scheduleActivityId || null;
     if (patch.assigneeId !== undefined) dbPatch.assignee_id = patch.assigneeId || null;
     await (supabase.from('backlog_tasks') as any).update(dbPatch).eq('id', id);
     await fetchAll();

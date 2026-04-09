@@ -17,6 +17,9 @@ export interface BacklogTask {
   sprintId?: string;
   returnedFromSprintId?: string;
   dueDate?: string;
+  dueTime?: string;
+  dueEndTime?: string;
+  scheduleActivityId?: string;
   assigneeId?: string;
   createdAt: string;
 }

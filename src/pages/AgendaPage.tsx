@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
+import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useProduct } from '@/contexts/ProductContext';
 import { ScheduleActivity, ACTIVITY_STATUS_CONFIG } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
@@ -47,11 +48,16 @@ const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const AgendaPage = () => {
   const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
+  const { tasks } = useBacklogStore();
   const { products } = useProduct();
 
   const getProductInfo = (productId?: string) => {
     if (!productId) return null;
     return products.find(p => p.id === productId) || null;
+  };
+
+  const isTaskActivity = (activityTitle: string) => {
+    return tasks.some(task => activityTitle === `[${task.title}]`);
   };
 
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -324,9 +330,16 @@ const AgendaPage = () => {
                           : <Circle className="h-3.5 w-3.5" />}
                       </button>
                       <div className="flex-1 min-w-0">
-                        <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>
-                          {act.title}
-                        </p>
+                        <div className="flex items-center gap-1">
+                          <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>
+                            {act.title}
+                          </p>
+                          {isTaskActivity(act.title) && (
+                            <Badge variant="secondary" className="text-[8px] px-1 py-0 h-4">
+                              Task
+                            </Badge>
+                          )}
+                        </div>
                         {(() => { const prod = getProductInfo(act.productId); return prod ? (
                           <span className="inline-flex items-center gap-0.5 text-[9px] bg-background/30 rounded px-1 mt-0.5">
                             {prod.emoji} {prod.name}
@@ -465,6 +478,8 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                 >
                   {act.startTime && <span className="mr-1">{act.startTime}</span>}
                   {act.title}
+                  {isTaskActivity(act.title) && <span className="ml-1 text-[8px] bg-background/50 px-0.5 rounded">T</span>}
+                </button>
                   {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? ` ${p.emoji}` : ''; })()}
                 </button>
               ))}
@@ -558,7 +573,10 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                     )}
                     style={{ top: `${top}px`, height: `${height}px` }}
                   >
-                    <p className="truncate font-semibold">{act.title}</p>
+                    <div className="flex items-center gap-1">
+                      <p className="truncate font-semibold">{act.title}</p>
+                      {isTaskActivity(act.title) && <span className="text-[8px] bg-background/50 px-0.5 rounded shrink-0">T</span>}
+                    </div>
                     {height > 30 && act.startTime && (
                       <p className="truncate opacity-80 text-[9px]">
                         {act.startTime}{act.endTime && ` – ${act.endTime}`}
@@ -640,6 +658,12 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className={cn('font-semibold text-foreground', act.status === 'done' && 'line-through text-muted-foreground')}>
                         {act.title}
+                      </p>
+                      {isTaskActivity(act.title) && (
+                        <Badge variant="secondary" className="text-xs">
+                          Task
+                        </Badge>
+                      )}
                       </p>
                       {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-1">
