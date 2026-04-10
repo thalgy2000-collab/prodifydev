@@ -31,14 +31,23 @@ export const useScheduleStore = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const addActivity = useCallback(async (data: Omit<ScheduleActivity, 'id' | 'createdAt'>) => {
-    if (!user || !activeProduct) return;
-    await supabase.from('schedule_activities' as any).insert({
-      user_id: user.id, product_id: activeProduct.id, title: data.title, description: data.description,
+  const addActivity = useCallback(async (data: Omit<ScheduleActivity, 'id' | 'createdAt'>): Promise<ScheduleActivity> => {
+    if (!user) throw new Error('No user');
+    const insertData: any = {
+      user_id: user.id, product_id: data.productId || activeProduct?.id || null,
+      title: data.title, description: data.description,
       activity_date: data.activityDate, start_time: data.startTime || null,
       end_time: data.endTime || null, sprint_id: data.sprintId || null, status: data.status,
-    } as any);
+    };
+    const { data: inserted } = await supabase.from('schedule_activities' as any).insert(insertData as any).select().single();
     await fetchAll();
+    const d = inserted as any;
+    return {
+      id: d.id, title: d.title, description: d.description,
+      activityDate: d.activity_date, startTime: d.start_time ?? undefined,
+      endTime: d.end_time ?? undefined, sprintId: d.sprint_id ?? undefined,
+      productId: d.product_id ?? undefined, status: d.status, createdAt: d.created_at,
+    };
   }, [user, activeProduct, fetchAll]);
 
   const updateActivity = useCallback(async (id: string, patch: Partial<ScheduleActivity>) => {

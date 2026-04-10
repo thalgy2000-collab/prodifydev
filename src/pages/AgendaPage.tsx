@@ -56,9 +56,8 @@ const AgendaPage = () => {
     return products.find(p => p.id === productId) || null;
   };
 
-  const isTaskActivity = (activityTitle: string) => {
-    return tasks.some(task => activityTitle === `[${task.title}]`);
-  };
+  const taskTitles = useMemo(() => new Set(tasks.filter(t => t.scheduleActivityId).map(t => `[${t.title}]`)), [tasks]);
+  const isTaskActivity = (activityTitle: string) => taskTitles.has(activityTitle);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -379,6 +378,7 @@ const AgendaPage = () => {
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
               getProductInfo={getProductInfo}
+              isTaskActivity={isTaskActivity}
             />
           )}
           {viewMode === 'week' && (
@@ -390,6 +390,7 @@ const AgendaPage = () => {
               onCreateEvent={(d) => openCreate(format(d, 'yyyy-MM-dd'))}
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
+              isTaskActivity={isTaskActivity}
             />
           )}
           {viewMode === 'day' && (
@@ -401,6 +402,7 @@ const AgendaPage = () => {
               onToggleStatus={toggleStatus}
               onDeleteEvent={deleteActivity}
               getProductInfo={getProductInfo}
+              isTaskActivity={isTaskActivity}
             />
           )}
         </div>
@@ -420,9 +422,10 @@ interface MonthViewProps {
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
+  isTaskActivity: (title: string) => boolean;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, getProductInfo }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, getProductInfo, isTaskActivity }: MonthViewProps) => (
   <div className="h-full flex flex-col">
     {/* Header row */}
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
@@ -479,7 +482,6 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                   {act.startTime && <span className="mr-1">{act.startTime}</span>}
                   {act.title}
                   {isTaskActivity(act.title) && <span className="ml-1 text-[8px] bg-background/50 px-0.5 rounded">T</span>}
-                </button>
                   {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? ` ${p.emoji}` : ''; })()}
                 </button>
               ))}
@@ -505,9 +507,10 @@ interface WeekViewProps {
   onCreateEvent: (d: Date) => void;
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
+  isTaskActivity: (title: string) => boolean;
 }
 
-const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus }: WeekViewProps) => (
+const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, isTaskActivity }: WeekViewProps) => (
   <div className="h-full flex flex-col">
     {/* Day headers */}
     <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-muted/30 sticky top-0 z-10">
@@ -602,9 +605,10 @@ interface DayViewProps {
   onToggleStatus: (a: ScheduleActivity) => void;
   onDeleteEvent: (id: string) => void;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
+  isTaskActivity: (title: string) => boolean;
 }
 
-const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo }: DayViewProps) => (
+const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity }: DayViewProps) => (
   <div className="h-full flex flex-col">
     <div className="p-4 border-b border-border bg-muted/30">
       <div className="flex items-center justify-between">
@@ -664,7 +668,6 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                           Task
                         </Badge>
                       )}
-                      </p>
                       {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-1">
                           {p.emoji} {p.name}

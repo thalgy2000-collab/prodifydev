@@ -56,6 +56,8 @@ export type Database = {
           created_at: string
           description: string
           due_date: string | null
+          due_end_time: string | null
+          due_time: string | null
           id: string
           initiative_id: string | null
           key_result_id: string | null
@@ -63,6 +65,7 @@ export type Database = {
           priority: string
           product_id: string | null
           returned_from_sprint_id: string | null
+          schedule_activity_id: string | null
           sprint_id: string | null
           status: string
           story_points: number | null
@@ -75,6 +78,8 @@ export type Database = {
           created_at?: string
           description?: string
           due_date?: string | null
+          due_end_time?: string | null
+          due_time?: string | null
           id?: string
           initiative_id?: string | null
           key_result_id?: string | null
@@ -82,6 +87,7 @@ export type Database = {
           priority?: string
           product_id?: string | null
           returned_from_sprint_id?: string | null
+          schedule_activity_id?: string | null
           sprint_id?: string | null
           status?: string
           story_points?: number | null
@@ -94,6 +100,8 @@ export type Database = {
           created_at?: string
           description?: string
           due_date?: string | null
+          due_end_time?: string | null
+          due_time?: string | null
           id?: string
           initiative_id?: string | null
           key_result_id?: string | null
@@ -101,6 +109,7 @@ export type Database = {
           priority?: string
           product_id?: string | null
           returned_from_sprint_id?: string | null
+          schedule_activity_id?: string | null
           sprint_id?: string | null
           status?: string
           story_points?: number | null
@@ -134,6 +143,13 @@ export type Database = {
             columns: ["returned_from_sprint_id"]
             isOneToOne: false
             referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "backlog_tasks_schedule_activity_id_fkey"
+            columns: ["schedule_activity_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_activities"
             referencedColumns: ["id"]
           },
           {
