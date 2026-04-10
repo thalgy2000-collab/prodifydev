@@ -152,7 +152,7 @@ const ProfilePage = () => {
   };
 
   const handleVerifyOtp = async () => {
-    if (!profile?.email || otpCode.length !== 6) return;
+    if (!profile?.email || otpCode.length !== 8) return;
     setPwLoading(true);
     try {
       const { error } = await supabase.auth.verifyOtp({ email: profile.email, token: otpCode, type: 'email' });
@@ -380,7 +380,7 @@ const ProfilePage = () => {
                         Digite o código de 6 dígitos enviado para {profile.email}
                       </p>
                       <div className="flex justify-center">
-                        <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                        <InputOTP maxLength={8} value={otpCode} onChange={setOtpCode}>
                           <InputOTPGroup>
                             <InputOTPSlot index={0} />
                             <InputOTPSlot index={1} />
@@ -388,10 +388,12 @@ const ProfilePage = () => {
                             <InputOTPSlot index={3} />
                             <InputOTPSlot index={4} />
                             <InputOTPSlot index={5} />
+                            <InputOTPSlot index={6} />
+                            <InputOTPSlot index={7} />
                           </InputOTPGroup>
                         </InputOTP>
                       </div>
-                      <Button onClick={handleVerifyOtp} disabled={pwLoading || otpCode.length !== 6} className="w-full">
+                      <Button onClick={handleVerifyOtp} disabled={pwLoading || otpCode.length !== 8} className="w-full">
                         {pwLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                         Verificar código
                       </Button>
