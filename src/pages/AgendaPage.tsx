@@ -668,7 +668,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                           Task
                         </Badge>
                       )}
-                      {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? (
+                      {getProductInfo && act.productId && (() => { const p = getProductInfo(act.productId); return p ? (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-1">
                           {p.emoji} {p.name}
                         </Badge>
