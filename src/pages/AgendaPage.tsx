@@ -479,7 +479,6 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                   {act.startTime && <span className="mr-1">{act.startTime}</span>}
                   {act.title}
                   {isTaskActivity(act.title) && <span className="ml-1 text-[8px] bg-background/50 px-0.5 rounded">T</span>}
-                </button>
                   {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? ` ${p.emoji}` : ''; })()}
                 </button>
               ))}
@@ -664,7 +663,6 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                           Task
                         </Badge>
                       )}
-                      </p>
                       {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-1">
                           {p.emoji} {p.name}
