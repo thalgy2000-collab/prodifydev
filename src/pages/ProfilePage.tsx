@@ -10,6 +10,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, Mail, Calendar, Palette, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
 const ProfilePage = () => {
   const { profile, loading, initial, avatarColor, refetch } = useProfile();
@@ -30,6 +32,12 @@ const ProfilePage = () => {
   const [savingProduct, setSavingProduct] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem('prodify_language') || 'pt-BR');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pwModalOpen, setPwModalOpen] = useState(false);
+  const [pwStep, setPwStep] = useState<1 | 2 | 3>(1);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const menuItems = [
     { id: 'profile', label: 'Perfil', icon: User },
@@ -120,12 +128,57 @@ const ProfilePage = () => {
     }
   };
 
-  const handlePasswordReset = async () => {
+  const openPasswordModal = () => {
+    setPwStep(1);
+    setOtpCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setPwModalOpen(true);
+  };
+
+  const handleSendOtp = async () => {
     if (!profile?.email) return;
-    const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    error ? toast.error('Erro ao enviar e-mail') : toast.success('E-mail enviado com sucesso!');
+    setPwLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ email: profile.email, options: { shouldCreateUser: false } });
+      if (error) throw error;
+      toast.success(`Código enviado para ${profile.email}`);
+      setPwStep(2);
+    } catch {
+      toast.error('Erro ao enviar código de verificação');
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!profile?.email || otpCode.length !== 6) return;
+    setPwLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email: profile.email, token: otpCode, type: 'email' });
+      if (error) throw error;
+      setPwStep(3);
+    } catch {
+      toast.error('Código inválido ou expirado');
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (newPassword.length < 6) { toast.error('A senha deve ter no mínimo 6 caracteres'); return; }
+    if (newPassword !== confirmPassword) { toast.error('As senhas não coincidem'); return; }
+    setPwLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success('Senha alterada com sucesso!');
+      setPwModalOpen(false);
+    } catch {
+      toast.error('Erro ao alterar senha');
+    } finally {
+      setPwLoading(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -284,7 +337,7 @@ const ProfilePage = () => {
                         <p className="text-sm text-muted-foreground">Alterar sua senha</p>
                       </div>
                     </div>
-                    <Button variant="outline" onClick={handlePasswordReset}>
+                    <Button variant="outline" onClick={openPasswordModal}>
                       <Mail className="h-4 w-4 mr-2" />Alterar Senha
                     </Button>
                   </div>
@@ -300,6 +353,69 @@ const ProfilePage = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Modal de alteração de senha */}
+              <Dialog open={pwModalOpen} onOpenChange={setPwModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Alterar Senha</DialogTitle>
+                  </DialogHeader>
+
+                  {pwStep === 1 && (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Enviaremos um código de verificação para o e-mail:
+                      </p>
+                      <p className="font-medium">{profile.email}</p>
+                      <Button onClick={handleSendOtp} disabled={pwLoading} className="w-full">
+                        {pwLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Enviar código de verificação
+                      </Button>
+                    </div>
+                  )}
+
+                  {pwStep === 2 && (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Digite o código de 6 dígitos enviado para {profile.email}
+                      </p>
+                      <div className="flex justify-center">
+                        <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      <Button onClick={handleVerifyOtp} disabled={pwLoading || otpCode.length !== 6} className="w-full">
+                        {pwLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Verificar código
+                      </Button>
+                    </div>
+                  )}
+
+                  {pwStep === 3 && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">Nova senha</Label>
+                        <Input id="newPassword" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                        <Input id="confirmPassword" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" />
+                      </div>
+                      <Button onClick={handleUpdatePassword} disabled={pwLoading} className="w-full">
+                        {pwLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Salvar nova senha
+                      </Button>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
