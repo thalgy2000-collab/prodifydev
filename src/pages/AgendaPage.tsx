@@ -378,6 +378,7 @@ const AgendaPage = () => {
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
               getProductInfo={getProductInfo}
+              isTaskActivity={isTaskActivity}
             />
           )}
           {viewMode === 'week' && (
@@ -389,6 +390,7 @@ const AgendaPage = () => {
               onCreateEvent={(d) => openCreate(format(d, 'yyyy-MM-dd'))}
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
+              isTaskActivity={isTaskActivity}
             />
           )}
           {viewMode === 'day' && (
@@ -400,6 +402,7 @@ const AgendaPage = () => {
               onToggleStatus={toggleStatus}
               onDeleteEvent={deleteActivity}
               getProductInfo={getProductInfo}
+              isTaskActivity={isTaskActivity}
             />
           )}
         </div>
