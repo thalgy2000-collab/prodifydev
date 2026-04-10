@@ -337,7 +337,7 @@ const ProfilePage = () => {
                         <p className="text-sm text-muted-foreground">Alterar sua senha</p>
                       </div>
                     </div>
-                    <Button variant="outline" onClick={handlePasswordReset}>
+                    <Button variant="outline" onClick={openPasswordModal}>
                       <Mail className="h-4 w-4 mr-2" />Alterar Senha
                     </Button>
                   </div>
@@ -353,6 +353,69 @@ const ProfilePage = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Modal de alteração de senha */}
+              <Dialog open={pwModalOpen} onOpenChange={setPwModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Alterar Senha</DialogTitle>
+                  </DialogHeader>
+
+                  {pwStep === 1 && (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Enviaremos um código de verificação para o e-mail:
+                      </p>
+                      <p className="font-medium">{profile.email}</p>
+                      <Button onClick={handleSendOtp} disabled={pwLoading} className="w-full">
+                        {pwLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Enviar código de verificação
+                      </Button>
+                    </div>
+                  )}
+
+                  {pwStep === 2 && (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Digite o código de 6 dígitos enviado para {profile.email}
+                      </p>
+                      <div className="flex justify-center">
+                        <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
+                          <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      <Button onClick={handleVerifyOtp} disabled={pwLoading || otpCode.length !== 6} className="w-full">
+                        {pwLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Verificar código
+                      </Button>
+                    </div>
+                  )}
+
+                  {pwStep === 3 && (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">Nova senha</Label>
+                        <Input id="newPassword" type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                        <Input id="confirmPassword" type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repita a nova senha" />
+                      </div>
+                      <Button onClick={handleUpdatePassword} disabled={pwLoading} className="w-full">
+                        {pwLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Salvar nova senha
+                      </Button>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
