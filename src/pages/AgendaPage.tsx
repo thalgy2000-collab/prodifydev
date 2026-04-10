@@ -56,9 +56,8 @@ const AgendaPage = () => {
     return products.find(p => p.id === productId) || null;
   };
 
-  const isTaskActivity = (activityTitle: string) => {
-    return tasks.some(task => activityTitle === `[${task.title}]`);
-  };
+  const taskTitles = useMemo(() => new Set(tasks.filter(t => t.scheduleActivityId).map(t => `[${t.title}]`)), [tasks]);
+  const isTaskActivity = (activityTitle: string) => taskTitles.has(activityTitle);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
