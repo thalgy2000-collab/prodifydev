@@ -482,7 +482,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                   {act.startTime && <span className="mr-1">{act.startTime}</span>}
                   {act.title}
                   {isTaskActivity(act.title) && <span className="ml-1 text-[8px] bg-background/50 px-0.5 rounded">T</span>}
-                  {getProductInfo && (() => { const p = getProductInfo(act.productId); return p ? ` ${p.emoji}` : ''; })()}
+                  {getProductInfo && act.productId && getProductInfo(act.productId)?.emoji}
                 </button>
               ))}
               {dayActs.length > 3 && (
