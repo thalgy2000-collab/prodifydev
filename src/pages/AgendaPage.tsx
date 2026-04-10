@@ -422,9 +422,10 @@ interface MonthViewProps {
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
+  isTaskActivity: (title: string) => boolean;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, getProductInfo }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, getProductInfo, isTaskActivity }: MonthViewProps) => (
   <div className="h-full flex flex-col">
     {/* Header row */}
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
@@ -506,9 +507,10 @@ interface WeekViewProps {
   onCreateEvent: (d: Date) => void;
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
+  isTaskActivity: (title: string) => boolean;
 }
 
-const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus }: WeekViewProps) => (
+const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, isTaskActivity }: WeekViewProps) => (
   <div className="h-full flex flex-col">
     {/* Day headers */}
     <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-muted/30 sticky top-0 z-10">
@@ -603,9 +605,10 @@ interface DayViewProps {
   onToggleStatus: (a: ScheduleActivity) => void;
   onDeleteEvent: (id: string) => void;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
+  isTaskActivity: (title: string) => boolean;
 }
 
-const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo }: DayViewProps) => (
+const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity }: DayViewProps) => (
   <div className="h-full flex flex-col">
     <div className="p-4 border-b border-border bg-muted/30">
       <div className="flex items-center justify-between">
