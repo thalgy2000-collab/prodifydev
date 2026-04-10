@@ -32,6 +32,12 @@ const ProfilePage = () => {
   const [savingProduct, setSavingProduct] = useState(false);
   const [language, setLanguage] = useState(localStorage.getItem('prodify_language') || 'pt-BR');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pwModalOpen, setPwModalOpen] = useState(false);
+  const [pwStep, setPwStep] = useState<1 | 2 | 3>(1);
+  const [pwLoading, setPwLoading] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const menuItems = [
     { id: 'profile', label: 'Perfil', icon: User },
@@ -122,12 +128,57 @@ const ProfilePage = () => {
     }
   };
 
-  const handlePasswordReset = async () => {
+  const openPasswordModal = () => {
+    setPwStep(1);
+    setOtpCode('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setPwModalOpen(true);
+  };
+
+  const handleSendOtp = async () => {
     if (!profile?.email) return;
-    const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    error ? toast.error('Erro ao enviar e-mail') : toast.success('E-mail enviado com sucesso!');
+    setPwLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ email: profile.email, options: { shouldCreateUser: false } });
+      if (error) throw error;
+      toast.success(`Código enviado para ${profile.email}`);
+      setPwStep(2);
+    } catch {
+      toast.error('Erro ao enviar código de verificação');
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!profile?.email || otpCode.length !== 6) return;
+    setPwLoading(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email: profile.email, token: otpCode, type: 'email' });
+      if (error) throw error;
+      setPwStep(3);
+    } catch {
+      toast.error('Código inválido ou expirado');
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (newPassword.length < 6) { toast.error('A senha deve ter no mínimo 6 caracteres'); return; }
+    if (newPassword !== confirmPassword) { toast.error('As senhas não coincidem'); return; }
+    setPwLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success('Senha alterada com sucesso!');
+      setPwModalOpen(false);
+    } catch {
+      toast.error('Erro ao alterar senha');
+    } finally {
+      setPwLoading(false);
+    }
   };
 
   const handleSignOut = async () => {
