@@ -153,18 +153,6 @@ const AuthPage = () => {
           <p className="text-[#8892a4] text-lg leading-relaxed">
             OKRs, roadmaps, sprints e backlog — tudo em um só lugar para equipes de produto que querem resultados.
           </p>
-          <div className="flex items-center gap-3 pt-4">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full border-2 border-[#0F0F0F] bg-gradient-to-br from-[#4F8EF7] to-[#2563eb]"
-                  style={{ opacity: 1 - i * 0.15 }}
-                />
-              ))}
-            </div>
-            
-          </div>
         </div>
       </div>
 
