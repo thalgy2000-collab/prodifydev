@@ -2,7 +2,7 @@ import { useOKRStore } from '@/hooks/useOKRStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
-import { OKR_CATEGORIES, getCurrentQuarter } from '@/types/okr';
+import { getCurrentQuarter } from '@/types/okr';
 import { TASK_STATUS_CONFIG } from '@/types/backlog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -28,13 +28,6 @@ const AnalyticsPage = () => {
   const doneTasks = tasks.filter(t => t.status === 'done').length;
   const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
-  const categoryProgress = OKR_CATEGORIES.map(cat => {
-    const catObjs = qObjectives.filter(o => o.category === cat.value);
-    const avg = catObjs.length > 0
-      ? Math.round(catObjs.reduce((acc, o) => acc + getObjectiveProgress(o), 0) / catObjs.length)
-      : 0;
-    return { ...cat, avg, count: catObjs.length };
-  });
 
   return (
     <div className="space-y-6">
@@ -91,42 +84,22 @@ const AnalyticsPage = () => {
         </Card>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Tarefas por Status</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {tasksByStatus.map(ts => (
-              <div key={ts.status} className="flex items-center justify-between">
-                <span className="text-sm">{ts.label}</span>
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-24 rounded-full bg-secondary overflow-hidden">
-                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${totalTasks > 0 ? (ts.count / totalTasks) * 100 : 0}%` }} />
-                  </div>
-                  <span className="font-mono text-xs text-muted-foreground w-6 text-right">{ts.count}</span>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Tarefas por Status</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          {tasksByStatus.map(ts => (
+            <div key={ts.status} className="flex items-center justify-between">
+              <span className="text-sm">{ts.label}</span>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-24 rounded-full bg-secondary overflow-hidden">
+                  <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${totalTasks > 0 ? (ts.count / totalTasks) * 100 : 0}%` }} />
                 </div>
+                <span className="font-mono text-xs text-muted-foreground w-6 text-right">{ts.count}</span>
               </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader><CardTitle className="text-base">Progresso por Categoria</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {categoryProgress.filter(c => c.count > 0).map(c => (
-              <div key={c.value} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span>{c.label}</span>
-                  <span className="font-mono text-xs text-muted-foreground">{c.avg}%</span>
-                </div>
-                <Progress value={c.avg} className="h-1.5" />
-              </div>
-            ))}
-            {categoryProgress.every(c => c.count === 0) && (
-              <p className="text-sm text-muted-foreground">Nenhum objetivo neste trimestre</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 };
