@@ -132,7 +132,7 @@ const ProtectedRoutes = () => {
 const AuthRoute = () => {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/inicio" replace />;
   return <AuthPage />;
 };
 
