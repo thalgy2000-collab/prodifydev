@@ -1,4 +1,4 @@
-import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, Package, ChevronDown, Shield, Users, ArrowLeft, Check, FileText, Calendar } from 'lucide-react';
+import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, Package, ChevronDown, Shield, Users, ArrowLeft, Check, FileText, Calendar, LayoutDashboard } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
@@ -16,7 +16,7 @@ const groups = [
   {
     label: '📍 Planejamento',
     items: [
-      { title: 'OKRs', url: '/', icon: Target, tourId: 'okrs' },
+      { title: 'OKRs', url: '/okrs', icon: Target, tourId: 'okrs' },
       { title: 'Roadmap', url: '/roadmap', icon: Map, tourId: 'roadmap' },
       { title: 'Release Planning', url: '/releases', icon: Package },
       { title: 'PRD', url: '/prd', icon: FileText },
@@ -127,6 +127,20 @@ export function AppSidebar() {
         )}
       </SidebarHeader>
       <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/" end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    {!collapsed && <span>Visão Geral</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         {groups.map(group => (
           <Collapsible key={group.label} defaultOpen className="group/collapsible">
             <SidebarGroup>
