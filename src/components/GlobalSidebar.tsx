@@ -61,18 +61,6 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
           </button>
         ))}
 
-        <button
-          onClick={() => navigate('/configuracoes')}
-          className={cn(
-            'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-            isActive('/configuracoes')
-              ? 'bg-primary/10 text-primary'
-              : 'text-sidebar-foreground hover:bg-sidebar-accent'
-          )}
-        >
-          <Settings className="h-4 w-4" />
-          Configurações
-        </button>
       </nav>
 
       {/* Footer */}
@@ -101,12 +89,13 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
               {initial}
             </div>
           )}
-          <div className="min-w-0 text-left">
+          <div className="min-w-0 text-left flex-1">
             <p className="text-sm font-semibold truncate">
               {profile?.displayName || profile?.fullName || 'Usuário'}
             </p>
-            <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+            <p className="text-xs text-muted-foreground truncate">Perfil & Configurações</p>
           </div>
+          <Settings className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         </button>
 
         <div className="flex items-center justify-between px-3 py-2">
