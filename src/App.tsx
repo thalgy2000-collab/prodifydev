@@ -27,6 +27,7 @@ import SwotPage from "./pages/SwotPage";
 import PrdPage from "./pages/PrdPage";
 import MembersPage from "./pages/MembersPage";
 import ProductAgendaPage from "./pages/ProductAgendaPage";
+import ProductOverviewPage from "./pages/ProductOverviewPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import InviteAcceptPage from "./pages/InviteAcceptPage";
@@ -62,7 +63,8 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<OKRPage />} />
+        <Route path="/" element={<ProductOverviewPage />} />
+        <Route path="/okrs" element={<OKRPage />} />
         <Route path="/oportunidades" element={<OpportunityTreePage />} />
         <Route path="/swot" element={<SwotPage />} />
         <Route path="/roadmap" element={<RoadmapPage />} />
