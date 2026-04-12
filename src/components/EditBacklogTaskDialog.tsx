@@ -6,6 +6,7 @@ import { useProduct } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Pencil, Check, X, ClipboardCheck } from 'lucide-react';
 
@@ -20,6 +22,12 @@ interface MemberOption {
   userId: string;
   displayName: string;
   avatarUrl: string | null;
+}
+
+interface SprintOption {
+  id: string;
+  name: string;
+  status: string;
 }
 
 interface EditBacklogTaskDialogProps {
@@ -44,6 +52,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [dueTime, setDueTime] = useState<string>('');
   const [dueEndTime, setDueEndTime] = useState<string>('');
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
+  const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
+  const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
 
   const [newCriterionTitle, setNewCriterionTitle] = useState('');
   const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
@@ -73,9 +83,22 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     }));
   }, [activeProduct]);
 
+  const fetchSprints = useCallback(async () => {
+    if (!activeProduct) { setSprintOptions([]); return; }
+    const { data } = await (supabase.from('sprints') as any)
+      .select('id, name, status')
+      .eq('product_id', activeProduct.id)
+      .neq('status', 'completed')
+      .order('created_at', { ascending: false });
+    setSprintOptions(data || []);
+  }, [activeProduct]);
+
   useEffect(() => {
-    if (open) fetchMembers();
-  }, [open, fetchMembers]);
+    if (open) {
+      fetchMembers();
+      fetchSprints();
+    }
+  }, [open, fetchMembers, fetchSprints]);
 
   useEffect(() => {
     if (task) {
@@ -86,11 +109,30 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setDueDate(task.dueDate || '');
       setDueTime(task.dueTime || '');
       setDueEndTime(task.dueEndTime || '');
+      setSelectedSprintId('none');
       fetchByTask(task.id);
     }
   }, [task, fetchByTask]);
 
   const taskCriteria = task ? getCriteriaForTask(task.id) : [];
+
+  const handleAddToSprint = async () => {
+    if (!task || selectedSprintId === 'none') return;
+    await (supabase.from('backlog_tasks') as any)
+      .update({ sprint_id: selectedSprintId })
+      .eq('id', task.id);
+    toast.success('Tarefa adicionada à sprint!');
+    onOpenChange(false);
+  };
+
+  const handleRemoveFromSprint = async () => {
+    if (!task) return;
+    await (supabase.from('backlog_tasks') as any)
+      .update({ sprint_id: null })
+      .eq('id', task.id);
+    toast.success('Tarefa removida da sprint!');
+    onOpenChange(false);
+  };
 
   const handleSave = async () => {
     if (!task || !title.trim()) return;
@@ -108,7 +150,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     // Handle schedule activity
     if (dueDate) {
       if (task.scheduleActivityId) {
-        // Update existing activity
         await updateActivity(task.scheduleActivityId, {
           title: `[${title}]`,
           description: description || '',
@@ -117,7 +158,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
           endTime: dueEndTime || undefined,
         });
       } else {
-        // Create new activity
         const newActivity = await addActivity({
           title: `[${title}]`,
           description: description || '',
@@ -129,7 +169,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
         patch.scheduleActivityId = newActivity.id;
       }
     } else if (task.scheduleActivityId) {
-      // Remove due date, delete activity
       await deleteActivity(task.scheduleActivityId);
       patch.scheduleActivityId = undefined;
     }
@@ -170,6 +209,10 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     ? { done: taskCriteria.filter(c => c.completed).length, total: taskCriteria.length }
     : null;
 
+  const currentSprintName = task?.sprintId
+    ? sprintOptions.find(s => s.id === task.sprintId)?.name
+    : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
@@ -207,6 +250,44 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             </Select>
           </div>
 
+          {/* Sprint Section */}
+          <div className="space-y-2">
+            <Label>Sprint</Label>
+            {task?.sprintId ? (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">{currentSprintName || 'Sprint vinculada'}</Badge>
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRemoveFromSprint}>
+                  Remover da Sprint
+                </Button>
+              </div>
+            ) : sprintOptions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma sprint ativa encontrada</p>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Selecione uma sprint" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    {sprintOptions.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 h-9"
+                  disabled={selectedSprintId === 'none'}
+                  onClick={handleAddToSprint}
+                >
+                  Adicionar à Sprint
+                </Button>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label>Data de entrega</Label>
             <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
@@ -239,7 +320,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               )}
             </div>
 
-            {/* Progress bar */}
             {progress && (
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
@@ -249,7 +329,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               </div>
             )}
 
-            {/* Criteria list */}
             <div className="space-y-1">
               {taskCriteria.map(criterion => (
                 <div key={criterion.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/50 group">
@@ -288,7 +367,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               ))}
             </div>
 
-            {/* Add new criterion */}
             <div className="flex items-center gap-2">
               <Input
                 placeholder="Novo critério de aceite..."
