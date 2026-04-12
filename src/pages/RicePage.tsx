@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, Save } from 'lucide-react';
+import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 
 const RicePage = () => {
   const { scores, setScore, getScore } = useRiceStore();
