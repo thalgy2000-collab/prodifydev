@@ -16,6 +16,15 @@ const RicePage = () => {
   const { items: initiatives } = useRoadmapStore();
   const { toast } = useToast();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
+  const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
+
+  const handleSort = (field: string) => {
+    setSortConfig(prev =>
+      prev?.field === field
+        ? { field, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+        : { field, direction: 'desc' }
+    );
+  };
 
   const allItems = [
     ...tasks.map(t => ({ id: t.id, title: t.title, type: 'task' as const })),
