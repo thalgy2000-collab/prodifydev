@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, Save } from 'lucide-react';
+import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 
 const RicePage = () => {
   const { scores, setScore, getScore } = useRiceStore();
@@ -16,6 +16,15 @@ const RicePage = () => {
   const { items: initiatives } = useRoadmapStore();
   const { toast } = useToast();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
+  const [sortConfig, setSortConfig] = useState<{ field: string; direction: 'asc' | 'desc' } | null>(null);
+
+  const handleSort = (field: string) => {
+    setSortConfig(prev =>
+      prev?.field === field
+        ? { field, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
+        : { field, direction: 'desc' }
+    );
+  };
 
   const allItems = [
     ...tasks.map(t => ({ id: t.id, title: t.title, type: 'task' as const })),
@@ -30,6 +39,18 @@ const RicePage = () => {
     const e = score?.effort ?? 1;
     return { ...item, r, i, c, e, total: calcRiceScore(r, i, c, e) };
   });
+
+  const sortedItems = sortConfig
+    ? [...ranked].sort((a, b) => {
+        const valA = a[sortConfig.field as keyof typeof a];
+        const valB = b[sortConfig.field as keyof typeof b];
+        return sortConfig.direction === 'asc'
+          ? Number(valA) - Number(valB)
+          : Number(valB) - Number(valA);
+      })
+    : ranked;
+
+
 
   const getValue = (id: string, field: string, fallback: any) => {
     return pendingScores[id]?.[field] ?? fallback;
@@ -97,15 +118,40 @@ const RicePage = () => {
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Item</th>
                 <th className="px-4 py-3 text-left font-medium">Tipo</th>
-                <th className="px-4 py-3 text-center font-medium">Reach</th>
-                <th className="px-4 py-3 text-center font-medium">Impact</th>
-                <th className="px-4 py-3 text-center font-medium">Confidence</th>
-                <th className="px-4 py-3 text-center font-medium">Effort</th>
-                <th className="px-4 py-3 text-center font-medium">Score</th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('r')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Reach
+                    {sortConfig?.field === 'r' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('i')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Impact
+                    {sortConfig?.field === 'i' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('c')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Confidence
+                    {sortConfig?.field === 'c' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('e')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Effort
+                    {sortConfig?.field === 'e' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('total')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Score
+                    {sortConfig?.field === 'total' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {ranked.map(item => (
+              {sortedItems.map(item => (
                 <tr key={item.id} className="border-t border-border">
                   <td className="px-4 py-3 font-medium">{item.title}</td>
                   <td className="px-4 py-3 text-muted-foreground">{item.type === 'task' ? 'Tarefa' : 'Iniciativa'}</td>
