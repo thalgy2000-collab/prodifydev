@@ -40,6 +40,18 @@ const RicePage = () => {
     return { ...item, r, i, c, e, total: calcRiceScore(r, i, c, e) };
   });
 
+  const sortedItems = sortConfig
+    ? [...ranked].sort((a, b) => {
+        const valA = a[sortConfig.field as keyof typeof a];
+        const valB = b[sortConfig.field as keyof typeof b];
+        return sortConfig.direction === 'asc'
+          ? Number(valA) - Number(valB)
+          : Number(valB) - Number(valA);
+      })
+    : ranked;
+
+
+
   const getValue = (id: string, field: string, fallback: any) => {
     return pendingScores[id]?.[field] ?? fallback;
   };
