@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -82,11 +83,17 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   const [invites, setInvites] = useState<ProductInvite[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
 
+  const navigate = useNavigate();
+
   const setActiveProductId = useCallback((id: string | null) => {
     setActiveProductIdState(id);
-    if (id) localStorage.setItem(ACTIVE_PRODUCT_KEY, id);
-    else localStorage.removeItem(ACTIVE_PRODUCT_KEY);
-  }, []);
+    if (id) {
+      localStorage.setItem(ACTIVE_PRODUCT_KEY, id);
+      navigate('/');
+    } else {
+      localStorage.removeItem(ACTIVE_PRODUCT_KEY);
+    }
+  }, [navigate]);
 
   const fetchProducts = useCallback(async () => {
     if (!user) { setProducts([]); setLoading(false); return; }
