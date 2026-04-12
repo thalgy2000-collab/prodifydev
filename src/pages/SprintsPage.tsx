@@ -144,7 +144,7 @@ const SprintsPage = () => {
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const tryMoveToDone = (taskId: string) => {
+  const tryMoveToDone = async (taskId: string) => {
     const isComplete = allCompleted(taskId);
     if (!isComplete) {
       const progress = getProgress(taskId);
@@ -157,9 +157,10 @@ const SprintsPage = () => {
     }
   };
 
-  const confirmMoveToDone = () => {
+  const confirmMoveToDone = async () => {
     if (pendingDoneTaskId) {
       updateTask(pendingDoneTaskId, { status: 'done' });
+      await (supabase.from('rice_scores') as any).delete().eq('item_id', pendingDoneTaskId);
     }
     setPendingDoneTaskId(null);
     setPendingDoneProgress(null);
