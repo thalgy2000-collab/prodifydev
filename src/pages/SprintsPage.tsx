@@ -153,6 +153,7 @@ const SprintsPage = () => {
       setConfirmDoneOpen(true);
     } else {
       updateTask(taskId, { status: 'done' });
+      await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId);
     }
   };
 
