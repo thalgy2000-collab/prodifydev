@@ -118,15 +118,40 @@ const RicePage = () => {
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Item</th>
                 <th className="px-4 py-3 text-left font-medium">Tipo</th>
-                <th className="px-4 py-3 text-center font-medium">Reach</th>
-                <th className="px-4 py-3 text-center font-medium">Impact</th>
-                <th className="px-4 py-3 text-center font-medium">Confidence</th>
-                <th className="px-4 py-3 text-center font-medium">Effort</th>
-                <th className="px-4 py-3 text-center font-medium">Score</th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('r')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Reach
+                    {sortConfig?.field === 'r' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('i')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Impact
+                    {sortConfig?.field === 'i' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('c')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Confidence
+                    {sortConfig?.field === 'c' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('e')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Effort
+                    {sortConfig?.field === 'e' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
+                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('total')}>
+                  <span className="flex items-center justify-center gap-1">
+                    Score
+                    {sortConfig?.field === 'total' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {ranked.map(item => (
+              {sortedItems.map(item => (
                 <tr key={item.id} className="border-t border-border">
                   <td className="px-4 py-3 font-medium">{item.title}</td>
                   <td className="px-4 py-3 text-muted-foreground">{item.type === 'task' ? 'Tarefa' : 'Iniciativa'}</td>
