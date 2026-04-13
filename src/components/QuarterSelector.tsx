@@ -16,7 +16,7 @@ const QuarterSelector = ({ selectedQuarter, onQuarterChange }: Props) => {
   };
 
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className="flex flex-col items-center gap-2">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => changeYear(-1)}>
           <ChevronLeft className="h-4 w-4" />
@@ -26,20 +26,20 @@ const QuarterSelector = ({ selectedQuarter, onQuarterChange }: Props) => {
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
-      <div className="flex gap-1.5">
+      <div className="grid grid-cols-4 gap-2 w-full max-w-2xl">
         {[1, 2, 3, 4].map(q => {
           const isActive = q === activeQ;
           return (
             <button
               key={q}
               onClick={() => onQuarterChange(`Q${q} ${year}`)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-lg px-5 py-2.5 text-sm font-medium transition-colors border ${
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-secondary text-muted-foreground border-border hover:text-foreground hover:bg-secondary/80'
               }`}
             >
-              Q{q}
+              Q{q} {year}
             </button>
           );
         })}
