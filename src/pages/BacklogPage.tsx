@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
@@ -53,7 +54,7 @@ const BacklogPage = () => {
   useEffect(() => { fetchMembersMap(); }, [fetchMembersMap]);
 
   const [editTask, setEditTask] = useState<BacklogTask | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = usePersistedState<string>('backlog_filter', 'all');
   const [createOpen, setCreateOpen] = useState(false);
   const [sprintOpen, setSprintOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
