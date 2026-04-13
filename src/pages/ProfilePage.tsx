@@ -516,7 +516,7 @@ const ProfilePage = () => {
                     <h3 className="font-medium">Sobre</h3>
                     <p className="text-sm text-muted-foreground">Versão do app: v1.0.0</p>
                     <Button variant="link" asChild>
-                      <a href="mailto:suporte@prodify.com">Contato com suporte</a>
+                      <a href="https://wa.me/5516994657472" target="_blank" rel="noopener noreferrer">Contato com suporte</a>
                     </Button>
                   </div>
                 </CardContent>
