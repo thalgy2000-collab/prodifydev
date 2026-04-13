@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
-import { getCurrentQuarter, getCategoryConfig, OKR_CATEGORIES } from '@/types/okr';
+import { getCurrentQuarter, OKR_CATEGORIES } from '@/types/okr';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -110,25 +110,16 @@ const OKRPage = () => {
 
             return grouped.map(({ category, items }) => (
               <div key={category.value} className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-5 w-1 rounded-full" style={{ backgroundColor: `hsl(${category.color})` }} />
-                  <h2 className="text-base font-bold text-foreground">{category.label}</h2>
-                  <span className="text-sm text-muted-foreground">
-                    {items.length} {items.length === 1 ? 'objetivo' : 'objetivos'}
-                  </span>
-                </div>
-                <div className="space-y-4">
-                  {items.map(obj => (
-                    <OKRCard
-                      key={obj.id}
-                      objective={obj}
-                      progress={getObjectiveProgress(obj)}
-                      onUpdateKR={updateKeyResult}
-                      onDelete={deleteObjective}
-                      onEdit={updateObjective}
-                    />
-                  ))}
-                </div>
+                {items.map(obj => (
+                  <OKRCard
+                    key={obj.id}
+                    objective={obj}
+                    progress={getObjectiveProgress(obj)}
+                    onUpdateKR={updateKeyResult}
+                    onDelete={deleteObjective}
+                    onEdit={updateObjective}
+                  />
+                ))}
               </div>
             ));
           })()}
