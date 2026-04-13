@@ -20,11 +20,10 @@ const RicePage = () => {
   const [sortConfig, setSortConfig] = usePersistedState<{ field: string; direction: 'asc' | 'desc' } | null>('rice_sort', null);
 
   const handleSort = (field: string) => {
-    setSortConfig(prev =>
-      prev?.field === field
-        ? { field, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-        : { field, direction: 'desc' }
-    );
+    const newConfig = sortConfig?.field === field
+      ? { field, direction: (sortConfig.direction === 'asc' ? 'desc' : 'asc') as 'asc' | 'desc' }
+      : { field, direction: 'desc' as const };
+    setSortConfig(newConfig);
   };
 
   const allItems = [
