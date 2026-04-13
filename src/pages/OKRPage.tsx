@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
-import { getCurrentQuarter } from '@/types/okr';
+import { getCurrentQuarter, getCategoryConfig, OKR_CATEGORIES } from '@/types/okr';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -99,17 +99,38 @@ const OKRPage = () => {
           <p className="mt-1 text-sm text-muted-foreground/70">Crie seu primeiro objetivo para este trimestre</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {filteredAndSearched.map(obj => (
-            <OKRCard
-              key={obj.id}
-              objective={obj}
-              progress={getObjectiveProgress(obj)}
-              onUpdateKR={updateKeyResult}
-              onDelete={deleteObjective}
-              onEdit={updateObjective}
-            />
-          ))}
+        <div className="space-y-8">
+          {(() => {
+            const grouped = OKR_CATEGORIES.reduce((acc, cat) => {
+              const items = filteredAndSearched.filter(o => o.category === cat.value);
+              if (items.length > 0) acc.push({ category: cat, items });
+              return acc;
+            }, [] as { category: typeof OKR_CATEGORIES[number]; items: typeof filteredAndSearched }[]);
+
+            return grouped.map(({ category, items }) => (
+              <div key={category.value} className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-1 rounded-full" style={{ backgroundColor: `hsl(${category.color})` }} />
+                  <h2 className="text-base font-bold text-foreground">{category.label}</h2>
+                  <span className="text-sm text-muted-foreground">
+                    {items.length} {items.length === 1 ? 'objetivo' : 'objetivos'}
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  {items.map(obj => (
+                    <OKRCard
+                      key={obj.id}
+                      objective={obj}
+                      progress={getObjectiveProgress(obj)}
+                      onUpdateKR={updateKeyResult}
+                      onDelete={deleteObjective}
+                      onEdit={updateObjective}
+                    />
+                  ))}
+                </div>
+              </div>
+            ));
+          })()}
         </div>
       )}
     </div>
