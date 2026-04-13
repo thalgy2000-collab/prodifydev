@@ -50,8 +50,8 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
           </div>
         </div>
 
-        {/* Separator */}
-        <div className="my-4 border-t border-border" />
+        {/* Colored separator line */}
+        <div className="my-4 h-0.5 w-full rounded-full bg-primary/40" />
 
         {/* Key Results */}
         <div className="space-y-5">
@@ -63,16 +63,13 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
                   <span className="text-foreground">{kr.title}</span>
                   <span className="font-mono text-xs text-muted-foreground">{kr.currentValue} / {kr.targetValue} {kr.unit}</span>
                 </div>
-                <div className="relative">
-                  {/* Visual progress bar */}
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: '#6366f1' }} />
-                  </div>
-                  {/* Interactive slider overlay */}
-                  <div className="absolute inset-0 opacity-0 cursor-pointer">
-                    <Slider value={[kr.currentValue]} max={kr.targetValue} step={1} onValueChange={([v]) => onUpdateKR(objective.id, kr.id, v)} className="h-full" />
-                  </div>
-                </div>
+                <Slider
+                  value={[kr.currentValue]}
+                  max={kr.targetValue}
+                  step={1}
+                  onValueChange={([v]) => onUpdateKR(objective.id, kr.id, v)}
+                  className="w-full"
+                />
               </div>
             );
           })}
