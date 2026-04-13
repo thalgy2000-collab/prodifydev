@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import CreateRoadmapDialog from '@/components/CreateRoadmapDialog';
@@ -23,7 +24,7 @@ const statusLabels = {
 };
 
 const RoadmapPage = () => {
-  const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
+  const [selectedQuarter, setSelectedQuarter] = usePersistedState('roadmap_filter', getCurrentQuarter());
   const months = getQuarterMonths(selectedQuarter);
 
   const { items, addItem, updateStatus, updateItem, deleteItem, getByQuarter } = useRoadmapStore();

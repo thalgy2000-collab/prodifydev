@@ -7,9 +7,10 @@ import QuarterSelector from '@/components/QuarterSelector';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Target, Search } from 'lucide-react';
+import { usePersistedState } from '@/hooks/usePersistedState';
 
 const OKRPage = () => {
-  const [selectedQuarter, setSelectedQuarter] = useState(getCurrentQuarter());
+  const [selectedQuarter, setSelectedQuarter] = usePersistedState('okr_quarter', getCurrentQuarter());
   const [searchText, setSearchText] = useState('');
   const [progressFilter, setProgressFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
 
