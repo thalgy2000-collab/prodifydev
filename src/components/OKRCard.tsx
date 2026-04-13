@@ -14,26 +14,21 @@ interface Props {
   onEdit: (id: string, updates: { title?: string; category?: OKRCategory; keyResults?: Omit<KeyResult, 'id'>[] }) => void;
 }
 
-const getProgressColor = (pct: number) => {
-  if (pct >= 70) return 'bg-success';
-  if (pct >= 40) return 'bg-warning';
-  return 'bg-destructive';
-};
-
 const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) => {
   const [editOpen, setEditOpen] = useState(false);
   const navigate = useNavigate();
   return (
     <>
       <div className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+        {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
               <Target className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold leading-tight">{objective.title}</h3>
-              <span className="font-mono text-xs text-muted-foreground">{objective.quarter}</span>
+              <h3 className="font-bold leading-tight">{objective.title}</h3>
+              <span className="text-xs text-muted-foreground">{objective.quarter}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -54,19 +49,31 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
             </Button>
           </div>
         </div>
-        <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-          <div className={`h-full rounded-full transition-all duration-500 ${getProgressColor(progress)}`} style={{ width: `${progress}%` }} />
-        </div>
-        <div className="mt-5 space-y-4">
-          {objective.keyResults.map(kr => (
-            <div key={kr.id} className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-foreground">{kr.title}</span>
-                <span className="font-mono text-xs text-muted-foreground">{kr.currentValue} / {kr.targetValue} {kr.unit}</span>
+
+        {/* Separator */}
+        <div className="my-4 border-t border-border" />
+
+        {/* Key Results */}
+        <div className="space-y-5">
+          {objective.keyResults.map(kr => {
+            const pct = kr.targetValue > 0 ? (kr.currentValue / kr.targetValue) * 100 : 0;
+            return (
+              <div key={kr.id} className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-foreground">{kr.title}</span>
+                  <span className="font-mono text-xs text-muted-foreground">{kr.currentValue} / {kr.targetValue} {kr.unit}</span>
+                </div>
+                {/* Visual progress bar */}
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: '#6366f1' }} />
+                </div>
+                {/* Hidden interactive slider */}
+                <div className="h-0 overflow-hidden opacity-0">
+                  <Slider value={[kr.currentValue]} max={kr.targetValue} step={1} onValueChange={([v]) => onUpdateKR(objective.id, kr.id, v)} />
+                </div>
               </div>
-              <Slider value={[kr.currentValue]} max={kr.targetValue} step={1} onValueChange={([v]) => onUpdateKR(objective.id, kr.id, v)} className="cursor-pointer" />
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       <EditOKRDialog objective={objective} open={editOpen} onOpenChange={setEditOpen} onSave={onEdit} />
