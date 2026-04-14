@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
+import ImportOKRDialog from '@/components/ImportOKRDialog';
 import { getCurrentQuarter, OKR_CATEGORIES } from '@/types/okr';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Input } from '@/components/ui/input';
@@ -14,7 +15,7 @@ const OKRPage = () => {
   const [searchText, setSearchText] = useState('');
   const [progressFilter, setProgressFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
 
-  const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress } = useOKRStore();
+  const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress, refetch } = useOKRStore();
 
   const filtered = getObjectivesByQuarter(selectedQuarter);
 
@@ -47,7 +48,10 @@ const OKRPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">OKRs</h1>
           <p className="text-sm text-muted-foreground">Gerencie seus objetivos e resultados-chave</p>
         </div>
-        <CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} />
+        <div className="flex items-center gap-2">
+          <ImportOKRDialog onImported={refetch} />
+          <CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} />
+        </div>
       </div>
 
       <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={setSelectedQuarter} />
