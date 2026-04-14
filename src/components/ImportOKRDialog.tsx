@@ -31,7 +31,7 @@ interface ImportOKRDialogProps {
 const ACCEPTED = '.pdf,.txt,.docx,.csv,.md';
 
 const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const { activeProduct } = useProduct();
   const { toast } = useToast();
 
@@ -66,10 +66,19 @@ const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
     setStep('loading');
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token ?? session?.access_token;
+      if (!accessToken) {
+        throw new Error('Inicie sessão para importar OKRs. A função exige autenticação.');
+      }
+
       const fileBase64 = await readFileAsBase64(file);
 
       const { data, error } = await supabase.functions.invoke('import-okrs', {
         body: { fileBase64, fileName: file.name },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
 
       if (error) throw new Error(error.message || 'Erro ao processar arquivo');
