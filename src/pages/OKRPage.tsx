@@ -15,7 +15,7 @@ const OKRPage = () => {
   const [searchText, setSearchText] = useState('');
   const [progressFilter, setProgressFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
 
-  const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress } = useOKRStore();
+  const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress, refetch } = useOKRStore();
 
   const filtered = getObjectivesByQuarter(selectedQuarter);
 
