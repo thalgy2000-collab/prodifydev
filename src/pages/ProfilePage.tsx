@@ -453,7 +453,42 @@ const ProfilePage = () => {
                   )}
                 </DialogContent>
               </Dialog>
-            </div>
+
+              {/* Modal de exclusão de conta */}
+              <Dialog open={deleteModalOpen} onOpenChange={(open) => { setDeleteModalOpen(open); if (!open) setDeleteConfirmText(''); }}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-destructive">Excluir conta</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Esta ação é <strong>irreversível</strong>. Todos os seus dados, produtos, OKRs, sprints e demais informações serão permanentemente removidos.
+                    </p>
+                    <div className="space-y-2">
+                      <Label>Digite <strong>EXCLUIR</strong> para confirmar</Label>
+                      <Input
+                        value={deleteConfirmText}
+                        onChange={e => setDeleteConfirmText(e.target.value)}
+                        placeholder="EXCLUIR"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={() => { setDeleteModalOpen(false); setDeleteConfirmText(''); }}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1"
+                        disabled={deleteConfirmText !== 'EXCLUIR' || deleting}
+                        onClick={handleDeleteAccount}
+                      >
+                        {deleting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Excluir minha conta
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
           )}
 
           {activeSection === 'product' && (
