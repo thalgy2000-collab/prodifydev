@@ -78,5 +78,5 @@ export const useOKRStore = () => {
     return Math.round(total / obj.keyResults.length);
   }, []);
 
-  return { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress };
+  return { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress, refetch: fetchAll };
 };
