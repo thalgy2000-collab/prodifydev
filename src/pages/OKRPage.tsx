@@ -48,7 +48,10 @@ const OKRPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">OKRs</h1>
           <p className="text-sm text-muted-foreground">Gerencie seus objetivos e resultados-chave</p>
         </div>
-        <CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} />
+        <div className="flex items-center gap-2">
+          <ImportOKRDialog onImported={refetch} />
+          <CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} />
+        </div>
       </div>
 
       <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={setSelectedQuarter} />
