@@ -47,14 +47,17 @@ const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
     setSaving(false);
   };
 
-  const readFile = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
+  const readFileAsBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsText(file);
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const base64 = dataUrl.includes(',') ? dataUrl.split(',')[1]! : dataUrl;
+        resolve(base64);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
     });
-  };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,10 +66,10 @@ const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
     setStep('loading');
 
     try {
-      const content = await readFile(file);
+      const fileBase64 = await readFileAsBase64(file);
 
       const { data, error } = await supabase.functions.invoke('import-okrs', {
-        body: { fileContent: content },
+        body: { fileBase64, fileName: file.name },
       });
 
       if (error) throw new Error(error.message || 'Erro ao processar arquivo');

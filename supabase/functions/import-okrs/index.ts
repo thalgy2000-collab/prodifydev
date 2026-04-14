@@ -1,9 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Buffer } from "node:buffer";
+import { PDFParse } from "npm:pdf-parse@2.4.5";
+import mammoth from "npm:mammoth@1.12.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const MAX_FILE_BYTES = 15 * 1024 * 1024;
 
 const SYSTEM_PROMPT = `Você é um especialista em OKRs. Analise o conteúdo do arquivo enviado e extraia ou sugira Objetivos e Key Results estruturados.
 
@@ -33,18 +38,90 @@ Regras:
 - Gere no mínimo 1 e no máximo 5 objetivos
 - Cada objetivo deve ter entre 1 e 4 key results`;
 
+function extensionFromName(fileName: string): string {
+  const i = fileName.lastIndexOf(".");
+  if (i < 0) return "";
+  return fileName.slice(i + 1).toLowerCase();
+}
+
+async function extractTextFromUpload(
+  fileBase64: string,
+  fileName: string,
+): Promise<string> {
+  let buffer: Buffer;
+  try {
+    buffer = Buffer.from(fileBase64, "base64");
+  } catch {
+    throw new Error("fileBase64 inválido");
+  }
+  if (buffer.length === 0) {
+    throw new Error("Arquivo vazio");
+  }
+  if (buffer.length > MAX_FILE_BYTES) {
+    throw new Error(`Arquivo muito grande (máx. ${MAX_FILE_BYTES / (1024 * 1024)} MB)`);
+  }
+
+  const ext = extensionFromName(fileName);
+
+  if (ext === "pdf") {
+    const parser = new PDFParse({ data: buffer });
+    try {
+      const result = await parser.getText();
+      let text = (result.text || "").trim();
+      text = text.replace(/\n--\s*\d+\s+of\s+\d+\s+--\s*\n?/g, "\n").trim();
+      return text;
+    } finally {
+      await parser.destroy();
+    }
+  }
+
+  if (ext === "docx") {
+    const result = await mammoth.extractRawText({ buffer });
+    return (result.value || "").trim();
+  }
+
+  if (ext === "txt" || ext === "md" || ext === "csv") {
+    return new TextDecoder("utf-8", { fatal: false }).decode(buffer).trim();
+  }
+
+  throw new Error(`Formato não suportado para extração: .${ext || "?"}`);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { fileContent } = await req.json();
-    if (!fileContent || typeof fileContent !== "string") {
-      return new Response(JSON.stringify({ error: "fileContent is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const body = await req.json() as {
+      fileBase64?: string;
+      fileName?: string;
+      /** @deprecated enviar fileBase64 + fileName */
+      fileContent?: string;
+    };
+
+    let textForAi: string;
+
+    if (body.fileBase64 != null && typeof body.fileBase64 === "string" && body.fileBase64.length > 0) {
+      const name = typeof body.fileName === "string" && body.fileName.trim()
+        ? body.fileName.trim()
+        : "upload.bin";
+      textForAi = await extractTextFromUpload(body.fileBase64, name);
+    } else if (body.fileContent != null && typeof body.fileContent === "string") {
+      // Compatibilidade: texto puro (ex.: clientes antigos só com .txt)
+      textForAi = body.fileContent.trim();
+    } else {
+      return new Response(
+        JSON.stringify({ error: "Envie fileBase64 (base64 do arquivo) e fileName, ou fileContent (texto)." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!textForAi) {
+      return new Response(
+        JSON.stringify({ error: "Não foi possível extrair texto do arquivo. Tente outro PDF ou formato." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -54,6 +131,8 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const userPrompt = `Analise o seguinte conteúdo e extraia OKRs:\n\n${textForAi}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -65,7 +144,7 @@ serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Analise o seguinte conteúdo e extraia OKRs:\n\n${fileContent}` },
+          { role: "user", content: userPrompt },
         ],
       }),
     });
@@ -94,7 +173,6 @@ serve(async (req) => {
     const data = await response.json();
     let content = data.choices?.[0]?.message?.content || "";
 
-    // Strip markdown code fences if present
     content = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
 
     let parsed;
