@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
+import ImportOKRDialog from '@/components/ImportOKRDialog';
 import { getCurrentQuarter, OKR_CATEGORIES } from '@/types/okr';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Input } from '@/components/ui/input';
