@@ -489,6 +489,7 @@ const ProfilePage = () => {
                   </div>
                 </DialogContent>
               </Dialog>
+            </div>
           )}
 
           {activeSection === 'product' && (
