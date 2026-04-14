@@ -38,6 +38,9 @@ const ProfilePage = () => {
   const [otpCode, setOtpCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const menuItems = [
     { id: 'profile', label: 'Perfil', icon: User },
@@ -184,6 +187,28 @@ const ProfilePage = () => {
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut({ scope: 'global' });
     error ? toast.error('Erro ao sair') : toast.success('Desconectado de todos os dispositivos');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'EXCLUIR') return;
+    setDeleting(true);
+    try {
+      // Delete profile data (cascade will handle related data)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', profile.id);
+      if (profileError) throw profileError;
+
+      // Sign out the user
+      await supabase.auth.signOut();
+      toast.success('Conta excluída com sucesso');
+      window.location.href = '/';
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao excluir conta');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleSaveProduct = async () => {
@@ -351,6 +376,16 @@ const ProfilePage = () => {
                     </div>
                     <Button variant="outline" onClick={handleSignOut}>Sair de todos os dispositivos</Button>
                   </div>
+                  <div className="border-t pt-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Trash2 className="h-5 w-5 text-destructive" />
+                      <div>
+                        <h3 className="font-medium text-destructive">Excluir conta</h3>
+                        <p className="text-sm text-muted-foreground">Remover permanentemente sua conta e todos os dados</p>
+                      </div>
+                    </div>
+                    <Button variant="destructive" onClick={() => setDeleteModalOpen(true)}>Excluir conta</Button>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -416,6 +451,42 @@ const ProfilePage = () => {
                       </Button>
                     </div>
                   )}
+                </DialogContent>
+              </Dialog>
+
+              {/* Modal de exclusão de conta */}
+              <Dialog open={deleteModalOpen} onOpenChange={(open) => { setDeleteModalOpen(open); if (!open) setDeleteConfirmText(''); }}>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-destructive">Excluir conta</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Esta ação é <strong>irreversível</strong>. Todos os seus dados, produtos, OKRs, sprints e demais informações serão permanentemente removidos.
+                    </p>
+                    <div className="space-y-2">
+                      <Label>Digite <strong>EXCLUIR</strong> para confirmar</Label>
+                      <Input
+                        value={deleteConfirmText}
+                        onChange={e => setDeleteConfirmText(e.target.value)}
+                        placeholder="EXCLUIR"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1" onClick={() => { setDeleteModalOpen(false); setDeleteConfirmText(''); }}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="flex-1"
+                        disabled={deleteConfirmText !== 'EXCLUIR' || deleting}
+                        onClick={handleDeleteAccount}
+                      >
+                        {deleting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                        Excluir minha conta
+                      </Button>
+                    </div>
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>
