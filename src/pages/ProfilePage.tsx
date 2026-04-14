@@ -189,6 +189,28 @@ const ProfilePage = () => {
     error ? toast.error('Erro ao sair') : toast.success('Desconectado de todos os dispositivos');
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'EXCLUIR') return;
+    setDeleting(true);
+    try {
+      // Delete profile data (cascade will handle related data)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', profile.id);
+      if (profileError) throw profileError;
+
+      // Sign out the user
+      await supabase.auth.signOut();
+      toast.success('Conta excluída com sucesso');
+      window.location.href = '/';
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao excluir conta');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleSaveProduct = async () => {
     if (!activeProduct) return;
     setSavingProduct(true);
