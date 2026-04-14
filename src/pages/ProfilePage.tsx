@@ -376,6 +376,16 @@ const ProfilePage = () => {
                     </div>
                     <Button variant="outline" onClick={handleSignOut}>Sair de todos os dispositivos</Button>
                   </div>
+                  <div className="border-t pt-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Trash2 className="h-5 w-5 text-destructive" />
+                      <div>
+                        <h3 className="font-medium text-destructive">Excluir conta</h3>
+                        <p className="text-sm text-muted-foreground">Remover permanentemente sua conta e todos os dados</p>
+                      </div>
+                    </div>
+                    <Button variant="destructive" onClick={() => setDeleteModalOpen(true)}>Excluir conta</Button>
+                  </div>
                 </CardContent>
               </Card>
 
