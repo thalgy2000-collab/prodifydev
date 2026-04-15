@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Plus, Pencil, Check, X, ClipboardCheck } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
 
 interface EditSprintTaskDialogProps {
   task: BacklogTask | null;
@@ -29,10 +29,6 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
   const [assigneeId, setAssigneeId] = useState('none');
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
-  const [newCriterionTitle, setNewCriterionTitle] = useState('');
-  const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
-  const [editingCriterionTitle, setEditingCriterionTitle] = useState('');
-
   const { fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
 
   useEffect(() => {
@@ -48,9 +44,6 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
   }, [task, fetchByTask]);
 
   const taskCriteria = task ? getCriteriaForTask(task.id) : [];
-  const progress = taskCriteria.length > 0
-    ? { done: taskCriteria.filter(c => c.completed).length, total: taskCriteria.length }
-    : null;
 
   const handleSave = () => {
     if (!task || !title.trim()) return;
@@ -67,34 +60,6 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
     onDelete(task.id);
     setConfirmDeleteOpen(false);
     onOpenChange(false);
-  };
-
-  const handleAddCriterion = () => {
-    if (!task || !newCriterionTitle.trim()) return;
-    addCriterion(task.id, newCriterionTitle.trim());
-    setNewCriterionTitle('');
-  };
-
-  const handleToggleCriterion = (id: string, completed: boolean) => {
-    if (!task) return;
-    updateCriterion(id, { completed: !completed }, task.id);
-  };
-
-  const handleStartEdit = (id: string, currentTitle: string) => {
-    setEditingCriterionId(id);
-    setEditingCriterionTitle(currentTitle);
-  };
-
-  const handleSaveEdit = () => {
-    if (!task || !editingCriterionId || !editingCriterionTitle.trim()) return;
-    updateCriterion(editingCriterionId, { title: editingCriterionTitle.trim() }, task.id);
-    setEditingCriterionId(null);
-    setEditingCriterionTitle('');
-  };
-
-  const handleCancelEdit = () => {
-    setEditingCriterionId(null);
-    setEditingCriterionTitle('');
   };
 
   return (
@@ -115,79 +80,15 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
             </div>
 
             {/* Acceptance Criteria Section */}
-            <div className="space-y-3 pt-2 border-t border-border">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2 text-base">
-                  <ClipboardCheck className="h-4 w-4" />
-                  Critérios de Aceite
-                </Label>
-                {progress && (
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {progress.done}/{progress.total} concluídos
-                  </span>
-                )}
-              </div>
-
-              {progress && (
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{ width: `${(progress.done / progress.total) * 100}%` }}
-                  />
-                </div>
-              )}
-
-              <div className="space-y-1">
-                {taskCriteria.map(criterion => (
-                  <div key={criterion.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/50 group">
-                    <Checkbox
-                      checked={criterion.completed}
-                      onCheckedChange={() => handleToggleCriterion(criterion.id, criterion.completed)}
-                    />
-                    {editingCriterionId === criterion.id ? (
-                      <div className="flex-1 flex items-center gap-1">
-                        <Input
-                          value={editingCriterionTitle}
-                          onChange={e => setEditingCriterionTitle(e.target.value)}
-                          onKeyDown={e => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit(); }}
-                          className="h-7 text-sm"
-                          autoFocus
-                        />
-                        <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={handleSaveEdit}><Check className="h-3 w-3" /></Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={handleCancelEdit}><X className="h-3 w-3" /></Button>
-                      </div>
-                    ) : (
-                      <>
-                        <span className={`flex-1 text-sm ${criterion.completed ? 'line-through text-muted-foreground' : ''}`}>
-                          {criterion.title}
-                        </span>
-                        <div className="hidden group-hover:flex items-center gap-0.5">
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleStartEdit(criterion.id, criterion.title)}>
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => task && deleteCriterion(criterion.id, task.id)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="Novo critério de aceite..."
-                  value={newCriterionTitle}
-                  onChange={e => setNewCriterionTitle(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddCriterion()}
-                  className="h-8 text-sm"
-                />
-                <Button variant="outline" size="sm" className="shrink-0 h-8 gap-1" onClick={handleAddCriterion}>
-                  <Plus className="h-3 w-3" /> Adicionar
-                </Button>
-              </div>
-            </div>
+            {task && (
+              <AcceptanceCriteriaSection
+                taskId={task.id}
+                criteria={taskCriteria}
+                addCriterion={addCriterion}
+                updateCriterion={updateCriterion}
+                deleteCriterion={deleteCriterion}
+              />
+            )}
 
             <div className="flex gap-3">
               <div className="flex-1 space-y-2">
