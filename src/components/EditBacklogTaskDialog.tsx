@@ -12,11 +12,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Pencil, Check, X, ClipboardCheck } from 'lucide-react';
+import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
 
 interface MemberOption {
   userId: string;
@@ -54,10 +53,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
-
-  const [newCriterionTitle, setNewCriterionTitle] = useState('');
-  const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
-  const [editingCriterionTitle, setEditingCriterionTitle] = useState('');
 
   const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
 
