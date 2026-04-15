@@ -18,7 +18,10 @@ export type Database = {
         Row: {
           completed: boolean
           created_at: string
+          due_date: string | null
+          due_time: string | null
           id: string
+          schedule_activity_id: string | null
           sort_order: number
           task_id: string
           title: string
@@ -26,7 +29,10 @@ export type Database = {
         Insert: {
           completed?: boolean
           created_at?: string
+          due_date?: string | null
+          due_time?: string | null
           id?: string
+          schedule_activity_id?: string | null
           sort_order?: number
           task_id: string
           title: string
@@ -34,12 +40,22 @@ export type Database = {
         Update: {
           completed?: boolean
           created_at?: string
+          due_date?: string | null
+          due_time?: string | null
           id?: string
+          schedule_activity_id?: string | null
           sort_order?: number
           task_id?: string
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "acceptance_criteria_schedule_activity_id_fkey"
+            columns: ["schedule_activity_id"]
+            isOneToOne: false
+            referencedRelation: "schedule_activities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "acceptance_criteria_task_id_fkey"
             columns: ["task_id"]
