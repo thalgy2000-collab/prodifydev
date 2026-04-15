@@ -12,11 +12,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Pencil, Check, X, ClipboardCheck } from 'lucide-react';
+import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
 
 interface MemberOption {
   userId: string;
@@ -54,10 +53,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
-
-  const [newCriterionTitle, setNewCriterionTitle] = useState('');
-  const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
-  const [editingCriterionTitle, setEditingCriterionTitle] = useState('');
 
   const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
 
@@ -177,38 +172,6 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     onOpenChange(false);
   };
 
-  const handleAddCriterion = () => {
-    if (!task || !newCriterionTitle.trim()) return;
-    addCriterion(task.id, newCriterionTitle.trim());
-    setNewCriterionTitle('');
-  };
-
-  const handleToggleCriterion = (id: string, completed: boolean) => {
-    if (!task) return;
-    updateCriterion(id, { completed: !completed }, task.id);
-  };
-
-  const handleStartEdit = (id: string, currentTitle: string) => {
-    setEditingCriterionId(id);
-    setEditingCriterionTitle(currentTitle);
-  };
-
-  const handleSaveEdit = () => {
-    if (!task || !editingCriterionId || !editingCriterionTitle.trim()) return;
-    updateCriterion(editingCriterionId, { title: editingCriterionTitle.trim() }, task.id);
-    setEditingCriterionId(null);
-    setEditingCriterionTitle('');
-  };
-
-  const handleCancelEdit = () => {
-    setEditingCriterionId(null);
-    setEditingCriterionTitle('');
-  };
-
-  const progress = taskCriteria.length > 0
-    ? { done: taskCriteria.filter(c => c.completed).length, total: taskCriteria.length }
-    : null;
-
   const currentSprintName = task?.sprintId
     ? sprintOptions.find(s => s.id === task.sprintId)?.name
     : null;
@@ -230,9 +193,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
           <div className="space-y-2">
             <Label>Responsável</Label>
             <Select value={assigneeId} onValueChange={setAssigneeId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sem responsável" />
-              </SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Sem responsável</SelectItem>
                 {memberOptions.map(m => (
@@ -256,34 +217,20 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             {task?.sprintId ? (
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">{currentSprintName || 'Sprint vinculada'}</Badge>
-                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRemoveFromSprint}>
-                  Remover da Sprint
-                </Button>
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRemoveFromSprint}>Remover da Sprint</Button>
               </div>
             ) : sprintOptions.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma sprint ativa encontrada</p>
             ) : (
               <div className="flex items-center gap-2">
                 <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Selecione uma sprint" />
-                  </SelectTrigger>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Selecione uma sprint" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhuma</SelectItem>
-                    {sprintOptions.map(s => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                    ))}
+                    {sprintOptions.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0 h-9"
-                  disabled={selectedSprintId === 'none'}
-                  onClick={handleAddToSprint}
-                >
-                  Adicionar à Sprint
-                </Button>
+                <Button variant="outline" size="sm" className="shrink-0 h-9" disabled={selectedSprintId === 'none'} onClick={handleAddToSprint}>Adicionar à Sprint</Button>
               </div>
             )}
           </div>
@@ -292,94 +239,23 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             <Label>Data de entrega</Label>
             <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
           </div>
-
           {dueDate && (
             <div className="flex gap-3">
-              <div className="flex-1 space-y-2">
-                <Label>Hora início</Label>
-                <Input type="time" value={dueTime} onChange={e => setDueTime(e.target.value)} />
-              </div>
-              <div className="flex-1 space-y-2">
-                <Label>Hora fim</Label>
-                <Input type="time" value={dueEndTime} onChange={e => setDueEndTime(e.target.value)} />
-              </div>
+              <div className="flex-1 space-y-2"><Label>Hora início</Label><Input type="time" value={dueTime} onChange={e => setDueTime(e.target.value)} /></div>
+              <div className="flex-1 space-y-2"><Label>Hora fim</Label><Input type="time" value={dueEndTime} onChange={e => setDueEndTime(e.target.value)} /></div>
             </div>
           )}
 
           {/* Acceptance Criteria Section */}
-          <div className="space-y-3 pt-2 border-t border-border">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2 text-base">
-                <ClipboardCheck className="h-4 w-4" />
-                Critérios de Aceite
-              </Label>
-              {progress && (
-                <span className="text-xs font-medium text-muted-foreground">
-                  {progress.done}/{progress.total} concluídos
-                </span>
-              )}
-            </div>
-
-            {progress && (
-              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${(progress.done / progress.total) * 100}%` }}
-                />
-              </div>
-            )}
-
-            <div className="space-y-1">
-              {taskCriteria.map(criterion => (
-                <div key={criterion.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/50 group">
-                  <Checkbox
-                    checked={criterion.completed}
-                    onCheckedChange={() => handleToggleCriterion(criterion.id, criterion.completed)}
-                  />
-                  {editingCriterionId === criterion.id ? (
-                    <div className="flex-1 flex items-center gap-1">
-                      <Input
-                        value={editingCriterionTitle}
-                        onChange={e => setEditingCriterionTitle(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit(); }}
-                        className="h-7 text-sm"
-                        autoFocus
-                      />
-                      <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={handleSaveEdit}><Check className="h-3 w-3" /></Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={handleCancelEdit}><X className="h-3 w-3" /></Button>
-                    </div>
-                  ) : (
-                    <>
-                      <span className={`flex-1 text-sm ${criterion.completed ? 'line-through text-muted-foreground' : ''}`}>
-                        {criterion.title}
-                      </span>
-                      <div className="hidden group-hover:flex items-center gap-0.5">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleStartEdit(criterion.id, criterion.title)}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => task && deleteCriterion(criterion.id, task.id)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Novo critério de aceite..."
-                value={newCriterionTitle}
-                onChange={e => setNewCriterionTitle(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddCriterion()}
-                className="h-8 text-sm"
-              />
-              <Button variant="outline" size="sm" className="shrink-0 h-8 gap-1" onClick={handleAddCriterion}>
-                <Plus className="h-3 w-3" /> Adicionar
-              </Button>
-            </div>
-          </div>
+          {task && (
+            <AcceptanceCriteriaSection
+              taskId={task.id}
+              criteria={taskCriteria}
+              addCriterion={addCriterion}
+              updateCriterion={updateCriterion}
+              deleteCriterion={deleteCriterion}
+            />
+          )}
 
           <Button onClick={handleSave} className="w-full">Salvar</Button>
         </div>
