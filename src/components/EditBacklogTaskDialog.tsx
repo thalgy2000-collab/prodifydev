@@ -172,6 +172,80 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     onOpenChange(false);
   };
 
+  const currentSprintName = task?.sprintId
+    ? sprintOptions.find(s => s.id === task.sprintId)?.name
+    : null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>Editar Tarefa</DialogTitle></DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div className="space-y-2"><Label>Título</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
+          <div className="space-y-2"><Label>Descrição</Label><Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
+          <div className="flex gap-3">
+            <div className="flex-1 space-y-2"><Label>Prioridade</Label><Select value={priority} onValueChange={v => setPriority(v as TaskPriority)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(PRIORITY_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent></Select></div>
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1 space-y-2"><Label>Iniciativa (Roadmap)</Label><Select value={initiativeId} onValueChange={setInitiativeId}><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhuma</SelectItem>{initiatives.map(i => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}</SelectContent></Select></div>
+            <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} value={storyPoints} onChange={e => setStoryPoints(Number(e.target.value))} /></div>
+          </div>
+          <div className="space-y-2">
+            <Label>Responsável</Label>
+            <Select value={assigneeId} onValueChange={setAssigneeId}>
+              <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem responsável</SelectItem>
+                {memberOptions.map(m => (
+                  <SelectItem key={m.userId} value={m.userId}>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={m.avatarUrl || undefined} />
+                        <AvatarFallback className="text-[10px]">{m.displayName.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      {m.displayName}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Sprint Section */}
+          <div className="space-y-2">
+            <Label>Sprint</Label>
+            {task?.sprintId ? (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">{currentSprintName || 'Sprint vinculada'}</Badge>
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRemoveFromSprint}>Remover da Sprint</Button>
+              </div>
+            ) : sprintOptions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhuma sprint ativa encontrada</p>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="Selecione uma sprint" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Nenhuma</SelectItem>
+                    {sprintOptions.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" className="shrink-0 h-9" disabled={selectedSprintId === 'none'} onClick={handleAddToSprint}>Adicionar à Sprint</Button>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Data de entrega</Label>
+            <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+          </div>
+          {dueDate && (
+            <div className="flex gap-3">
+              <div className="flex-1 space-y-2"><Label>Hora início</Label><Input type="time" value={dueTime} onChange={e => setDueTime(e.target.value)} /></div>
+              <div className="flex-1 space-y-2"><Label>Hora fim</Label><Input type="time" value={dueEndTime} onChange={e => setDueEndTime(e.target.value)} /></div>
+            </div>
+          )}
+
           {/* Acceptance Criteria Section */}
           {task && (
             <AcceptanceCriteriaSection
