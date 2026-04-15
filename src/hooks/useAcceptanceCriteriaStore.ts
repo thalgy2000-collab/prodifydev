@@ -7,8 +7,23 @@ export interface AcceptanceCriterion {
   title: string;
   completed: boolean;
   sortOrder: number;
+  dueDate: string | null;
+  dueTime: string | null;
+  scheduleActivityId: string | null;
   createdAt: string;
 }
+
+const mapRow = (d: any): AcceptanceCriterion => ({
+  id: d.id,
+  taskId: d.task_id,
+  title: d.title,
+  completed: d.completed,
+  sortOrder: d.sort_order,
+  dueDate: d.due_date ?? null,
+  dueTime: d.due_time ?? null,
+  scheduleActivityId: d.schedule_activity_id ?? null,
+  createdAt: d.created_at,
+});
 
 export const useAcceptanceCriteriaStore = () => {
   const [criteria, setCriteria] = useState<AcceptanceCriterion[]>([]);
@@ -20,16 +35,7 @@ export const useAcceptanceCriteriaStore = () => {
       .select('*')
       .eq('task_id', taskId)
       .order('sort_order', { ascending: true });
-    if (data) {
-      setCriteria(data.map((d: any) => ({
-        id: d.id,
-        taskId: d.task_id,
-        title: d.title,
-        completed: d.completed,
-        sortOrder: d.sort_order,
-        createdAt: d.created_at,
-      })));
-    }
+    if (data) setCriteria(data.map(mapRow));
     setLoading(false);
   }, []);
 
@@ -43,10 +49,13 @@ export const useAcceptanceCriteriaStore = () => {
     await fetchByTask(taskId);
   }, [criteria, fetchByTask]);
 
-  const updateCriterion = useCallback(async (id: string, patch: { title?: string; completed?: boolean }, taskId: string) => {
+  const updateCriterion = useCallback(async (id: string, patch: { title?: string; completed?: boolean; due_date?: string | null; due_time?: string | null; schedule_activity_id?: string | null }, taskId: string) => {
     const dbPatch: Record<string, unknown> = {};
     if (patch.title !== undefined) dbPatch.title = patch.title;
     if (patch.completed !== undefined) dbPatch.completed = patch.completed;
+    if (patch.due_date !== undefined) dbPatch.due_date = patch.due_date;
+    if (patch.due_time !== undefined) dbPatch.due_time = patch.due_time;
+    if (patch.schedule_activity_id !== undefined) dbPatch.schedule_activity_id = patch.schedule_activity_id;
     await (supabase.from('acceptance_criteria') as any).update(dbPatch).eq('id', id);
     await fetchByTask(taskId);
   }, [fetchByTask]);
@@ -72,23 +81,13 @@ export const useAcceptanceCriteriaStore = () => {
     return { done, total: taskCriteria.length };
   }, [criteria]);
 
-  // Fetch criteria for multiple tasks at once
   const fetchByTasks = useCallback(async (taskIds: string[]) => {
     if (taskIds.length === 0) { setCriteria([]); return; }
     const { data } = await (supabase.from('acceptance_criteria') as any)
       .select('*')
       .in('task_id', taskIds)
       .order('sort_order', { ascending: true });
-    if (data) {
-      setCriteria(data.map((d: any) => ({
-        id: d.id,
-        taskId: d.task_id,
-        title: d.title,
-        completed: d.completed,
-        sortOrder: d.sort_order,
-        createdAt: d.created_at,
-      })));
-    }
+    if (data) setCriteria(data.map(mapRow));
   }, []);
 
   return { criteria, loading, fetchByTask, fetchByTasks, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask, allCompleted, getProgress };
