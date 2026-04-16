@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { trackEvent } from '@/hooks/useAnalytics';
-import { useProduct } from '@/contexts/ProductContext';
 
 export const useOKRStore = () => {
   const { user } = useAuth();
