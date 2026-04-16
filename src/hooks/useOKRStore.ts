@@ -40,6 +40,7 @@ export const useOKRStore = () => {
         title: kr.title, unit: kr.unit, objective_id: obj.id, user_id: user.id, product_id: activeProduct.id,
         current_value: kr.currentValue, target_value: kr.targetValue,
       })));
+    }
     trackEvent('okr_created', user.id, { page: '/okrs', properties: { title, quarter } });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
