@@ -3,6 +3,7 @@ import { Objective, KeyResult, OKRCategory } from '@/types/okr';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
+import { trackEvent } from '@/hooks/useAnalytics';
 
 export const useOKRStore = () => {
   const { user } = useAuth();
@@ -39,11 +40,13 @@ export const useOKRStore = () => {
         current_value: kr.currentValue, target_value: kr.targetValue,
       })));
     }
+    trackEvent('okr_created', user.id, { page: '/okrs', properties: { title, quarter } });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
 
   const updateKeyResult = useCallback(async (objectiveId: string, krId: string, currentValue: number) => {
     await (supabase.from('key_results') as any).update({ current_value: currentValue }).eq('id', krId);
+    trackEvent('kr_updated', user?.id, { page: '/okrs', properties: { krId, currentValue } });
     await fetchAll();
   }, [fetchAll]);
 
@@ -67,6 +70,7 @@ export const useOKRStore = () => {
 
   const deleteObjective = useCallback(async (id: string) => {
     await (supabase.from('objectives') as any).delete().eq('id', id);
+    trackEvent('okr_deleted', user?.id, { page: '/okrs', properties: { objectiveId: id } });
     await fetchAll();
   }, [fetchAll]);
 

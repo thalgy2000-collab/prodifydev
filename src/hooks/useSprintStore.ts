@@ -3,6 +3,7 @@ import { Sprint } from '@/types/sprint';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
+import { trackEvent } from '@/hooks/useAnalytics';
 
 export const useSprintStore = () => {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ export const useSprintStore = () => {
       user_id: user.id, product_id: activeProduct.id, name: data.name, goal: data.goal,
       start_date: data.startDate, end_date: data.endDate, status: data.status,
     });
+    trackEvent('sprint_created', user.id, { page: '/sprints', properties: { name: data.name } });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
 
@@ -40,6 +42,7 @@ export const useSprintStore = () => {
     if (patch.endDate !== undefined) dbPatch.end_date = patch.endDate;
     if (patch.status !== undefined) dbPatch.status = patch.status;
     await (supabase.from('sprints') as any).update(dbPatch).eq('id', id);
+    trackEvent('sprint_updated', user?.id, { page: '/sprints', properties: { sprintId: id, ...dbPatch } });
 
     if (patch.status === 'completed') {
       await (supabase.from('backlog_tasks') as any)

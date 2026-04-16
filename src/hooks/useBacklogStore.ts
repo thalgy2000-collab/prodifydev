@@ -3,6 +3,7 @@ import { BacklogTask } from '@/types/backlog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
+import { trackEvent } from '@/hooks/useAnalytics';
 
 export const useBacklogStore = () => {
   const { user } = useAuth();
@@ -38,6 +39,7 @@ export const useBacklogStore = () => {
       key_result_id: data.keyResultId || null, story_points: data.storyPoints ?? null,
       sprint_id: data.sprintId || null, assignee_id: data.assigneeId || null,
     });
+    trackEvent('task_created', user.id, { page: '/backlog', properties: { title: data.title, priority: data.priority } });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
 
@@ -59,11 +61,13 @@ export const useBacklogStore = () => {
     if (patch.scheduleActivityId !== undefined) dbPatch.schedule_activity_id = patch.scheduleActivityId || null;
     if (patch.assigneeId !== undefined) dbPatch.assignee_id = patch.assigneeId || null;
     await (supabase.from('backlog_tasks') as any).update(dbPatch).eq('id', id);
+    trackEvent('task_updated', user?.id, { page: '/backlog', properties: { taskId: id, fields: Object.keys(dbPatch) } });
     await fetchAll();
   }, [fetchAll]);
 
   const deleteTask = useCallback(async (id: string) => {
     await (supabase.from('backlog_tasks') as any).delete().eq('id', id);
+    trackEvent('task_deleted', user?.id, { page: '/backlog', properties: { taskId: id } });
     await fetchAll();
   }, [fetchAll]);
 
