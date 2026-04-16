@@ -157,7 +157,7 @@ export const NotificationBell = () => {
                 <InviteItem key={inv.id} invite={inv} onAccept={handleAccept} onDecline={declineInvite} />
               ))}
               {notifications.map((n) => (
-                <NotificationItem key={n.id} notification={n} onRead={markAsRead} />
+                <NotificationItem key={n.id} notification={n} onRead={handleNotificationClick} />
               ))}
             </div>
           )}
