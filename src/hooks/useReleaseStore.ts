@@ -3,6 +3,7 @@ import { Release, ReleaseItem } from '@/types/release';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
+import { trackEvent } from '@/hooks/useAnalytics';
 
 export const useReleaseStore = () => {
   const { user } = useAuth();
@@ -37,7 +38,7 @@ export const useReleaseStore = () => {
       user_id: user.id, product_id: activeProduct.id,
       name: data.name, version: data.version,
       planned_date: data.plannedDate, status: data.status,
-    });
+    trackEvent('release_created', user.id, { page: '/releases', properties: { name: data.name, version: data.version } });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
 
@@ -48,6 +49,7 @@ export const useReleaseStore = () => {
     if (data.plannedDate !== undefined) updateData.planned_date = data.plannedDate;
     if (data.status !== undefined) updateData.status = data.status;
     await (supabase.from('releases') as any).update(updateData).eq('id', id);
+    trackEvent('release_updated', user?.id, { page: '/releases', properties: { releaseId: id, ...data } });
     await fetchAll();
   }, [fetchAll]);
 

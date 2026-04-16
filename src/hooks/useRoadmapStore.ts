@@ -3,6 +3,7 @@ import { RoadmapItem, RoadmapItemKR } from '@/types/roadmap';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
+import { trackEvent } from '@/hooks/useAnalytics';
 
 export const useRoadmapStore = () => {
   const { user } = useAuth();
@@ -78,6 +79,7 @@ export const useRoadmapStore = () => {
     if (inserted && data.linkedKRs.length > 0) {
       await saveLinkedKRs(inserted.id, data.linkedKRs);
     }
+    trackEvent('roadmap_item_created', user.id, { page: '/roadmap', properties: { title: data.title, quarter: data.quarter } });
     await fetchAll();
   }, [user, activeProduct, fetchAll, saveLinkedKRs]);
 
@@ -122,6 +124,7 @@ export const useRoadmapStore = () => {
   const deleteItem = useCallback(async (id: string) => {
     await (supabase.from('roadmap_item_key_results') as any).delete().eq('roadmap_item_id', id);
     await (supabase.from('roadmap_items') as any).delete().eq('id', id);
+    trackEvent('roadmap_item_deleted', user?.id, { page: '/roadmap', properties: { itemId: id } });
     await fetchAll();
   }, [fetchAll]);
 
