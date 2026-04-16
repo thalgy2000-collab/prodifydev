@@ -1,4 +1,4 @@
-import { Bell, Info, CheckCircle, AlertTriangle, Mail, CheckCheck, Check, X } from 'lucide-react';
+import { Bell, Info, CheckCircle, AlertTriangle, Mail, CheckCheck, Check, X, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,6 +8,7 @@ import {
 import { useNotifications, AppNotification } from '@/hooks/useNotifications';
 import { useInvites, PendingInvite } from '@/hooks/useInvites';
 import { useProduct } from '@/contexts/ProductContext';
+import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';

@@ -1017,6 +1017,17 @@ export type Database = {
         Args: { _product_id: string; _user_id: string }
         Returns: boolean
       }
+      notify_product_members: {
+        Args: {
+          _action_url?: string
+          _exclude_user_id: string
+          _message: string
+          _product_id: string
+          _title: string
+          _type?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

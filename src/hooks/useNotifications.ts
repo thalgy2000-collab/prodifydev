@@ -43,6 +43,32 @@ export const useNotifications = () => {
 
   useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
+  // Realtime subscription
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('notifications-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const d = payload.new as any;
+          setNotifications(prev => [{
+            id: d.id,
+            title: d.title,
+            message: d.message,
+            type: d.type,
+            read: d.read,
+            actionUrl: d.action_url,
+            metadata: d.metadata,
+            createdAt: d.created_at,
+          }, ...prev]);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const markAsRead = useCallback(async (id: string) => {
