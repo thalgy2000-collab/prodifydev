@@ -38,6 +38,7 @@ export const useReleaseStore = () => {
       user_id: user.id, product_id: activeProduct.id,
       name: data.name, version: data.version,
       planned_date: data.plannedDate, status: data.status,
+    });
     trackEvent('release_created', user.id, { page: '/releases', properties: { name: data.name, version: data.version } });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);

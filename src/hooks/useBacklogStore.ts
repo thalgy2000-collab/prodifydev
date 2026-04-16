@@ -38,6 +38,7 @@ export const useBacklogStore = () => {
       initiative_id: data.initiativeId || null, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, story_points: data.storyPoints ?? null,
       sprint_id: data.sprintId || null, assignee_id: data.assigneeId || null,
+    });
     trackEvent('task_created', user.id, { page: '/backlog', properties: { title: data.title, priority: data.priority } });
     await fetchAll();
   }, [user, activeProduct, fetchAll]);
