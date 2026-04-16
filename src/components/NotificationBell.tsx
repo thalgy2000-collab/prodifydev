@@ -1,4 +1,4 @@
-import { Bell, Info, CheckCircle, AlertTriangle, Mail, CheckCheck, Check, X } from 'lucide-react';
+import { Bell, Info, CheckCircle, AlertTriangle, Mail, CheckCheck, Check, X, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,6 +8,7 @@ import {
 import { useNotifications, AppNotification } from '@/hooks/useNotifications';
 import { useInvites, PendingInvite } from '@/hooks/useInvites';
 import { useProduct } from '@/contexts/ProductContext';
+import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -32,7 +33,7 @@ const NotificationItem = ({
   onRead,
 }: {
   notification: AppNotification;
-  onRead: (id: string) => void;
+  onRead: (id: string, actionUrl?: string | null) => void;
 }) => {
   const Icon = typeIcons[notification.type] || Info;
   const color = typeColors[notification.type] || 'text-muted-foreground';
@@ -43,7 +44,7 @@ const NotificationItem = ({
 
   return (
     <button
-      onClick={() => onRead(notification.id)}
+      onClick={() => onRead(notification.id, notification.actionUrl)}
       className={cn(
         'flex items-start gap-3 w-full text-left px-4 py-3 hover:bg-accent/50 transition-colors',
         !notification.read && 'bg-accent/20'
@@ -104,6 +105,12 @@ export const NotificationBell = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const { pendingInvites, acceptInvite, declineInvite } = useInvites();
   const { fetchProducts } = useProduct();
+  const navigate = useNavigate();
+
+  const handleNotificationClick = (id: string, actionUrl?: string | null) => {
+    markAsRead(id);
+    if (actionUrl) navigate(actionUrl);
+  };
 
   const handleAccept = async (id: string, productId: string, role: string) => {
     await acceptInvite(id, productId, role);
@@ -150,7 +157,7 @@ export const NotificationBell = () => {
                 <InviteItem key={inv.id} invite={inv} onAccept={handleAccept} onDecline={declineInvite} />
               ))}
               {notifications.map((n) => (
-                <NotificationItem key={n.id} notification={n} onRead={markAsRead} />
+                <NotificationItem key={n.id} notification={n} onRead={handleNotificationClick} />
               ))}
             </div>
           )}
