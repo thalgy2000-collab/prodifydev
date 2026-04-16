@@ -33,7 +33,7 @@ const NotificationItem = ({
   onRead,
 }: {
   notification: AppNotification;
-  onRead: (id: string) => void;
+  onRead: (id: string, actionUrl?: string | null) => void;
 }) => {
   const Icon = typeIcons[notification.type] || Info;
   const color = typeColors[notification.type] || 'text-muted-foreground';
@@ -44,7 +44,7 @@ const NotificationItem = ({
 
   return (
     <button
-      onClick={() => onRead(notification.id)}
+      onClick={() => onRead(notification.id, notification.actionUrl)}
       className={cn(
         'flex items-start gap-3 w-full text-left px-4 py-3 hover:bg-accent/50 transition-colors',
         !notification.read && 'bg-accent/20'
@@ -105,6 +105,12 @@ export const NotificationBell = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const { pendingInvites, acceptInvite, declineInvite } = useInvites();
   const { fetchProducts } = useProduct();
+  const navigate = useNavigate();
+
+  const handleNotificationClick = (id: string, actionUrl?: string | null) => {
+    markAsRead(id);
+    if (actionUrl) navigate(actionUrl);
+  };
 
   const handleAccept = async (id: string, productId: string, role: string) => {
     await acceptInvite(id, productId, role);
