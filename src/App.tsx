@@ -11,6 +11,7 @@ import { MobileHeader } from "./components/MobileHeader";
 import { NotificationBell } from "./components/NotificationBell";
 import AppLayout from "./components/AppLayout";
 import TermsModal from "./components/TermsModal";
+import { PageViewTracker } from "./components/PageViewTracker";
 import { useProfile } from "./hooks/useProfile";
 import PortfolioPage from "./pages/PortfolioPage";
 import OKRPage from "./pages/OKRPage";
