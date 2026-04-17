@@ -12,6 +12,9 @@ export interface Profile {
   createdAt: string | null;
   onboardingCompleted: boolean;
   termsAcceptedAt: string | null;
+  isAdmin: boolean;
+  isActive: boolean;
+  lastSeenAt: string | null;
 }
 
 export function useProfile() {
@@ -29,6 +32,9 @@ export function useProfile() {
     createdAt: data.created_at ?? null,
     onboardingCompleted: data.onboarding_completed ?? false,
     termsAcceptedAt: data.terms_accepted_at ?? null,
+    isAdmin: data.is_admin ?? false,
+    isActive: data.is_active ?? true,
+    lastSeenAt: data.last_seen_at ?? null,
   });
 
   const fetchProfile = useCallback(async () => {
@@ -41,7 +47,7 @@ export function useProfile() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, display_name, full_name, email, avatar_url, bio, created_at, onboarding_completed, terms_accepted_at')
+        .select('id, display_name, full_name, email, avatar_url, bio, created_at, onboarding_completed, terms_accepted_at, is_admin, is_active, last_seen_at')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -60,7 +66,7 @@ export function useProfile() {
             email: user.email,
             display_name: user.email?.split('@')[0] || 'User',
           })
-          .select('id, display_name, full_name, email, avatar_url, bio, created_at, onboarding_completed, terms_accepted_at')
+          .select('id, display_name, full_name, email, avatar_url, bio, created_at, onboarding_completed, terms_accepted_at, is_admin, is_active, last_seen_at')
           .single();
 
         if (insertError) {
