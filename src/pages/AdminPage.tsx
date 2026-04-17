@@ -33,13 +33,6 @@ export default function AdminPage() {
   const [eventPageFilter, setEventPageFilter] = useState('');
   const [eventDateFilter, setEventDateFilter] = useState('');
 
-  if (profileLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
-  }
-  if (!profile?.isAdmin) {
-    return <Navigate to="/inicio" replace />;
-  }
-
   const filteredUsers = useMemo(() => {
     const q = userSearch.trim().toLowerCase();
     return users.filter(u => {
@@ -71,6 +64,13 @@ export default function AdminPage() {
     });
     return Array.from(map.entries()).slice(-14).map(([day, count]) => ({ day, count }));
   }, [events]);
+
+  if (profileLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+  }
+  if (!profile?.isAdmin) {
+    return <Navigate to="/inicio" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

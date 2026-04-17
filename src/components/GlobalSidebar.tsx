@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Package, Settings, LogOut, Moon, Sun, CalendarDays } from 'lucide-react';
+import { Home, Package, Settings, LogOut, Moon, Sun, CalendarDays, ShieldCheck } from 'lucide-react';
 import prodifyLogo from '@/assets/prodify-logo.png';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
@@ -25,6 +25,9 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
   const { isDark, toggle } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const items = profile?.isAdmin
+    ? [...navItems, { title: 'Admin', url: '/admin', icon: ShieldCheck }]
+    : navItems;
 
   const handleLogout = async () => {
     await signOut();
@@ -45,7 +48,7 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-1">
-        {navItems.map(item => (
+        {items.map(item => (
           <button
             key={item.url}
             onClick={() => navigate(item.url)}
