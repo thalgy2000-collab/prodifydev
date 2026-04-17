@@ -34,6 +34,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import InviteAcceptPage from "./pages/InviteAcceptPage";
 import ProfilePage from "./pages/ProfilePage";
 import HomePage from "./pages/HomePage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,11 @@ const queryClient = new QueryClient();
 const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   const { activeProduct } = useProduct();
   const location = useLocation();
+
+  // Always render admin page when on /admin route
+  if (location.pathname === '/admin') {
+    return <AdminPage />;
+  }
 
   // Always render profile page when on /perfil route
   if (location.pathname === '/perfil') {
