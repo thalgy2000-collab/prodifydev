@@ -153,7 +153,7 @@ export default function AdminPage() {
                         <TableCell>{u.productsCount}</TableCell>
                         <TableCell>
                           {u.isActive ? (
-                            <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/20">Ativo</Badge>
+                            <Badge className="bg-primary/15 text-primary hover:bg-primary/20">Ativo</Badge>
                           ) : (
                             <Badge variant="destructive">Inativo</Badge>
                           )}
