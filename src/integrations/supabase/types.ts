@@ -567,7 +567,9 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_active: boolean
           is_admin: boolean | null
+          last_seen_at: string | null
           onboarding_completed: boolean
           terms_accepted_at: string | null
         }
@@ -579,7 +581,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean
           is_admin?: boolean | null
+          last_seen_at?: string | null
           onboarding_completed?: boolean
           terms_accepted_at?: string | null
         }
@@ -591,7 +595,9 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           is_admin?: boolean | null
+          last_seen_at?: string | null
           onboarding_completed?: boolean
           terms_accepted_at?: string | null
         }
@@ -1016,6 +1022,7 @@ export type Database = {
         Args: { _email: string; _product_id: string; _role: string }
         Returns: Json
       }
+      is_app_admin: { Args: { _user_id: string }; Returns: boolean }
       is_product_member: {
         Args: { _product_id: string; _user_id: string }
         Returns: boolean
@@ -1031,6 +1038,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
