@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Zap, Trash2, AlertTriangle, ArrowUp, ArrowDown, Minus, CircleAlert, User, ClipboardCheck, Calendar, CheckCircle2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
 import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
 
@@ -153,14 +154,16 @@ const SprintsPage = () => {
       setConfirmDoneOpen(true);
     } else {
       updateTask(taskId, { status: 'done' });
-      await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId);
+      const { error } = await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId).eq('item_type', 'backlog_task');
+      if (!error) toast('Tarefa removida do RICE Score');
     }
   };
 
   const confirmMoveToDone = async () => {
     if (pendingDoneTaskId) {
       updateTask(pendingDoneTaskId, { status: 'done' });
-      await (supabase.from('rice_scores') as any).delete().eq('item_id', pendingDoneTaskId);
+      const { error } = await (supabase.from('rice_scores') as any).delete().eq('item_id', pendingDoneTaskId).eq('item_type', 'backlog_task');
+      if (!error) toast('Tarefa removida do RICE Score');
     }
     setPendingDoneTaskId(null);
     setPendingDoneProgress(null);
