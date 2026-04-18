@@ -198,7 +198,7 @@ const BacklogPage = () => {
               </div>
             </DialogContent>
           </Dialog>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (o) setNewDueDate(todayStr()); }}>
             <DialogTrigger asChild>
               <Button className="gap-2"><Plus className="h-4 w-4" />Nova Tarefa</Button>
             </DialogTrigger>
