@@ -86,7 +86,7 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
       throw new Error('Selecione um produto antes de importar OKRs.');
     }
 
-    const body = {
+    const body: Record<string, unknown> = {
       ...payload,
       product_id: activeProduct.id,
       quarter: targetQuarter,
