@@ -92,6 +92,20 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
       quarter: targetQuarter,
     };
 
+    // Validação client-side: se for envio por texto, garantir não-vazio
+    if ('text' in body && (!body.text || String(body.text).trim().length === 0)) {
+      throw new Error('O campo de texto está vazio. Cole algum conteúdo ou selecione um arquivo.');
+    }
+
+    console.log('[import-okrs] enviando body:', {
+      hasText: 'text' in body,
+      textLen: typeof body.text === 'string' ? body.text.length : 0,
+      hasFile: 'fileBase64' in body,
+      fileName: (body as any).fileName,
+      product_id: body.product_id,
+      quarter: body.quarter,
+    });
+
     const { data, error } = await supabase.functions.invoke('import-okrs', {
       body,
       headers: { Authorization: `Bearer ${accessToken}` },
