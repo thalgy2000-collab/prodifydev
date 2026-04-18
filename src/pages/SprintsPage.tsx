@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Zap, Trash2, AlertTriangle, ArrowUp, ArrowDown, Minus, CircleAlert, User, ClipboardCheck, Calendar, CheckCircle2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
 import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
 
