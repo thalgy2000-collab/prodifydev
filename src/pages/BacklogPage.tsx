@@ -148,6 +148,12 @@ const BacklogPage = () => {
             <span className="font-medium">{task.title}</span>
             <Badge variant="secondary" style={{ backgroundColor: `hsl(${pCfg.color} / 0.15)`, color: `hsl(${pCfg.color})` }}>{pCfg.label}</Badge>
             <Badge variant="outline">{sCfg.label}</Badge>
+            {taskSprint && (
+              <Badge variant="secondary" className="gap-1">
+                <Rocket className="h-3 w-3" />
+                {taskSprint.name}
+              </Badge>
+            )}
             {task.storyPoints && <span className="font-mono text-xs text-muted-foreground">{task.storyPoints} pts</span>}
             {progress && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -165,10 +171,51 @@ const BacklogPage = () => {
           </Avatar>
         )}
         <div className="flex items-center gap-1 shrink-0">
-          <Select value={task.status} onValueChange={v => updateTask(task.id, { status: v as TaskStatus })}>
-            <SelectTrigger className="h-8 w-[130px]"><SelectValue /></SelectTrigger>
-            <SelectContent>{Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
-          </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 gap-1.5">
+                <Rocket className="h-4 w-4" />
+                <span className="hidden sm:inline">Adicionar à Sprint</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-popover">
+              <DropdownMenuLabel>Sprints ativas</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {activeSprintsForMenu.length === 0 ? (
+                <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+                  Nenhuma sprint ativa no momento
+                </div>
+              ) : (
+                activeSprintsForMenu.map(s => (
+                  <DropdownMenuItem
+                    key={s.id}
+                    disabled={task.sprintId === s.id}
+                    onClick={async () => {
+                      await assignToSprint(task.id, s.id);
+                      toast.success('Tarefa adicionada à Sprint!');
+                    }}
+                  >
+                    <Rocket className="h-3.5 w-3.5 mr-2" />
+                    {s.name}
+                    {task.sprintId === s.id && <span className="ml-auto text-xs text-muted-foreground">atual</span>}
+                  </DropdownMenuItem>
+                ))
+              )}
+              {task.sprintId && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      await assignToSprint(task.id, undefined);
+                      toast.success('Tarefa removida da Sprint');
+                    }}
+                  >
+                    Remover da sprint
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditTask(task)}><Pencil className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTask(task.id)}><Trash2 className="h-4 w-4" /></Button>
         </div>
