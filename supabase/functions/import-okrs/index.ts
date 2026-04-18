@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Buffer } from "node:buffer";
-import { PDFParse } from "npm:pdf-parse@2.4.5";
+import { getDocumentProxy, extractText } from "https://esm.sh/unpdf@0.12.1";
 import mammoth from "npm:mammoth@1.12.0";
 
 const corsHeaders = {
@@ -54,9 +54,7 @@ async function extractTextFromUpload(
   } catch {
     throw new Error("fileBase64 inválido");
   }
-  if (buffer.length === 0) {
-    throw new Error("Arquivo vazio");
-  }
+  if (buffer.length === 0) throw new Error("Arquivo vazio");
   if (buffer.length > MAX_FILE_BYTES) {
     throw new Error(`Arquivo muito grande (máx. ${MAX_FILE_BYTES / (1024 * 1024)} MB)`);
   }
@@ -64,15 +62,11 @@ async function extractTextFromUpload(
   const ext = extensionFromName(fileName);
 
   if (ext === "pdf") {
-    const parser = new PDFParse({ data: buffer });
-    try {
-      const result = await parser.getText();
-      let text = (result.text || "").trim();
-      text = text.replace(/\n--\s*\d+\s+of\s+\d+\s+--\s*\n?/g, "\n").trim();
-      return text;
-    } finally {
-      await parser.destroy();
-    }
+    const uint8 = new Uint8Array(buffer);
+    const pdf = await getDocumentProxy(uint8);
+    const { text } = await extractText(pdf, { mergePages: true });
+    const merged = (Array.isArray(text) ? text.join("\n") : text || "").trim();
+    return merged.replace(/\n--\s*\d+\s+of\s+\d+\s+--\s*\n?/g, "\n").trim();
   }
 
   if (ext === "docx") {
@@ -96,23 +90,31 @@ serve(async (req) => {
     const body = await req.json() as {
       fileBase64?: string;
       fileName?: string;
-      /** @deprecated enviar fileBase64 + fileName ou text */
       fileContent?: string;
       text?: string;
       product_id?: string;
       quarter?: string;
     };
 
+    console.log("[import-okrs] received body keys:", Object.keys(body || {}), {
+      hasText: !!body?.text,
+      textLen: body?.text?.length ?? 0,
+      hasFile: !!body?.fileBase64,
+      fileName: body?.fileName,
+      product_id: body?.product_id,
+      quarter: body?.quarter,
+    });
+
     let textForAi: string;
 
-    if (body.fileBase64 != null && typeof body.fileBase64 === "string" && body.fileBase64.length > 0) {
+    if (body.fileBase64 && typeof body.fileBase64 === "string" && body.fileBase64.length > 0) {
       const name = typeof body.fileName === "string" && body.fileName.trim()
         ? body.fileName.trim()
         : "upload.bin";
       textForAi = await extractTextFromUpload(body.fileBase64, name);
-    } else if (body.text != null && typeof body.text === "string" && body.text.trim().length > 0) {
+    } else if (body.text && typeof body.text === "string" && body.text.trim().length > 0) {
       textForAi = body.text.trim();
-    } else if (body.fileContent != null && typeof body.fileContent === "string") {
+    } else if (body.fileContent && typeof body.fileContent === "string") {
       textForAi = body.fileContent.trim();
     } else {
       return new Response(
@@ -180,7 +182,6 @@ serve(async (req) => {
 
     const data = await response.json();
     let content = data.choices?.[0]?.message?.content || "";
-
     content = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
 
     let parsed;
