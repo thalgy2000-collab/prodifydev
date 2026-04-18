@@ -136,6 +136,8 @@ const BacklogPage = () => {
     const sCfg = TASK_STATUS_CONFIG[task.status];
     const progress = getProgress(task.id);
     const assignee = task.assigneeId ? membersMap[task.assigneeId] : null;
+    const activeSprintsForMenu = sprints.filter(s => s.status === 'active');
+    const taskSprint = task.sprintId ? sprints.find(s => s.id === task.sprintId) : null;
     return (
       <div
         draggable
