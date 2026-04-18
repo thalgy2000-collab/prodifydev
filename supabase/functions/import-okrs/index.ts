@@ -140,7 +140,7 @@ serve(async (req) => {
       });
     }
 
-    const userPrompt = `Analise o seguinte conteúdo e extraia OKRs:\n\n${textForAi}`;
+    const userPrompt = `Trimestre alvo: ${quarterHint}.\n\nAnalise o seguinte conteúdo e extraia OKRs:\n\n${textForAi}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
