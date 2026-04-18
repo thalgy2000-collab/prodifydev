@@ -63,6 +63,8 @@ const BacklogPage = () => {
   const [newInitiativeId, setNewInitiativeId] = useState('none');
   const [newStoryPoints, setNewStoryPoints] = useState(1);
   const [newAssigneeId, setNewAssigneeId] = useState('none');
+  const todayStr = () => new Date().toISOString().slice(0, 10);
+  const [newDueDate, setNewDueDate] = useState<string>(todayStr());
 
   const [sprintName, setSprintName] = useState('');
   const [sprintStart, setSprintStart] = useState('');
@@ -91,9 +93,11 @@ const BacklogPage = () => {
       category: 'professional', initiativeId: newInitiativeId !== 'none' ? newInitiativeId : undefined,
       objectiveId: init?.objectiveId, keyResultId: init?.keyResultId, storyPoints: newStoryPoints,
       assigneeId: newAssigneeId !== 'none' ? newAssigneeId : undefined,
+      dueDate: newDueDate || undefined,
     });
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
-    setNewInitiativeId('none'); setNewStoryPoints(1); setNewAssigneeId('none'); setCreateOpen(false);
+    setNewInitiativeId('none'); setNewStoryPoints(1); setNewAssigneeId('none');
+    setNewDueDate(todayStr()); setCreateOpen(false);
   };
 
   const handleCreateSprint = () => {
@@ -194,7 +198,7 @@ const BacklogPage = () => {
               </div>
             </DialogContent>
           </Dialog>
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (o) setNewDueDate(todayStr()); }}>
             <DialogTrigger asChild>
               <Button className="gap-2"><Plus className="h-4 w-4" />Nova Tarefa</Button>
             </DialogTrigger>
@@ -230,6 +234,7 @@ const BacklogPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2"><Label>Data de entrega</Label><Input type="date" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} /></div>
                 <Button onClick={handleCreate} className="w-full">Criar Tarefa</Button>
               </div>
             </DialogContent>
