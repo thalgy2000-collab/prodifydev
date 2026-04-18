@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Upload, FileText, Loader2, CheckCircle2, X } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle2, X, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
-import { OKRCategory } from '@/types/okr';
+import { OKRCategory, getCurrentQuarter } from '@/types/okr';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ImportedKR {
   title: string;
@@ -26,11 +28,12 @@ interface ImportedObjective {
 
 interface ImportOKRDialogProps {
   onImported: () => void;
+  quarter?: string;
 }
 
 const ACCEPTED = '.pdf,.txt,.docx,.csv,.md';
 
-const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
+const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
   const { user, session } = useAuth();
   const { activeProduct } = useProduct();
   const { toast } = useToast();
@@ -39,13 +42,27 @@ const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
   const [step, setStep] = useState<'upload' | 'loading' | 'preview'>('upload');
   const [objectives, setObjectives] = useState<ImportedObjective[]>([]);
   const [saving, setSaving] = useState(false);
+  const [pastedText, setPastedText] = useState('');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const targetQuarter = quarter || getCurrentQuarter();
 
   const reset = () => {
     setStep('upload');
     setObjectives([]);
     setSaving(false);
+    setPastedText('');
+    setErrorMsg(null);
   };
+
+  const readFileAsText = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
 
   const readFileAsBase64 = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -59,42 +76,94 @@ const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
       reader.readAsDataURL(file);
     });
 
+  const callImport = async (payload: Record<string, unknown>) => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token ?? session?.access_token;
+    if (!accessToken) {
+      throw new Error('Inicie sessão para importar OKRs. A função exige autenticação.');
+    }
+    if (!activeProduct?.id) {
+      throw new Error('Selecione um produto antes de importar OKRs.');
+    }
+
+    const body = {
+      ...payload,
+      product_id: activeProduct.id,
+      quarter: targetQuarter,
+    };
+
+    const { data, error } = await supabase.functions.invoke('import-okrs', {
+      body,
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    if (error) {
+      // Tenta extrair mensagem de erro do contexto (FunctionsHttpError)
+      let detail = error.message || 'Erro ao chamar a função';
+      try {
+        const ctx: any = (error as any).context;
+        if (ctx?.body) {
+          const parsed = typeof ctx.body === 'string' ? JSON.parse(ctx.body) : ctx.body;
+          if (parsed?.error) detail = parsed.error;
+        }
+      } catch { /* ignore */ }
+      throw new Error(detail);
+    }
+    if (data?.error) throw new Error(data.error);
+
+    const objs: ImportedObjective[] = data?.objectives || [];
+    if (objs.length === 0) throw new Error('Nenhum objetivo encontrado no conteúdo enviado.');
+    return objs;
+  };
+
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setErrorMsg(null);
     setStep('loading');
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token ?? session?.access_token;
-      if (!accessToken) {
-        throw new Error('Inicie sessão para importar OKRs. A função exige autenticação.');
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      let objs: ImportedObjective[];
+
+      if (ext === 'txt' || ext === 'md' || ext === 'csv') {
+        // Para texto puro, enviamos como `text` direto (mais leve e atende ao contrato).
+        const text = (await readFileAsText(file)).trim();
+        if (!text) throw new Error('Arquivo vazio.');
+        objs = await callImport({ text });
+      } else {
+        // PDF/DOCX precisam ser parseados na edge function via base64.
+        const fileBase64 = await readFileAsBase64(file);
+        objs = await callImport({ fileBase64, fileName: file.name });
       }
-
-      const fileBase64 = await readFileAsBase64(file);
-
-      const { data, error } = await supabase.functions.invoke('import-okrs', {
-        body: { fileBase64, fileName: file.name },
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (error) throw new Error(error.message || 'Erro ao processar arquivo');
-      if (data?.error) throw new Error(data.error);
-
-      const objs: ImportedObjective[] = data?.objectives || [];
-      if (objs.length === 0) throw new Error('Nenhum objetivo encontrado no arquivo');
 
       setObjectives(objs);
       setStep('preview');
     } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' });
-      reset();
+      setErrorMsg(err?.message || 'Erro desconhecido');
+      setStep('upload');
     }
 
     if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const handleSubmitText = async () => {
+    const text = pastedText.trim();
+    if (!text) {
+      setErrorMsg('Cole ou digite algum conteúdo antes de continuar.');
+      return;
+    }
+    setErrorMsg(null);
+    setStep('loading');
+    try {
+      const objs = await callImport({ text });
+      setObjectives(objs);
+      setStep('preview');
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Erro desconhecido');
+      setStep('upload');
+    }
   };
 
   const handleConfirm = async () => {
@@ -106,8 +175,8 @@ const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
         const { data: inserted } = await (supabase.from('objectives') as any)
           .insert({
             title: obj.title,
-            quarter: obj.quarter,
-            category: obj.category as OKRCategory,
+            quarter: obj.quarter || targetQuarter,
+            category: (obj.category || 'professional') as OKRCategory,
             user_id: user.id,
             product_id: activeProduct.id,
           })
@@ -150,37 +219,62 @@ const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
       </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Importar OKRs via arquivo</DialogTitle>
+          <DialogTitle>Importar OKRs com IA</DialogTitle>
           <DialogDescription>
-            {step === 'upload' && 'Envie um arquivo para extrair objetivos e resultados-chave com IA.'}
-            {step === 'loading' && 'Analisando arquivo com IA...'}
+            {step === 'upload' && `Envie um arquivo ou cole o conteúdo. Trimestre alvo: ${targetQuarter}.`}
+            {step === 'loading' && 'Analisando conteúdo com IA...'}
             {step === 'preview' && 'Revise os OKRs extraídos antes de importar.'}
           </DialogDescription>
         </DialogHeader>
 
+        {errorMsg && step !== 'preview' && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-xs break-words">{errorMsg}</AlertDescription>
+          </Alert>
+        )}
+
         {step === 'upload' && (
-          <div className="flex flex-col items-center gap-4 py-8">
-            <div className="rounded-full bg-secondary p-4">
-              <FileText className="h-8 w-8 text-muted-foreground" />
+          <div className="flex flex-col gap-4 py-2">
+            <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border p-6">
+              <div className="rounded-full bg-secondary p-3">
+                <FileText className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">Formatos aceitos: PDF, TXT, DOCX, CSV, MD</p>
+              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                Selecionar arquivo
+              </Button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept={ACCEPTED}
+                className="hidden"
+                onChange={handleFile}
+              />
             </div>
-            <p className="text-sm text-muted-foreground">Formatos aceitos: PDF, TXT, DOCX, CSV, MD</p>
-            <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              Selecionar arquivo
-            </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept={ACCEPTED}
-              className="hidden"
-              onChange={handleFile}
+
+            <div className="flex items-center gap-2">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">ou cole o texto</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <Textarea
+              value={pastedText}
+              onChange={e => setPastedText(e.target.value)}
+              placeholder="Cole aqui o conteúdo dos seus objetivos para a IA estruturar..."
+              className="min-h-[120px] text-sm"
             />
+            <Button onClick={handleSubmitText} disabled={!pastedText.trim()}>
+              Analisar texto
+            </Button>
           </div>
         )}
 
         {step === 'loading' && (
           <div className="flex flex-col items-center gap-4 py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Analisando arquivo com IA...</p>
+            <p className="text-sm text-muted-foreground">Analisando conteúdo com IA...</p>
           </div>
         )}
 
@@ -192,7 +286,7 @@ const ImportOKRDialog = ({ onImported }: ImportOKRDialogProps) => {
                   <div key={i} className="rounded-lg border border-border bg-card p-4 space-y-2">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold text-sm">{obj.title}</h4>
-                      <Badge variant="secondary" className="text-xs">{obj.quarter}</Badge>
+                      <Badge variant="secondary" className="text-xs">{obj.quarter || targetQuarter}</Badge>
                     </div>
                     <div className="space-y-1.5">
                       {obj.key_results.map((kr, j) => (
