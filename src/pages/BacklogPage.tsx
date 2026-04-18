@@ -93,9 +93,11 @@ const BacklogPage = () => {
       category: 'professional', initiativeId: newInitiativeId !== 'none' ? newInitiativeId : undefined,
       objectiveId: init?.objectiveId, keyResultId: init?.keyResultId, storyPoints: newStoryPoints,
       assigneeId: newAssigneeId !== 'none' ? newAssigneeId : undefined,
+      dueDate: newDueDate || undefined,
     });
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
-    setNewInitiativeId('none'); setNewStoryPoints(1); setNewAssigneeId('none'); setCreateOpen(false);
+    setNewInitiativeId('none'); setNewStoryPoints(1); setNewAssigneeId('none');
+    setNewDueDate(todayStr()); setCreateOpen(false);
   };
 
   const handleCreateSprint = () => {
