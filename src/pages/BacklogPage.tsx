@@ -234,6 +234,7 @@ const BacklogPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2"><Label>Data de entrega</Label><Input type="date" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} /></div>
                 <Button onClick={handleCreate} className="w-full">Criar Tarefa</Button>
               </div>
             </DialogContent>
