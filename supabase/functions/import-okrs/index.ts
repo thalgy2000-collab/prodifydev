@@ -96,8 +96,11 @@ serve(async (req) => {
     const body = await req.json() as {
       fileBase64?: string;
       fileName?: string;
-      /** @deprecated enviar fileBase64 + fileName */
+      /** @deprecated enviar fileBase64 + fileName ou text */
       fileContent?: string;
+      text?: string;
+      product_id?: string;
+      quarter?: string;
     };
 
     let textForAi: string;
@@ -107,15 +110,20 @@ serve(async (req) => {
         ? body.fileName.trim()
         : "upload.bin";
       textForAi = await extractTextFromUpload(body.fileBase64, name);
+    } else if (body.text != null && typeof body.text === "string" && body.text.trim().length > 0) {
+      textForAi = body.text.trim();
     } else if (body.fileContent != null && typeof body.fileContent === "string") {
-      // Compatibilidade: texto puro (ex.: clientes antigos só com .txt)
       textForAi = body.fileContent.trim();
     } else {
       return new Response(
-        JSON.stringify({ error: "Envie fileBase64 (base64 do arquivo) e fileName, ou fileContent (texto)." }),
+        JSON.stringify({ error: "Envie 'text' (conteúdo) ou 'fileBase64' + 'fileName'." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
+
+    const quarterHint = typeof body.quarter === "string" && body.quarter.trim()
+      ? body.quarter.trim()
+      : "Q2 2026";
 
     if (!textForAi) {
       return new Response(
