@@ -154,14 +154,16 @@ const SprintsPage = () => {
       setConfirmDoneOpen(true);
     } else {
       updateTask(taskId, { status: 'done' });
-      await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId);
+      const { error } = await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId).eq('item_type', 'backlog_task');
+      if (!error) toast('Tarefa removida do RICE Score');
     }
   };
 
   const confirmMoveToDone = async () => {
     if (pendingDoneTaskId) {
       updateTask(pendingDoneTaskId, { status: 'done' });
-      await (supabase.from('rice_scores') as any).delete().eq('item_id', pendingDoneTaskId);
+      const { error } = await (supabase.from('rice_scores') as any).delete().eq('item_id', pendingDoneTaskId).eq('item_type', 'backlog_task');
+      if (!error) toast('Tarefa removida do RICE Score');
     }
     setPendingDoneTaskId(null);
     setPendingDoneProgress(null);
