@@ -4,16 +4,17 @@ import { useRiceStore } from '@/hooks/useRiceStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { calcRiceScore, IMPACT_OPTIONS, CONFIDENCE_OPTIONS } from '@/types/rice';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2 } from 'lucide-react';
 
 const RicePage = () => {
   const { scores, setScore, getScore } = useRiceStore();
-  const { tasks } = useBacklogStore();
+  const { tasks, updateTask } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { toast } = useToast();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
@@ -89,6 +90,34 @@ const RicePage = () => {
     });
   };
 
+  const handleReprioritizeBacklog = async () => {
+    const scored = tasks
+      .filter(t => t.status !== 'done')
+      .map(t => {
+        const s = scores.find(sc => sc.itemId === t.id);
+        if (!s) return null;
+        return { id: t.id, total: calcRiceScore(s.reach, s.impact, s.confidence, s.effort) };
+      })
+      .filter((x): x is { id: string; total: number } => x !== null)
+      .sort((a, b) => b.total - a.total);
+
+    if (scored.length === 0) {
+      sonnerToast('Nenhuma tarefa com RICE score para repriorizar');
+      return;
+    }
+
+    const n = scored.length;
+    const updates = scored.map((item, idx) => {
+      let priority: 'high' | 'medium' | 'low' = 'medium';
+      if (idx < 5) priority = 'high';
+      else if (idx >= n - 5 && idx >= 5) priority = 'low';
+      return { id: item.id, priority };
+    });
+
+    await Promise.all(updates.map(u => updateTask(u.id, { priority: u.priority })));
+    sonnerToast.success('Backlog repriorizado com base no RICE score ✓');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -96,13 +125,19 @@ const RicePage = () => {
           <h1 className="text-2xl font-bold tracking-tight">RICE Score</h1>
           <p className="text-sm text-muted-foreground">Priorize tarefas e iniciativas com o framework RICE</p>
         </div>
-        {Object.keys(pendingScores).length > 0 && (
-          <Button onClick={handleSaveAndReprioritize} variant="default" className="gap-2">
-            <Save className="h-4 w-4" />
-            Salvar e Repriorizar
-            <Badge variant="secondary" className="ml-1">{Object.keys(pendingScores).length}</Badge>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleReprioritizeBacklog} variant="outline" className="gap-2">
+            <Wand2 className="h-4 w-4" />
+            Repriorizar Backlog
           </Button>
-        )}
+          {Object.keys(pendingScores).length > 0 && (
+            <Button onClick={handleSaveAndReprioritize} variant="default" className="gap-2">
+              <Save className="h-4 w-4" />
+              Salvar e Repriorizar
+              <Badge variant="secondary" className="ml-1">{Object.keys(pendingScores).length}</Badge>
+            </Button>
+          )}
+        </div>
       </div>
 
       {ranked.length === 0 ? (
