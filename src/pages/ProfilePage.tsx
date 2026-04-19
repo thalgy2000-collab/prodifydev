@@ -193,12 +193,8 @@ const ProfilePage = () => {
     if (deleteConfirmText !== 'EXCLUIR') return;
     setDeleting(true);
     try {
-      // Delete profile data (cascade will handle related data)
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', profile.id);
-      if (profileError) throw profileError;
+      const { error } = await supabase.rpc('delete_user_account');
+      if (error) throw error;
 
       // Sign out the user
       await supabase.auth.signOut();
@@ -458,11 +454,11 @@ const ProfilePage = () => {
               <Dialog open={deleteModalOpen} onOpenChange={(open) => { setDeleteModalOpen(open); if (!open) setDeleteConfirmText(''); }}>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="text-destructive">Excluir conta</DialogTitle>
+                    <DialogTitle className="text-destructive">Excluir conta permanentemente</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Esta ação é <strong>irreversível</strong>. Todos os seus dados, produtos, OKRs, sprints e demais informações serão permanentemente removidos.
+                      Todos os seus dados serão apagados permanentemente. Esta ação não pode ser desfeita.
                     </p>
                     <div className="space-y-2">
                       <Label>Digite <strong>EXCLUIR</strong> para confirmar</Label>
