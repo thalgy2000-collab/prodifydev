@@ -8,19 +8,28 @@ import { Target, TrendingUp, ListTodo, Map } from 'lucide-react';
 const ProductOverviewPage = () => {
   const { activeProduct } = useProduct();
   const [metrics, setMetrics] = useState({ okrs: 0, avgKr: 0, openTasks: 0, roadmapItems: 0 });
-  const [recentTasks, setRecentTasks] = useState<any[]>([]);
+  const [upcomingActivities, setUpcomingActivities] = useState<any[]>([]);
 
   useEffect(() => {
     if (!activeProduct) return;
     const pid = activeProduct.id;
+    const today = new Date().toISOString().slice(0, 10);
 
     const fetchMetrics = async () => {
-      const [objRes, krRes, tasksRes, roadmapRes, recentRes] = await Promise.all([
+      const [objRes, krRes, tasksRes, roadmapRes, upcomingRes] = await Promise.all([
         supabase.from('objectives').select('id', { count: 'exact', head: true }).eq('product_id', pid),
         supabase.from('key_results').select('current_value, target_value').eq('product_id', pid),
         supabase.from('backlog_tasks').select('id', { count: 'exact', head: true }).eq('product_id', pid).eq('status', 'open'),
         supabase.from('roadmap_items').select('id', { count: 'exact', head: true }).eq('product_id', pid),
-        supabase.from('backlog_tasks').select('title, priority, status').eq('product_id', pid).order('created_at', { ascending: false }).limit(5),
+        supabase
+          .from('schedule_activities')
+          .select('title, activity_date, start_time, status')
+          .eq('product_id', pid)
+          .neq('status', 'done')
+          .gte('activity_date', today)
+          .order('activity_date', { ascending: true })
+          .order('start_time', { ascending: true, nullsFirst: true })
+          .limit(5),
       ]);
 
       const krs = krRes.data || [];
@@ -34,7 +43,7 @@ const ProductOverviewPage = () => {
         openTasks: tasksRes.count ?? 0,
         roadmapItems: roadmapRes.count ?? 0,
       });
-      setRecentTasks(recentRes.data || []);
+      setUpcomingActivities(upcomingRes.data || []);
     };
 
     fetchMetrics();
@@ -49,10 +58,9 @@ const ProductOverviewPage = () => {
     { title: 'Itens no Roadmap', value: metrics.roadmapItems, icon: Map, color: 'text-violet-500' },
   ];
 
-  const priorityColor: Record<string, string> = {
-    high: 'destructive',
-    medium: 'default',
-    low: 'secondary',
+  const formatDate = (d: string) => {
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y.slice(2)}`;
   };
 
   return (
@@ -83,19 +91,21 @@ const ProductOverviewPage = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tarefas recentes</CardTitle>
+          <CardTitle className="text-base">Próximas tarefas</CardTitle>
         </CardHeader>
         <CardContent>
-          {recentTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma tarefa encontrada.</p>
+          {upcomingActivities.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma tarefa agendada.</p>
           ) : (
             <ul className="space-y-2">
-              {recentTasks.map((t, i) => (
+              {upcomingActivities.map((a, i) => (
                 <li key={i} className="flex items-center justify-between text-sm">
-                  <span className="truncate flex-1">{t.title}</span>
+                  <span className="truncate flex-1">{a.title}</span>
                   <div className="flex items-center gap-2 ml-2">
-                    <Badge variant={priorityColor[t.priority] as any || 'secondary'} className="text-xs">{t.priority}</Badge>
-                    <Badge variant="outline" className="text-xs">{t.status}</Badge>
+                    <Badge variant="outline" className="text-xs">{formatDate(a.activity_date)}</Badge>
+                    {a.start_time && (
+                      <Badge variant="secondary" className="text-xs">{a.start_time.slice(0, 5)}</Badge>
+                    )}
                   </div>
                 </li>
               ))}
