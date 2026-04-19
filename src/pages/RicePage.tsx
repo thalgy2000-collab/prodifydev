@@ -27,7 +27,7 @@ const RicePage = () => {
   };
 
   const allItems = [
-    ...tasks.map(t => ({ id: t.id, title: t.title, type: 'task' as const })),
+    ...tasks.filter(t => t.status !== 'done').map(t => ({ id: t.id, title: t.title, type: 'task' as const })),
     ...initiatives.map(i => ({ id: i.id, title: i.title, type: 'initiative' as const })),
   ];
 
