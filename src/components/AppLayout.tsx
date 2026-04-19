@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { OnboardingTour } from '@/components/OnboardingTour';
 import { PendingInviteBanner } from '@/components/PendingInviteBanner';
@@ -32,12 +31,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex w-full">
+    <>
+      <div className="flex w-full min-h-screen">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 flex items-center justify-between border-b border-border bg-card px-3">
-            <SidebarTrigger />
+          <header className="h-12 flex items-center justify-end border-b border-border bg-card px-3">
             <div className="flex items-center gap-2">
               <NotificationBell />
               <button
@@ -61,7 +59,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </div>
       {showTour && <OnboardingTour onComplete={handleTourComplete} />}
-    </SidebarProvider>
+    </>
   );
 };
 
