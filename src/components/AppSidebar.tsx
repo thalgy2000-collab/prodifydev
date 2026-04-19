@@ -1,190 +1,198 @@
-import { Target, Map, ListTodo, Zap, History, TreePine, BarChart3, Calculator, LogOut, Moon, Sun, Package, ChevronDown, Shield, Users, ArrowLeft, Check, FileText, Calendar, LayoutDashboard } from 'lucide-react';
+import { Target, ListTodo, BarChart3, Calculator, LogOut, Moon, Sun, ChevronDown, Shield, Users, ArrowLeft, Check, Calendar, LayoutDashboard, Compass, Rocket, Settings } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import {
-  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem,
-  SidebarFooter, SidebarHeader, useSidebar,
-} from '@/components/ui/sidebar';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
-const groups = [
+type Item = { title: string; url: string; tourId?: string };
+type Group = { label: string; icon: typeof Target; items: Item[] };
+
+const groups: Group[] = [
   {
-    label: '📍 Planejamento',
+    label: 'Planejamento',
+    icon: Target,
     items: [
-      { title: 'OKRs', url: '/okrs', icon: Target, tourId: 'okrs' },
-      { title: 'Roadmap', url: '/roadmap', icon: Map, tourId: 'roadmap' },
-      { title: 'Release Planning', url: '/releases', icon: Package },
-      { title: 'PRD', url: '/prd', icon: FileText },
-      { title: 'Agenda', url: '/produto-agenda', icon: Calendar },
+      { title: 'OKRs', url: '/okrs', tourId: 'okrs' },
+      { title: 'Roadmap', url: '/roadmap', tourId: 'roadmap' },
+      { title: 'Release Planning', url: '/releases' },
+      { title: 'PRD', url: '/prd' },
+      { title: 'Agenda', url: '/produto-agenda' },
     ],
   },
   {
-    label: '🔍 Discovery',
+    label: 'Discovery',
+    icon: Compass,
     items: [
-      { title: 'Oportunidades', url: '/oportunidades', icon: TreePine },
-      { title: 'SWOT', url: '/swot', icon: Shield },
+      { title: 'Oportunidades', url: '/oportunidades' },
+      { title: 'SWOT', url: '/swot' },
     ],
   },
   {
-    label: '⚡ Priorização',
+    label: 'Priorização',
+    icon: Calculator,
+    items: [{ title: 'RICE', url: '/rice' }],
+  },
+  {
+    label: 'Delivery',
+    icon: Rocket,
     items: [
-      { title: 'RICE', url: '/rice', icon: Calculator },
+      { title: 'Backlog', url: '/backlog', tourId: 'backlog' },
+      { title: 'Sprints', url: '/sprints', tourId: 'sprints' },
+      { title: 'Histórico', url: '/historico' },
     ],
   },
   {
-    label: '🚀 Delivery',
-    items: [
-      { title: 'Backlog', url: '/backlog', icon: ListTodo, tourId: 'backlog' },
-      { title: 'Sprints', url: '/sprints', icon: Zap, tourId: 'sprints' },
-      { title: 'Histórico', url: '/historico', icon: History },
-    ],
+    label: 'Análises',
+    icon: BarChart3,
+    items: [{ title: 'Análises', url: '/analises' }],
   },
   {
-    label: '📊 Análises',
-    items: [
-      { title: 'Análises', url: '/analises', icon: BarChart3 },
-    ],
-  },
-  {
-    label: '⚙️ Configurações',
-    items: [
-      { title: 'Membros', url: '/membros', icon: Users },
-    ],
+    label: 'Configurações',
+    icon: Settings,
+    items: [{ title: 'Membros', url: '/membros' }],
   },
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
-  const collapsed = state === 'collapsed';
   const { signOut, user } = useAuth();
   const { activeProduct, setActiveProductId, products } = useProduct();
   const { isDark, toggle } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isGroupActive = (g: Group) => g.items.some(i => location.pathname === i.url);
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        {!collapsed && activeProduct && (
-          <div className="px-3 py-2">
-            <button
-              onClick={() => setActiveProductId(null)}
-              className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mb-1"
+    <TooltipProvider delayDuration={200}>
+      <aside className="h-screen sticky top-0 w-14 shrink-0 border-r border-border bg-card flex flex-col items-center py-2 gap-2 z-30">
+        {/* Product switcher */}
+        {activeProduct && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="h-10 w-10 rounded-lg flex items-center justify-center text-xl hover:bg-muted/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+                title={activeProduct.name}
+                aria-label="Trocar produto"
+              >
+                {activeProduct.emoji}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" align="start" className="w-[240px]">
+              <DropdownMenuItem onClick={() => setActiveProductId(null)} className="cursor-pointer text-muted-foreground">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar ao portfólio
+              </DropdownMenuItem>
+              <div className="h-px bg-border my-1" />
+              {products.map(product => (
+                <DropdownMenuItem
+                  key={product.id}
+                  onClick={() => setActiveProductId(product.id)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="text-base">{product.emoji}</span>
+                  <span className="truncate flex-1">{product.name}</span>
+                  {product.id === activeProduct.id && <Check className="h-4 w-4 text-primary shrink-0" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        <div className="h-px w-8 bg-border my-1" />
+
+        {/* Overview */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink
+              to="/"
+              end
+              className={cn(
+                'h-10 w-10 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors'
+              )}
+              activeClassName="bg-primary/10 text-primary"
             >
-              <ArrowLeft className="h-3 w-3" />
-              Trocar produto
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 hover:bg-muted/50 transition-colors focus:outline-none">
-                <span className="text-lg">{activeProduct.emoji}</span>
-                <span className="text-sm font-semibold truncate flex-1 text-left">{activeProduct.name}</span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-[220px]">
-                {products.map(product => (
-                  <DropdownMenuItem
-                    key={product.id}
-                    onClick={() => setActiveProductId(product.id)}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <span className="text-base">{product.emoji}</span>
-                    <span className="truncate flex-1">{product.name}</span>
-                    {product.id === activeProduct.id && (
-                      <Check className="h-4 w-4 text-primary shrink-0" />
+              <LayoutDashboard className="h-5 w-5" />
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">Visão Geral</TooltipContent>
+        </Tooltip>
+
+        {/* Groups with hover flyouts */}
+        <nav className="flex-1 flex flex-col gap-1 items-center mt-1">
+          {groups.map(group => {
+            const Icon = group.icon;
+            const active = isGroupActive(group);
+            return (
+              <HoverCard key={group.label} openDelay={80} closeDelay={120}>
+                <HoverCardTrigger asChild>
+                  <button
+                    onClick={() => navigate(group.items[0].url)}
+                    data-tour={group.items.find(i => i.tourId)?.tourId}
+                    className={cn(
+                      'h-10 w-10 rounded-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-ring',
+                      active
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                     )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
-        {collapsed && activeProduct && (
-          <div className="flex justify-center py-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="focus:outline-none" title={activeProduct.name}>
-                <span className="text-lg">{activeProduct.emoji}</span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="right" align="start" className="w-[220px]">
-                {products.map(product => (
-                  <DropdownMenuItem
-                    key={product.id}
-                    onClick={() => setActiveProductId(product.id)}
-                    className="flex items-center gap-2 cursor-pointer"
+                    aria-label={group.label}
                   >
-                    <span className="text-base">{product.emoji}</span>
-                    <span className="truncate flex-1">{product.name}</span>
-                    {product.id === activeProduct.id && (
-                      <Check className="h-4 w-4 text-primary shrink-0" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/" end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    {!collapsed && <span>Visão Geral</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {groups.map(group => (
-          <Collapsible key={group.label} defaultOpen className="group/collapsible">
-            <SidebarGroup>
-              <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors">
-                {!collapsed && <span>{group.label}</span>}
-                {!collapsed && <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 group-data-[state=closed]/collapsible:-rotate-90" />}
-              </CollapsibleTrigger>
-              <CollapsibleContent className="transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden">
-                <SidebarGroupContent>
-                  <SidebarMenu>
+                    <Icon className="h-5 w-5" />
+                  </button>
+                </HoverCardTrigger>
+                <HoverCardContent side="right" align="start" className="w-56 p-1.5">
+                  <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {group.label}
+                  </p>
+                  <div className="flex flex-col">
                     {group.items.map(item => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
-                          <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium" data-tour={(item as any).tourId}>
-                            <item.icon className="mr-2 h-4 w-4" />
-                            {!collapsed && <span>{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
+                      <button
+                        key={item.url}
+                        onClick={() => navigate(item.url)}
+                        data-tour={item.tourId}
+                        className={cn(
+                          'flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-left transition-colors',
+                          isActive(item.url)
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'hover:bg-muted/60 text-foreground'
+                        )}
+                      >
+                        {item.title}
+                      </button>
                     ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </SidebarGroup>
-          </Collapsible>
-        ))}
-      </SidebarContent>
-      <SidebarFooter>
-        <div className="p-2">
-          {!collapsed && user && (
-            <p className="text-xs text-muted-foreground truncate mb-2 px-2">{user.email}</p>
-          )}
-          <div className="flex flex-col gap-1">
-            <Button variant="ghost" size={collapsed ? 'icon' : 'sm'} className="w-full justify-start" onClick={toggle}>
-              {isDark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-              {!collapsed && (isDark ? 'Modo Claro' : 'Modo Escuro')}
-            </Button>
-            <Button variant="ghost" size={collapsed ? 'icon' : 'sm'} className="w-full justify-start" onClick={signOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              {!collapsed && 'Sair'}
-            </Button>
-          </div>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            );
+          })}
+        </nav>
+
+        {/* Footer actions */}
+        <div className="flex flex-col gap-1 items-center pb-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={toggle}>
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">{isDark ? 'Modo Claro' : 'Modo Escuro'}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={signOut}>
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Sair{user?.email ? ` (${user.email})` : ''}</TooltipContent>
+          </Tooltip>
         </div>
-      </SidebarFooter>
-    </Sidebar>
+      </aside>
+    </TooltipProvider>
   );
 }
