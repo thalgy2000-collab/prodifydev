@@ -8,19 +8,28 @@ import { Target, TrendingUp, ListTodo, Map } from 'lucide-react';
 const ProductOverviewPage = () => {
   const { activeProduct } = useProduct();
   const [metrics, setMetrics] = useState({ okrs: 0, avgKr: 0, openTasks: 0, roadmapItems: 0 });
-  const [recentTasks, setRecentTasks] = useState<any[]>([]);
+  const [upcomingActivities, setUpcomingActivities] = useState<any[]>([]);
 
   useEffect(() => {
     if (!activeProduct) return;
     const pid = activeProduct.id;
+    const today = new Date().toISOString().slice(0, 10);
 
     const fetchMetrics = async () => {
-      const [objRes, krRes, tasksRes, roadmapRes, recentRes] = await Promise.all([
+      const [objRes, krRes, tasksRes, roadmapRes, upcomingRes] = await Promise.all([
         supabase.from('objectives').select('id', { count: 'exact', head: true }).eq('product_id', pid),
         supabase.from('key_results').select('current_value, target_value').eq('product_id', pid),
         supabase.from('backlog_tasks').select('id', { count: 'exact', head: true }).eq('product_id', pid).eq('status', 'open'),
         supabase.from('roadmap_items').select('id', { count: 'exact', head: true }).eq('product_id', pid),
-        supabase.from('backlog_tasks').select('title, priority, status').eq('product_id', pid).order('created_at', { ascending: false }).limit(5),
+        supabase
+          .from('schedule_activities')
+          .select('title, activity_date, start_time, status')
+          .eq('product_id', pid)
+          .neq('status', 'done')
+          .gte('activity_date', today)
+          .order('activity_date', { ascending: true })
+          .order('start_time', { ascending: true, nullsFirst: true })
+          .limit(5),
       ]);
 
       const krs = krRes.data || [];
@@ -34,7 +43,7 @@ const ProductOverviewPage = () => {
         openTasks: tasksRes.count ?? 0,
         roadmapItems: roadmapRes.count ?? 0,
       });
-      setRecentTasks(recentRes.data || []);
+      setUpcomingActivities(upcomingRes.data || []);
     };
 
     fetchMetrics();
