@@ -58,10 +58,9 @@ const ProductOverviewPage = () => {
     { title: 'Itens no Roadmap', value: metrics.roadmapItems, icon: Map, color: 'text-violet-500' },
   ];
 
-  const priorityColor: Record<string, string> = {
-    high: 'destructive',
-    medium: 'default',
-    low: 'secondary',
+  const formatDate = (d: string) => {
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y.slice(2)}`;
   };
 
   return (
@@ -92,19 +91,21 @@ const ProductOverviewPage = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Tarefas recentes</CardTitle>
+          <CardTitle className="text-base">Próximas tarefas</CardTitle>
         </CardHeader>
         <CardContent>
-          {recentTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma tarefa encontrada.</p>
+          {upcomingActivities.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma tarefa agendada.</p>
           ) : (
             <ul className="space-y-2">
-              {recentTasks.map((t, i) => (
+              {upcomingActivities.map((a, i) => (
                 <li key={i} className="flex items-center justify-between text-sm">
-                  <span className="truncate flex-1">{t.title}</span>
+                  <span className="truncate flex-1">{a.title}</span>
                   <div className="flex items-center gap-2 ml-2">
-                    <Badge variant={priorityColor[t.priority] as any || 'secondary'} className="text-xs">{t.priority}</Badge>
-                    <Badge variant="outline" className="text-xs">{t.status}</Badge>
+                    <Badge variant="outline" className="text-xs">{formatDate(a.activity_date)}</Badge>
+                    {a.start_time && (
+                      <Badge variant="secondary" className="text-xs">{a.start_time.slice(0, 5)}</Badge>
+                    )}
                   </div>
                 </li>
               ))}
