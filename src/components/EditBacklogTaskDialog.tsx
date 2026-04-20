@@ -146,6 +146,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       dueDate: dueDate || undefined,
       dueTime: dueTime || undefined,
       dueEndTime: dueEndTime || undefined,
+      completionPercentage: Math.max(0, Math.min(100, completionPercentage || 0)),
+      roadmapImpact: Math.max(0, Math.min(100, roadmapImpact || 0)),
     };
 
     // Handle schedule activity
