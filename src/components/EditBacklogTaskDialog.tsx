@@ -179,6 +179,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     }
 
     onSave(task.id, patch);
+    // Refresh roadmap so progress trigger reflects in UI
+    setTimeout(() => { refreshRoadmap(); }, 300);
     onOpenChange(false);
   };
 
