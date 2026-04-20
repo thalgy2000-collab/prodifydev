@@ -94,6 +94,32 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     setSprintOptions(data || []);
   }, [activeProduct]);
 
+  const loadRoadmapItemTask = useCallback(async (taskId: string) => {
+    const { data } = await (supabase.from('roadmap_item_tasks') as any)
+      .select('roadmap_item_id')
+      .eq('task_id', taskId)
+      .single();
+    if (data) {
+      setInitiativeId(data.roadmap_item_id);
+    }
+  }, []);
+
+  const upsertRoadmapItemTask = useCallback(async (roadmapItemId: string, taskId: string) => {
+    if (!roadmapItemId || roadmapItemId === 'none' || !taskId) return;
+    await (supabase.from('roadmap_item_tasks') as any).upsert({
+      roadmap_item_id: roadmapItemId,
+      task_id: taskId,
+    });
+  }, []);
+
+  const deleteRoadmapItemTask = useCallback(async (roadmapItemId: string, taskId: string) => {
+    if (!roadmapItemId || !taskId) return;
+    await (supabase.from('roadmap_item_tasks') as any)
+      .delete()
+      .eq('roadmap_item_id', roadmapItemId)
+      .eq('task_id', taskId);
+  }, []);
+
   useEffect(() => {
     if (open) {
       fetchMembers();
@@ -114,8 +140,9 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setRoadmapImpact(task.roadmapImpact ?? 0);
       setSelectedSprintId('none');
       fetchByTask(task.id);
+      loadRoadmapItemTask(task.id);
     }
-  }, [task, fetchByTask]);
+  }, [task, fetchByTask, loadRoadmapItemTask]);
 
   const taskCriteria = task ? getCriteriaForTask(task.id) : [];
 
@@ -176,6 +203,13 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     } else if (task.scheduleActivityId) {
       await deleteActivity(task.scheduleActivityId);
       patch.scheduleActivityId = undefined;
+    }
+
+    // Handle roadmap_item_tasks relationship
+    if (initiativeId !== 'none' && task.id) {
+      await upsertRoadmapItemTask(initiativeId, task.id);
+    } else if (task.initiativeId && task.id) {
+      await deleteRoadmapItemTask(task.initiativeId, task.id);
     }
 
     onSave(task.id, patch);

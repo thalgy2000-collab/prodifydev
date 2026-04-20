@@ -25,7 +25,7 @@ import type { DragEvent } from 'react';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
-  const { items: initiatives } = useRoadmapStore();
+  const { items: initiatives, refresh: refreshInitiatives } = useRoadmapStore();
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
   const { activeProduct } = useProduct();
@@ -408,7 +408,7 @@ const BacklogPage = () => {
         )}
       </div>
 
-      <EditBacklogTaskDialog task={editTask} open={!!editTask} onOpenChange={o => !o && setEditTask(null)} onSave={updateTask} initiatives={initiatives} />
+      <EditBacklogTaskDialog task={editTask} open={!!editTask} onOpenChange={async (o) => { if (!o) { setEditTask(null); await refreshInitiatives(); } }} onSave={updateTask} initiatives={initiatives} />
     </div>
   );
 };
