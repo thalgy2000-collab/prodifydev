@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { BacklogTask, TaskPriority, PRIORITY_CONFIG } from '@/types/backlog';
 import { RoadmapItem } from '@/types/roadmap';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
+import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useProduct } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
@@ -15,6 +16,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
 
 interface MemberOption {
@@ -41,6 +44,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const { activeProduct } = useProduct();
   const { user } = useAuth();
   const { addActivity, updateActivity, deleteActivity } = useScheduleStore();
+  const { refresh: refreshRoadmap } = useRoadmapStore();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
@@ -50,6 +54,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [dueDate, setDueDate] = useState<string>('');
   const [dueTime, setDueTime] = useState<string>('');
   const [dueEndTime, setDueEndTime] = useState<string>('');
+  const [completionPercentage, setCompletionPercentage] = useState<number>(0);
+  const [roadmapImpact, setRoadmapImpact] = useState<number>(0);
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
@@ -104,6 +110,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setDueDate(task.dueDate || '');
       setDueTime(task.dueTime || '');
       setDueEndTime(task.dueEndTime || '');
+      setCompletionPercentage(task.completionPercentage ?? 0);
+      setRoadmapImpact(task.roadmapImpact ?? 0);
       setSelectedSprintId('none');
       fetchByTask(task.id);
     }
@@ -140,6 +148,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       dueDate: dueDate || undefined,
       dueTime: dueTime || undefined,
       dueEndTime: dueEndTime || undefined,
+      completionPercentage: Math.max(0, Math.min(100, completionPercentage || 0)),
+      roadmapImpact: Math.max(0, Math.min(100, roadmapImpact || 0)),
     };
 
     // Handle schedule activity
@@ -169,6 +179,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     }
 
     onSave(task.id, patch);
+    // Refresh roadmap so progress trigger reflects in UI
+    setTimeout(() => { refreshRoadmap(); }, 300);
     onOpenChange(false);
   };
 
@@ -245,6 +257,43 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               <div className="flex-1 space-y-2"><Label>Hora fim</Label><Input type="time" value={dueEndTime} onChange={e => setDueEndTime(e.target.value)} /></div>
             </div>
           )}
+
+          <div className="flex gap-3">
+            <div className="flex-1 space-y-2">
+              <Label>% Conclusão</Label>
+              <div className="relative">
+                <Input
+                  type="number" min={0} max={100} placeholder="Ex: 50"
+                  value={completionPercentage === 0 ? '' : completionPercentage}
+                  onChange={e => setCompletionPercentage(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Label>Impacto na Iniciativa</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p>% que essa tarefa representa no progresso da iniciativa vinculada no Roadmap</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="relative">
+                <Input
+                  type="number" min={0} max={100} placeholder="Ex: 33"
+                  value={roadmapImpact === 0 ? '' : roadmapImpact}
+                  onChange={e => setRoadmapImpact(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+              </div>
+            </div>
+          </div>
 
           {/* Acceptance Criteria Section */}
           {task && (

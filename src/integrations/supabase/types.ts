@@ -69,6 +69,7 @@ export type Database = {
         Row: {
           assignee_id: string | null
           category: string
+          completion_percentage: number | null
           created_at: string
           description: string
           due_date: string | null
@@ -81,6 +82,7 @@ export type Database = {
           priority: string
           product_id: string | null
           returned_from_sprint_id: string | null
+          roadmap_impact: number | null
           schedule_activity_id: string | null
           sprint_id: string | null
           status: string
@@ -91,6 +93,7 @@ export type Database = {
         Insert: {
           assignee_id?: string | null
           category?: string
+          completion_percentage?: number | null
           created_at?: string
           description?: string
           due_date?: string | null
@@ -103,6 +106,7 @@ export type Database = {
           priority?: string
           product_id?: string | null
           returned_from_sprint_id?: string | null
+          roadmap_impact?: number | null
           schedule_activity_id?: string | null
           sprint_id?: string | null
           status?: string
@@ -113,6 +117,7 @@ export type Database = {
         Update: {
           assignee_id?: string | null
           category?: string
+          completion_percentage?: number | null
           created_at?: string
           description?: string
           due_date?: string | null
@@ -125,6 +130,7 @@ export type Database = {
           priority?: string
           product_id?: string | null
           returned_from_sprint_id?: string | null
+          roadmap_impact?: number | null
           schedule_activity_id?: string | null
           sprint_id?: string | null
           status?: string

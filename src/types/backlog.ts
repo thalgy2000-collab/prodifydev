@@ -21,6 +21,8 @@ export interface BacklogTask {
   dueEndTime?: string;
   scheduleActivityId?: string;
   assigneeId?: string;
+  completionPercentage?: number;
+  roadmapImpact?: number;
   createdAt: string;
 }
 

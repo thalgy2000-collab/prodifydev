@@ -17,7 +17,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket } from 'lucide-react';
+import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import type { DragEvent } from 'react';
@@ -65,6 +66,8 @@ const BacklogPage = () => {
   const [newInitiativeId, setNewInitiativeId] = useState('none');
   const [newStoryPoints, setNewStoryPoints] = useState<number>(0);
   const [newAssigneeId, setNewAssigneeId] = useState('none');
+  const [newCompletion, setNewCompletion] = useState<number>(0);
+  const [newRoadmapImpact, setNewRoadmapImpact] = useState<number>(0);
   const todayStr = () => new Date().toISOString().slice(0, 10);
   const [newDueDate, setNewDueDate] = useState<string>(todayStr());
 
@@ -96,9 +99,12 @@ const BacklogPage = () => {
       objectiveId: init?.objectiveId, keyResultId: init?.keyResultId, storyPoints: newStoryPoints,
       assigneeId: newAssigneeId !== 'none' ? newAssigneeId : undefined,
       dueDate: newDueDate || undefined,
+      completionPercentage: newCompletion || 0,
+      roadmapImpact: newRoadmapImpact || 0,
     });
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
     setNewInitiativeId('none'); setNewStoryPoints(0); setNewAssigneeId('none');
+    setNewCompletion(0); setNewRoadmapImpact(0);
     setNewDueDate(todayStr()); setCreateOpen(false);
   };
 
@@ -286,6 +292,34 @@ const BacklogPage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2"><Label>Data de entrega</Label><Input type="date" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} /></div>
+                <div className="flex gap-3">
+                  <div className="flex-1 space-y-2">
+                    <Label>% Conclusão</Label>
+                    <div className="relative">
+                      <Input type="number" min={0} max={100} placeholder="Ex: 50"
+                        value={newCompletion === 0 ? '' : newCompletion}
+                        onChange={e => setNewCompletion(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))} />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-1.5">
+                      <Label>Impacto na Iniciativa</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild><HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs"><p>% que essa tarefa representa no progresso da iniciativa vinculada no Roadmap</p></TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <div className="relative">
+                      <Input type="number" min={0} max={100} placeholder="Ex: 33"
+                        value={newRoadmapImpact === 0 ? '' : newRoadmapImpact}
+                        onChange={e => setNewRoadmapImpact(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))} />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                    </div>
+                  </div>
+                </div>
                 <Button onClick={handleCreate} className="w-full">Criar Tarefa</Button>
               </div>
             </DialogContent>

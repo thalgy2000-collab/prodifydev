@@ -166,5 +166,5 @@ export const useRoadmapStore = () => {
 
   const getByQuarter = useCallback((q: string) => items.filter(i => i.quarter === q), [items]);
 
-  return { items, addItem, updateStatus, updateItem, deleteItem, getByQuarter };
+  return { items, addItem, updateStatus, updateItem, deleteItem, getByQuarter, refresh: fetchAll };
 };
