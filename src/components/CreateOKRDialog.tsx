@@ -15,10 +15,10 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [krs, setKrs] = useState<Omit<KeyResult, 'id'>[]>([
-    { title: '', currentValue: 0, targetValue: 100, unit: '%' },
+    { title: '', currentValue: 0, targetValue: 0, unit: '%' },
   ]);
 
-  const addKR = () => setKrs([...krs, { title: '', currentValue: 0, targetValue: 100, unit: '%' }]);
+  const addKR = () => setKrs([...krs, { title: '', currentValue: 0, targetValue: 0, unit: '%' }]);
   const removeKR = (i: number) => setKrs(krs.filter((_, idx) => idx !== i));
   const updateKR = (i: number, field: string, value: string | number) => {
     const next = [...krs];
@@ -30,7 +30,7 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
     if (!title.trim() || krs.some(kr => !kr.title.trim())) return;
     onAdd(title, quarter, 'professional', krs);
     setTitle('');
-    setKrs([{ title: '', currentValue: 0, targetValue: 100, unit: '%' }]);
+    setKrs([{ title: '', currentValue: 0, targetValue: 0, unit: '%' }]);
     setOpen(false);
   };
 
@@ -62,7 +62,7 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
                 <div className="flex gap-2">
                   <div className="flex-1 space-y-1">
                     <Label className="text-xs text-muted-foreground">Meta</Label>
-                    <Input type="number" value={kr.targetValue || ''} onChange={e => updateKR(i, 'targetValue', e.target.value === '' ? 0 : Number(e.target.value))} placeholder="100" />
+                    <Input type="number" value={kr.targetValue === 0 || kr.targetValue == null ? '' : kr.targetValue} onChange={e => updateKR(i, 'targetValue', e.target.value === '' ? 0 : Number(e.target.value))} placeholder="Ex: 100" />
                   </div>
                   <div className="w-20 space-y-1">
                     <Label className="text-xs text-muted-foreground">Unidade</Label>

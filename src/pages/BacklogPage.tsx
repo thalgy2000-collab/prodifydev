@@ -63,7 +63,7 @@ const BacklogPage = () => {
   const [newDesc, setNewDesc] = useState('');
   const [newPriority, setNewPriority] = useState<TaskPriority>('medium');
   const [newInitiativeId, setNewInitiativeId] = useState('none');
-  const [newStoryPoints, setNewStoryPoints] = useState(1);
+  const [newStoryPoints, setNewStoryPoints] = useState<number>(0);
   const [newAssigneeId, setNewAssigneeId] = useState('none');
   const todayStr = () => new Date().toISOString().slice(0, 10);
   const [newDueDate, setNewDueDate] = useState<string>(todayStr());
@@ -98,7 +98,7 @@ const BacklogPage = () => {
       dueDate: newDueDate || undefined,
     });
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
-    setNewInitiativeId('none'); setNewStoryPoints(1); setNewAssigneeId('none');
+    setNewInitiativeId('none'); setNewStoryPoints(0); setNewAssigneeId('none');
     setNewDueDate(todayStr()); setCreateOpen(false);
   };
 
@@ -263,7 +263,7 @@ const BacklogPage = () => {
                 </div>
                 <div className="flex gap-3">
                   <div className="flex-1 space-y-2"><Label>Iniciativa</Label><Select value={newInitiativeId} onValueChange={setNewInitiativeId}><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhuma</SelectItem>{initiatives.map(i => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}</SelectContent></Select></div>
-                  <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} value={newStoryPoints} onChange={e => setNewStoryPoints(Number(e.target.value))} /></div>
+                  <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} placeholder="Ex: 3" value={newStoryPoints === 0 ? '' : newStoryPoints} onChange={e => setNewStoryPoints(e.target.value === '' ? 0 : Number(e.target.value))} /></div>
                 </div>
                 <div className="space-y-2">
                   <Label>Responsável</Label>

@@ -188,7 +188,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
           </div>
           <div className="flex gap-3">
             <div className="flex-1 space-y-2"><Label>Iniciativa (Roadmap)</Label><Select value={initiativeId} onValueChange={setInitiativeId}><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhuma</SelectItem>{initiatives.map(i => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}</SelectContent></Select></div>
-            <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} value={storyPoints} onChange={e => setStoryPoints(Number(e.target.value))} /></div>
+            <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} placeholder="Ex: 3" value={storyPoints === 0 ? '' : storyPoints} onChange={e => setStoryPoints(e.target.value === '' ? 0 : Number(e.target.value))} /></div>
           </div>
           <div className="space-y-2">
             <Label>Responsável</Label>
