@@ -108,6 +108,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setDueDate(task.dueDate || '');
       setDueTime(task.dueTime || '');
       setDueEndTime(task.dueEndTime || '');
+      setCompletionPercentage(task.completionPercentage ?? 0);
+      setRoadmapImpact(task.roadmapImpact ?? 0);
       setSelectedSprintId('none');
       fetchByTask(task.id);
     }
