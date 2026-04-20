@@ -254,6 +254,43 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             </div>
           )}
 
+          <div className="flex gap-3">
+            <div className="flex-1 space-y-2">
+              <Label>% Conclusão</Label>
+              <div className="relative">
+                <Input
+                  type="number" min={0} max={100} placeholder="Ex: 50"
+                  value={completionPercentage === 0 ? '' : completionPercentage}
+                  onChange={e => setCompletionPercentage(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <Label>Impacto na Iniciativa</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p>% que essa tarefa representa no progresso da iniciativa vinculada no Roadmap</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="relative">
+                <Input
+                  type="number" min={0} max={100} placeholder="Ex: 33"
+                  value={roadmapImpact === 0 ? '' : roadmapImpact}
+                  onChange={e => setRoadmapImpact(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+              </div>
+            </div>
+          </div>
+
           {/* Acceptance Criteria Section */}
           {task && (
             <AcceptanceCriteriaSection
