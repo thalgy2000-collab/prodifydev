@@ -193,7 +193,7 @@ const ProfilePage = () => {
     if (deleteConfirmText !== 'EXCLUIR') return;
     setDeleting(true);
     try {
-      const { error } = await supabase.rpc('delete_user_account');
+      const { error } = await (supabase.rpc as any)('delete_user_account');
       if (error) throw error;
 
       // Sign out the user

@@ -68,7 +68,11 @@ const RicePage = () => {
     Object.entries(pendingScores).forEach(([id, fieldsObj]) => {
       const item = allItems.find(i => i.id === id);
       if (item) {
-        setScore(id, item.type, fieldsObj);
+        const normalized: Record<string, any> = {};
+        Object.entries(fieldsObj as Record<string, any>).forEach(([k, v]) => {
+          normalized[k] = v === '' || v === null || v === undefined ? 0 : v;
+        });
+        setScore(id, item.type, normalized);
       }
     });
     setPendingScores({});
@@ -191,8 +195,9 @@ const RicePage = () => {
                   <td className="px-4 py-3 font-medium">{item.title}</td>
                   <td className="px-4 py-3 text-muted-foreground">{item.type === 'task' ? 'Tarefa' : 'Iniciativa'}</td>
                   <td className="px-4 py-3 text-center">
-                    <Input type="number" min={1} className="h-8 w-16 text-center mx-auto" value={getValue(item.id, 'reach', item.r)}
-                      onChange={e => handleFieldChange(item.id, 'reach', Number(e.target.value))} />
+                    <Input type="number" min={1} placeholder="Ex: 5" className="h-8 w-16 text-center mx-auto"
+                      value={getValue(item.id, 'reach', item.r) ?? ''}
+                      onChange={e => handleFieldChange(item.id, 'reach', e.target.value === '' ? '' : Number(e.target.value))} />
                   </td>
                   <td className="px-4 py-3 text-center">
                     <Select value={String(getValue(item.id, 'impact', item.i))} onValueChange={v => handleFieldChange(item.id, 'impact', Number(v))}>
@@ -207,8 +212,9 @@ const RicePage = () => {
                     </Select>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <Input type="number" min={0.5} step={0.5} className="h-8 w-16 text-center mx-auto" value={getValue(item.id, 'effort', item.e)}
-                      onChange={e => handleFieldChange(item.id, 'effort', Number(e.target.value))} />
+                    <Input type="number" min={0.5} step={0.5} placeholder="Ex: 1" className="h-8 w-16 text-center mx-auto"
+                      value={getValue(item.id, 'effort', item.e) ?? ''}
+                      onChange={e => handleFieldChange(item.id, 'effort', e.target.value === '' ? '' : Number(e.target.value))} />
                   </td>
                   <td className="px-4 py-3 text-center font-mono font-bold">{item.total.toFixed(1)}</td>
                 </tr>
