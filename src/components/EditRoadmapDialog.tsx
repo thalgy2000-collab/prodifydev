@@ -133,9 +133,9 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
                               <Input
                                 type="number"
                                 min={0}
-                                value={linked.krContribution || ''}
-                                onChange={e => updateContribution(kr.id, Number(e.target.value))}
-                                placeholder="Contribuição ao concluir"
+                                value={linked.krContribution ? linked.krContribution : ''}
+                                onChange={e => updateContribution(kr.id, e.target.value === '' ? 0 : Number(e.target.value))}
+                                placeholder="Ex: contribuição ao concluir"
                                 className="h-8 text-sm"
                               />
                             </div>
