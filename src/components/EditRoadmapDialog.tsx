@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 import { RoadmapItem, RoadmapItemKR, ROADMAP_COLORS } from '@/types/roadmap';
 import { Objective, OKRCategory, getQuarterMonths } from '@/types/okr';
 
@@ -20,7 +21,7 @@ interface Props {
 const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Props) => {
   const [title, setTitle] = useState(item.title);
   const [description, setDescription] = useState(item.description);
-  const [status, setStatus] = useState<RoadmapItem['status']>(item.status);
+  const [progress, setProgress] = useState<number>(item.progress ?? 0);
   const [category, setCategory] = useState<OKRCategory>(item.category);
   const [objectiveId, setObjectiveId] = useState(item.objectiveId || '');
   const [linkedKRs, setLinkedKRs] = useState<RoadmapItemKR[]>(item.linkedKRs || []);
@@ -33,7 +34,7 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
   const selectedObjective = quarterObjectives.find(o => o.id === objectiveId);
 
   useEffect(() => {
-    setTitle(item.title); setDescription(item.description); setStatus(item.status);
+    setTitle(item.title); setDescription(item.description); setProgress(item.progress ?? 0);
     setCategory(item.category); setObjectiveId(item.objectiveId || '');
     setLinkedKRs(item.linkedKRs || []);
     setStartMonth(item.startMonth); setEndMonth(item.endMonth);
@@ -63,8 +64,9 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
 
   const handleSubmit = () => {
     if (!title.trim()) return;
+    const status: RoadmapItem['status'] = progress >= 100 ? 'done' : progress > 0 ? 'in_progress' : 'planned';
     onSave({
-      ...item, title, description, status, category, color,
+      ...item, title, description, status, progress, category, color,
       objectiveId: objectiveId && objectiveId !== 'none' ? objectiveId : undefined,
       linkedKRs,
       startMonth, endMonth: Math.max(startMonth, endMonth),
@@ -79,7 +81,13 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
         <div className="space-y-4 pt-2">
           <div className="space-y-2"><Label>Título</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2"><Label>Descrição</Label><Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
-          <div className="space-y-2"><Label>Status</Label><Select value={status} onValueChange={(v) => setStatus(v as RoadmapItem['status'])}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="planned">Planejado</SelectItem><SelectItem value="in_progress">Em andamento</SelectItem><SelectItem value="done">Concluído</SelectItem></SelectContent></Select></div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Progresso</Label>
+              <span className="text-sm font-mono text-muted-foreground">{progress}%</span>
+            </div>
+            <Slider value={[progress]} min={0} max={100} step={1} onValueChange={([v]) => setProgress(v)} />
+          </div>
           <div className="space-y-2">
             <Label>Cor da barra</Label>
             <div className="flex flex-wrap gap-2">
