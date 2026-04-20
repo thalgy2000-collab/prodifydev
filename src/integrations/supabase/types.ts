@@ -1014,6 +1014,7 @@ export type Database = {
             }
             Returns: undefined
           }
+      delete_user_account: { Args: never; Returns: undefined }
       has_product_role: {
         Args: { _product_id: string; _role: string; _user_id: string }
         Returns: boolean
