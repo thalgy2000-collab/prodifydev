@@ -44,6 +44,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const { activeProduct } = useProduct();
   const { user } = useAuth();
   const { addActivity, updateActivity, deleteActivity } = useScheduleStore();
+  const { refresh: refreshRoadmap } = useRoadmapStore();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
