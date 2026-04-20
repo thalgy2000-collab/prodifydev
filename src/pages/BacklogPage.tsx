@@ -98,9 +98,12 @@ const BacklogPage = () => {
       objectiveId: init?.objectiveId, keyResultId: init?.keyResultId, storyPoints: newStoryPoints,
       assigneeId: newAssigneeId !== 'none' ? newAssigneeId : undefined,
       dueDate: newDueDate || undefined,
+      completionPercentage: newCompletion || 0,
+      roadmapImpact: newRoadmapImpact || 0,
     });
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
     setNewInitiativeId('none'); setNewStoryPoints(0); setNewAssigneeId('none');
+    setNewCompletion(0); setNewRoadmapImpact(0);
     setNewDueDate(todayStr()); setCreateOpen(false);
   };
 
