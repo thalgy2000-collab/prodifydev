@@ -11,6 +11,7 @@ export interface RoadmapItem {
   description: string;
   quarter: string;
   status: 'planned' | 'in_progress' | 'done';
+  progress: number;
   category: OKRCategory;
   objectiveId?: string;
   /** @deprecated use linkedKRs instead */

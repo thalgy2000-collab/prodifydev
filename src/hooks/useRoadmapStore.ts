@@ -39,6 +39,7 @@ export const useRoadmapStore = () => {
     setItems(roadmapData.map((d: any) => ({
       id: d.id, title: d.title, description: d.description, quarter: d.quarter,
       status: d.status as RoadmapItem['status'], category: d.category as RoadmapItem['category'],
+      progress: typeof d.progress === 'number' ? d.progress : 0,
       objectiveId: d.objective_id ?? undefined,
       keyResultId: d.key_result_id ?? undefined,
       krContribution: d.kr_contribution ? Number(d.kr_contribution) : undefined,
@@ -69,15 +70,28 @@ export const useRoadmapStore = () => {
 
   const addItem = useCallback(async (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => {
     if (!user || !activeProduct) return;
+    const progress = Math.max(0, Math.min(100, data.progress ?? 0));
+    const status: RoadmapItem['status'] = progress >= 100 ? 'done' : progress > 0 ? 'in_progress' : 'planned';
     const { data: inserted } = await (supabase.from('roadmap_items') as any).insert({
       user_id: user.id, product_id: activeProduct.id, title: data.title, description: data.description, quarter: data.quarter,
-      status: data.status, category: data.category, objective_id: data.objectiveId || null,
+      status, progress, category: data.category, objective_id: data.objectiveId || null,
       key_result_id: null, kr_contribution: null,
       start_month: data.startMonth, end_month: data.endMonth, color: data.color || '#6366f1',
     }).select('id').single();
 
     if (inserted && data.linkedKRs.length > 0) {
       await saveLinkedKRs(inserted.id, data.linkedKRs);
+    }
+    // Apply KR contribution if created already at 100%
+    if (inserted && progress >= 100 && data.linkedKRs.length > 0) {
+      for (const lk of data.linkedKRs) {
+        if (!lk.krContribution) continue;
+        const { data: kr } = await (supabase.from('key_results') as any).select('current_value').eq('id', lk.keyResultId).single();
+        if (kr) {
+          const newVal = Math.max(0, Number(kr.current_value) + lk.krContribution);
+          await (supabase.from('key_results') as any).update({ current_value: newVal }).eq('id', lk.keyResultId);
+        }
+      }
     }
     trackEvent('roadmap_item_created', user.id, { page: '/roadmap', properties: { title: data.title, quarter: data.quarter } });
     await fetchAll();
@@ -110,16 +124,38 @@ export const useRoadmapStore = () => {
   }, [fetchAll, items]);
 
   const updateItem = useCallback(async (updated: RoadmapItem) => {
+    const prev = items.find(i => i.id === updated.id);
+    const newProgress = Math.max(0, Math.min(100, updated.progress ?? 0));
+    const newStatus: RoadmapItem['status'] = newProgress >= 100 ? 'done' : newProgress > 0 ? 'in_progress' : 'planned';
+
     await (supabase.from('roadmap_items') as any).update({
       title: updated.title, description: updated.description, quarter: updated.quarter,
-      status: updated.status, category: updated.category, objective_id: updated.objectiveId || null,
+      status: newStatus, progress: newProgress, category: updated.category, objective_id: updated.objectiveId || null,
       key_result_id: null, kr_contribution: null,
       start_month: updated.startMonth, end_month: updated.endMonth, color: updated.color || '#6366f1',
     }).eq('id', updated.id);
 
     await saveLinkedKRs(updated.id, updated.linkedKRs);
+
+    // Sync KR progress when crossing 100% threshold (mirrors previous done<->planned behavior)
+    if (prev) {
+      const wasDone = (prev.progress ?? 0) >= 100;
+      const isDone = newProgress >= 100;
+      if (wasDone !== isDone && updated.linkedKRs.length > 0) {
+        for (const lk of updated.linkedKRs) {
+          if (!lk.krContribution) continue;
+          const { data: kr } = await (supabase.from('key_results') as any).select('current_value').eq('id', lk.keyResultId).single();
+          if (kr) {
+            const delta = isDone ? lk.krContribution : -lk.krContribution;
+            const newVal = Math.max(0, Number(kr.current_value) + delta);
+            await (supabase.from('key_results') as any).update({ current_value: newVal }).eq('id', lk.keyResultId);
+          }
+        }
+      }
+    }
+
     await fetchAll();
-  }, [fetchAll, saveLinkedKRs]);
+  }, [fetchAll, saveLinkedKRs, items]);
 
   const deleteItem = useCallback(async (id: string) => {
     await (supabase.from('roadmap_item_key_results') as any).delete().eq('roadmap_item_id', id);
