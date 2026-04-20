@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 import { Plus } from 'lucide-react';
 import { RoadmapItem, RoadmapItemKR, ROADMAP_COLORS } from '@/types/roadmap';
 import { Objective, OKRCategory, getQuarterMonths } from '@/types/okr';
@@ -20,7 +21,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState<RoadmapItem['status']>('planned');
+  const [progress, setProgress] = useState<number>(0);
   const [category, setCategory] = useState<OKRCategory>('professional');
   const [objectiveId, setObjectiveId] = useState<string>('');
   const [linkedKRs, setLinkedKRs] = useState<RoadmapItemKR[]>([]);
@@ -45,13 +46,14 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
 
   const handleSubmit = () => {
     if (!title.trim()) return;
+    const status: RoadmapItem['status'] = progress >= 100 ? 'done' : progress > 0 ? 'in_progress' : 'planned';
     onAdd({
-      title, description, quarter, status, category, color,
+      title, description, quarter, status, progress, category, color,
       objectiveId: objectiveId && objectiveId !== 'none' ? objectiveId : undefined,
       linkedKRs,
       startMonth, endMonth: Math.max(startMonth, endMonth),
     });
-    setTitle(''); setDescription(''); setStatus('planned'); setCategory('professional');
+    setTitle(''); setDescription(''); setProgress(0); setCategory('professional');
     setObjectiveId(''); setLinkedKRs([]);
     setStartMonth(0); setEndMonth(0); setColor(ROADMAP_COLORS[0]); setOpen(false);
   };
@@ -66,7 +68,13 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
         <div className="space-y-4 pt-2">
           <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lançar MVP do produto" value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2"><Label>Descrição</Label><Textarea placeholder="Detalhes da iniciativa..." value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
-          <div className="space-y-2"><Label>Status</Label><Select value={status} onValueChange={(v) => setStatus(v as RoadmapItem['status'])}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="planned">Planejado</SelectItem><SelectItem value="in_progress">Em andamento</SelectItem><SelectItem value="done">Concluído</SelectItem></SelectContent></Select></div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Progresso</Label>
+              <span className="text-sm font-mono text-muted-foreground">{progress}%</span>
+            </div>
+            <Slider value={[progress]} min={0} max={100} step={1} onValueChange={([v]) => setProgress(v)} />
+          </div>
           <div className="space-y-2">
             <Label>Cor da barra</Label>
             <div className="flex flex-wrap gap-2">

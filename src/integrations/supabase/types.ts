@@ -778,6 +778,7 @@ export type Database = {
           kr_contribution: number | null
           objective_id: string | null
           product_id: string | null
+          progress: number | null
           quarter: string
           start_month: number
           status: string
@@ -795,6 +796,7 @@ export type Database = {
           kr_contribution?: number | null
           objective_id?: string | null
           product_id?: string | null
+          progress?: number | null
           quarter: string
           start_month?: number
           status?: string
@@ -812,6 +814,7 @@ export type Database = {
           kr_contribution?: number | null
           objective_id?: string | null
           product_id?: string | null
+          progress?: number | null
           quarter?: string
           start_month?: number
           status?: string

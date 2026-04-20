@@ -7,27 +7,21 @@ import EditRoadmapDialog from '@/components/EditRoadmapDialog';
 import { getCurrentQuarter, getQuarterMonths } from '@/types/okr';
 import { RoadmapItem } from '@/types/roadmap';
 import QuarterSelector from '@/components/QuarterSelector';
-import { Map, Trash2, Circle, Loader2, CheckCircle2, Link2, Pencil } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Map, Trash2, Link2, Pencil } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-const statusIcons = {
-  planned: Circle,
-  in_progress: Loader2,
-  done: CheckCircle2,
-};
-
-const statusLabels = {
-  planned: 'Planejado',
-  in_progress: 'Em andamento',
-  done: 'Concluído',
+const getProgressColor = (p: number) => {
+  if (p >= 100) return 'hsl(var(--success))';
+  if (p >= 50) return 'hsl(38 92% 50%)'; // amber/orange
+  if (p > 0) return 'hsl(var(--primary))'; // blue
+  return 'hsl(var(--muted-foreground))'; // gray
 };
 
 const RoadmapPage = () => {
   const [selectedQuarter, setSelectedQuarter] = usePersistedState('roadmap_filter', getCurrentQuarter());
   const months = getQuarterMonths(selectedQuarter);
 
-  const { items, addItem, updateStatus, updateItem, deleteItem, getByQuarter } = useRoadmapStore();
+  const { items, addItem, updateItem, deleteItem, getByQuarter } = useRoadmapStore();
   const { objectives } = useOKRStore();
 
   const [editItem, setEditItem] = useState<RoadmapItem | null>(null);
@@ -78,7 +72,8 @@ const RoadmapPage = () => {
 
             {/* Rows */}
             {sorted.map((item) => {
-              const StatusIcon = statusIcons[item.status];
+              const progress = Math.max(0, Math.min(100, item.progress ?? 0));
+              const progressColor = getProgressColor(progress);
               return (
                 <div
                   key={item.id}
@@ -100,32 +95,41 @@ const RoadmapPage = () => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div
-                          className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md"
+                          className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md relative overflow-hidden"
                           style={{
                             backgroundColor: item.color,
-                            opacity: item.status === 'done' ? 0.45 : 0.85,
+                            opacity: 0.85,
                           }}
-                          onClick={() => {
-                            const newStatus = item.status === 'done' ? 'planned' : 'done';
-                            updateStatus(item.id, newStatus);
-                          }}
+                          onClick={() => setEditItem(item)}
                         >
-                          <Link2 className="h-3.5 w-3.5 text-white/80 shrink-0" />
-                          <span className={`text-xs font-medium text-white truncate drop-shadow-sm ${item.status === 'done' ? 'line-through opacity-70' : ''}`}>
+                          {/* Progress fill overlay */}
+                          <div
+                            className="absolute inset-y-0 left-0 transition-all"
+                            style={{
+                              width: `${progress}%`,
+                              backgroundColor: progressColor,
+                              opacity: 0.55,
+                            }}
+                          />
+                          <Link2 className="relative h-3.5 w-3.5 text-white/90 shrink-0" />
+                          <span className="relative text-xs font-medium text-white truncate drop-shadow-sm">
                             {item.title}
                           </span>
-                          <div className="ml-auto flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                          <span className="relative ml-auto text-xs font-mono font-semibold text-white drop-shadow-sm shrink-0">
+                            {progress}%
+                          </span>
+                          <div className="relative flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                             <button
                               onClick={(e) => { e.stopPropagation(); setEditItem(item); }}
                               className="rounded p-0.5 hover:bg-white/20 transition-colors"
                             >
-                              <Pencil className="h-3 w-3 text-white/80" />
+                              <Pencil className="h-3 w-3 text-white/90" />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}
                               className="rounded p-0.5 hover:bg-white/20 transition-colors"
                             >
-                              <Trash2 className="h-3 w-3 text-white/80" />
+                              <Trash2 className="h-3 w-3 text-white/90" />
                             </button>
                           </div>
                         </div>
@@ -133,7 +137,7 @@ const RoadmapPage = () => {
                       <TooltipContent side="top" className="max-w-xs">
                         <p className="font-semibold">{item.title}</p>
                         {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
-                        <p className="text-xs mt-1">{months[item.startMonth]} — {months[item.endMonth]} · {statusLabels[item.status]}</p>
+                        <p className="text-xs mt-1">{months[item.startMonth]} — {months[item.endMonth]} · {progress}%</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
