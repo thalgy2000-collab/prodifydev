@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { BacklogTask, TaskPriority, PRIORITY_CONFIG } from '@/types/backlog';
 import { RoadmapItem } from '@/types/roadmap';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
+import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useProduct } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
