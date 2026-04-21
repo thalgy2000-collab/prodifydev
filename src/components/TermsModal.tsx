@@ -8,6 +8,26 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const TERMS_VERSION = '1.0';
 
+// Estilo CSS para scrollbar personalizada
+const scrollbarStyle = `
+  .terms-modal-scrollarea::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .terms-modal-scrollarea::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .terms-modal-scrollarea::-webkit-scrollbar-thumb {
+    background: #6366f1;
+    border-radius: 4px;
+  }
+  
+  .terms-modal-scrollarea::-webkit-scrollbar-thumb:hover {
+    background: #4f46e5;
+  }
+`;
+
 const TermsModal = ({ onAccepted }: { onAccepted: () => void }) => {
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,14 +47,24 @@ const TermsModal = ({ onAccepted }: { onAccepted: () => void }) => {
   const today = new Date().toLocaleDateString('pt-BR');
 
   return (
-    <Dialog open modal>
-      <DialogContent
+    <>
+      <style>{scrollbarStyle}</style>
+      <Dialog open modal>
+        <DialogContent
         className="max-w-2xl max-h-[90vh] flex flex-col gap-0 p-0 [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          maxHeight: '90vh'
+        }}
       >
-        <DialogHeader className="p-6 pb-0">
+        <DialogHeader 
+          className="p-6 pb-0 flex-shrink-0 border-b border-border"
+          style={{ flexShrink: 0 }}
+        >
           <DialogTitle className="text-xl font-bold">
             Termos de Uso e Política de Privacidade
           </DialogTitle>
@@ -43,8 +73,22 @@ const TermsModal = ({ onAccepted }: { onAccepted: () => void }) => {
           </p>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6 py-4 max-h-[50vh]">
-          <div className="space-y-6 text-sm text-muted-foreground leading-relaxed pr-4">
+        <ScrollArea 
+          className="flex-1 overflow-y-auto px-6 py-4 terms-modal-scrollarea"
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#6366f1 transparent'
+          }}
+        >
+          <div 
+            className="space-y-6 text-sm text-muted-foreground leading-relaxed pr-4"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#6366f1 transparent'
+            }}
+          >
             <section>
               <h3 className="text-foreground font-semibold mb-2">1. Uso da Plataforma</h3>
               <p>
@@ -99,7 +143,10 @@ const TermsModal = ({ onAccepted }: { onAccepted: () => void }) => {
           </div>
         </ScrollArea>
 
-        <div className="p-6 pt-4 border-t border-border space-y-4">
+        <div 
+          className="p-6 pt-4 border-t border-border space-y-4 flex-shrink-0"
+          style={{ flexShrink: 0 }}
+        >
           <label className="flex items-start gap-3 cursor-pointer">
             <Checkbox
               checked={accepted}
@@ -120,6 +167,7 @@ const TermsModal = ({ onAccepted }: { onAccepted: () => void }) => {
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
 
