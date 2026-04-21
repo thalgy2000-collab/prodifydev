@@ -260,7 +260,7 @@ const AgendaPage = () => {
       {/* Content */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Sidebar - Mini calendar + Day detail */}
-        <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card shrink-0 overflow-y-auto">
+        <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card shrink-0 overflow-hidden h-full">
           {/* Mini calendar */}
           <div className="p-3">
             <div className="grid grid-cols-7 gap-0">
@@ -294,7 +294,7 @@ const AgendaPage = () => {
           </div>
 
           {/* Selected day detail */}
-          <div className="flex-1 border-t border-border p-3">
+          <div className="flex-1 min-h-0 border-t border-border p-3 flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-sm font-semibold text-foreground capitalize">
@@ -312,7 +312,7 @@ const AgendaPage = () => {
             {selectedDateActivities.length === 0 ? (
               <p className="text-xs text-muted-foreground">Nenhum evento neste dia</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 overflow-y-auto flex-1 min-h-0 pr-1">
                 {selectedDateActivities.map(act => (
                   <div
                     key={act.id}
@@ -366,7 +366,7 @@ const AgendaPage = () => {
         </aside>
 
         {/* Main calendar area */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col">
           {viewMode === 'month' && (
             <MonthView
               days={monthDays}
