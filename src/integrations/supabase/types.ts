@@ -772,6 +772,42 @@ export type Database = {
           },
         ]
       }
+      roadmap_item_tasks: {
+        Row: {
+          created_at: string | null
+          id: string
+          roadmap_item_id: string
+          task_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          roadmap_item_id: string
+          task_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          roadmap_item_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_item_tasks_roadmap_item_id_fkey"
+            columns: ["roadmap_item_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roadmap_item_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "backlog_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roadmap_items: {
         Row: {
           category: string
