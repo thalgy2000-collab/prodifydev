@@ -294,7 +294,7 @@ const AgendaPage = () => {
           </div>
 
           {/* Selected day detail */}
-          <div className="flex-1 border-t border-border p-3">
+          <div className="flex-1 min-h-0 border-t border-border p-3 flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <p className="text-sm font-semibold text-foreground capitalize">
