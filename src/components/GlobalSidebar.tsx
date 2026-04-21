@@ -52,6 +52,12 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
           <button
             key={item.url}
             onClick={() => navigate(item.url)}
+            data-tour-ext={
+              item.url === '/inicio' ? 'inicio'
+              : item.url === '/produtos' ? 'produtos'
+              : item.url === '/agenda' ? 'agenda'
+              : undefined
+            }
             className={cn(
               'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
               isActive(item.url)
@@ -70,6 +76,7 @@ export function GlobalSidebar({ searchQuery, onSearchChange }: GlobalSidebarProp
       <div className="p-3 border-t border-border space-y-1">
         {/* User profile button */}
         <button
+          data-tour-ext="perfil"
           onClick={() => navigate('/perfil')}
           className={cn(
             'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',

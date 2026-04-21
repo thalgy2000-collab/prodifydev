@@ -1,34 +1,86 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppSidebar } from '@/components/AppSidebar';
-import { OnboardingTour } from '@/components/OnboardingTour';
+import { OnboardingTour, TourStep } from '@/components/OnboardingTour';
 import { PendingInviteBanner } from '@/components/PendingInviteBanner';
 import { NotificationBell } from '@/components/NotificationBell';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
 import { useProduct } from '@/contexts/ProductContext';
+import { LayoutDashboard, Target, Compass, Calculator, Rocket, BarChart3 } from 'lucide-react';
+
+const buildInternalSteps = (): TourStep[] => [
+  {
+    type: 'spotlight',
+    selector: '[data-tour-int="overview"]',
+    title: 'Visão Geral',
+    description: 'Acompanhe métricas como OKRs, progresso de KRs, tarefas abertas e próximas atividades.',
+    icon: <LayoutDashboard className="h-5 w-5" />,
+  },
+  {
+    type: 'spotlight',
+    selector: '[data-tour-int="planejamento"]',
+    title: 'Planejamento',
+    description: 'Acesse OKRs, Roadmap, Releases, PRD e Agenda do produto.',
+    icon: <Target className="h-5 w-5" />,
+  },
+  {
+    type: 'spotlight',
+    selector: '[data-tour-int="discovery"]',
+    title: 'Discovery',
+    description: 'Mapeie oportunidades e faça análise SWOT.',
+    icon: <Compass className="h-5 w-5" />,
+  },
+  {
+    type: 'spotlight',
+    selector: '[data-tour-int="priorizacao"]',
+    title: 'Priorização',
+    description: 'Priorize tarefas pelo framework RICE.',
+    icon: <Calculator className="h-5 w-5" />,
+  },
+  {
+    type: 'spotlight',
+    selector: '[data-tour-int="delivery"]',
+    title: 'Delivery',
+    description: 'Gerencie Backlog, Sprints e Histórico de entregas.',
+    icon: <Rocket className="h-5 w-5" />,
+  },
+  {
+    type: 'spotlight',
+    selector: '[data-tour-int="analises"]',
+    title: 'Análises',
+    description: 'Acompanhe métricas e evolução do produto.',
+    icon: <BarChart3 className="h-5 w-5" />,
+  },
+  {
+    type: 'spotlight',
+    selector: '[data-tour-int="membros"]',
+    title: 'Membros',
+    description: 'Gerencie quem tem acesso ao produto.',
+    icon: <span className="text-lg leading-none">👥</span>,
+  },
+];
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
-  const { profile, initial, avatarColor, refetch } = useProfile();
-  const { products } = useProduct();
+  const { profile, initial, avatarColor } = useProfile();
+  const { activeProduct } = useProduct();
   const navigate = useNavigate();
   const [showTour, setShowTour] = useState(false);
-  const [tourDismissed, setTourDismissed] = useState(false);
 
-  // Show tour when: profile loaded, onboarding not completed, has exactly 1 product, and tour not dismissed this session
+  const storageKey = activeProduct ? `tour_interno_${activeProduct.id}` : '';
+  const steps = useMemo(buildInternalSteps, []);
+
   useEffect(() => {
-    if (profile && !profile.onboardingCompleted && products.length >= 1 && !tourDismissed) {
-      // Small delay so sidebar renders and elements are in DOM
+    if (!activeProduct) return;
+    let seen = false;
+    try {
+      seen = localStorage.getItem(`tour_interno_${activeProduct.id}`) === 'true';
+    } catch {}
+    if (!seen) {
       const timer = setTimeout(() => setShowTour(true), 600);
       return () => clearTimeout(timer);
     }
-  }, [profile, products.length, tourDismissed]);
-
-  const handleTourComplete = () => {
-    setShowTour(false);
-    setTourDismissed(true);
-    refetch();
-  };
+  }, [activeProduct?.id]);
 
   return (
     <>
@@ -58,7 +110,13 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </main>
         </div>
       </div>
-      {showTour && <OnboardingTour onComplete={handleTourComplete} />}
+      {showTour && storageKey && (
+        <OnboardingTour
+          steps={steps}
+          storageKey={storageKey}
+          onComplete={() => setShowTour(false)}
+        />
+      )}
     </>
   );
 };

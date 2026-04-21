@@ -579,6 +579,34 @@ const ProfilePage = () => {
                       <option value="en">English (en)</option>
                     </select>
                   </div>
+                  <div className="border-t pt-6 space-y-3">
+                    <h3 className="font-medium">Onboarding</h3>
+                    <p className="text-sm text-muted-foreground">Reexibir os tours guiados.</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          try { localStorage.removeItem('tour_externo'); } catch {}
+                          toast.success('Tour externo resetado. Recarregue para visualizar.');
+                        }}
+                      >
+                        Resetar tour externo
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          try {
+                            Object.keys(localStorage)
+                              .filter(k => k.startsWith('tour_interno_'))
+                              .forEach(k => localStorage.removeItem(k));
+                          } catch {}
+                          toast.success('Tour do produto resetado. Acesse um produto para visualizar.');
+                        }}
+                      >
+                        Resetar tour do produto
+                      </Button>
+                    </div>
+                  </div>
                   <div className="border-t pt-6 space-y-2">
                     <h3 className="font-medium">Sobre</h3>
                     <p className="text-sm text-muted-foreground">Versão do app: v1.0.0</p>
