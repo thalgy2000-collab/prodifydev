@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -10,8 +9,13 @@ const TERMS_VERSION = '1.0';
 
 // Estilo CSS para scrollbar personalizada
 const scrollbarStyle = `
+  .terms-modal-scrollarea {
+    scrollbar-width: thin;
+    scrollbar-color: #6366f1 transparent;
+  }
+  
   .terms-modal-scrollarea::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
   }
   
   .terms-modal-scrollarea::-webkit-scrollbar-track {
@@ -20,11 +24,14 @@ const scrollbarStyle = `
   
   .terms-modal-scrollarea::-webkit-scrollbar-thumb {
     background: #6366f1;
-    border-radius: 4px;
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
   
   .terms-modal-scrollarea::-webkit-scrollbar-thumb:hover {
     background: #4f46e5;
+    background-clip: padding-box;
   }
 `;
 
@@ -73,8 +80,8 @@ const TermsModal = ({ onAccepted }: { onAccepted: () => void }) => {
           </p>
         </DialogHeader>
 
-        <ScrollArea 
-          className="flex-1 overflow-y-auto px-6 py-4 terms-modal-scrollarea"
+        <div 
+          className="flex-1 px-6 py-4 terms-modal-scrollarea overflow-y-auto"
           style={{
             flex: 1,
             overflowY: 'auto',
@@ -83,7 +90,7 @@ const TermsModal = ({ onAccepted }: { onAccepted: () => void }) => {
           }}
         >
           <div 
-            className="space-y-6 text-sm text-muted-foreground leading-relaxed pr-4"
+            className="space-y-6 text-sm text-muted-foreground leading-relaxed"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: '#6366f1 transparent'
@@ -141,7 +148,7 @@ const TermsModal = ({ onAccepted }: { onAccepted: () => void }) => {
               </p>
             </section>
           </div>
-        </ScrollArea>
+        </div>
 
         <div 
           className="p-6 pt-4 border-t border-border space-y-4 flex-shrink-0"
