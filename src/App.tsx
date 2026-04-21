@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +10,7 @@ import { GlobalSidebar } from "./components/GlobalSidebar";
 import { MobileHeader } from "./components/MobileHeader";
 import { NotificationBell } from "./components/NotificationBell";
 import AppLayout from "./components/AppLayout";
+import { OnboardingTour } from "./components/OnboardingTour";
 import TermsModal from "./components/TermsModal";
 import { PageViewTracker } from "./components/PageViewTracker";
 import { useProfile } from "./hooks/useProfile";
@@ -90,9 +91,47 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
   );
 };
 
+const externalTourSteps = [
+  {
+    type: 'spotlight' as const,
+    selector: '[data-tour-ext="inicio"]',
+    title: 'Início',
+    description: 'Acesse sua visão geral pessoal.',
+  },
+  {
+    type: 'spotlight' as const,
+    selector: '[data-tour-ext="produtos"]',
+    title: 'Meus Produtos',
+    description: 'Selecione ou crie um produto para gerenciar.',
+  },
+  {
+    type: 'spotlight' as const,
+    selector: '[data-tour-ext="agenda"]',
+    title: 'Agenda',
+    description: 'Acompanhe seus eventos e tarefas pessoais.',
+  },
+  {
+    type: 'spotlight' as const,
+    selector: '[data-tour-ext="perfil"]',
+    title: 'Perfil & Configurações',
+    description: 'Personalize sua conta e preferências.',
+  },
+];
+
 const AuthenticatedLayout = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { activeProduct } = useProduct();
+  const [showExternalTour, setShowExternalTour] = useState(false);
+
+  useEffect(() => {
+    if (activeProduct) return;
+    let seen = false;
+    try { seen = localStorage.getItem('tour_externo') === 'true'; } catch {}
+    if (!seen) {
+      const t = setTimeout(() => setShowExternalTour(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [activeProduct]);
 
   return (
     <div className="min-h-screen flex w-full">
@@ -106,6 +145,13 @@ const AuthenticatedLayout = () => {
         )}
         <ProductRoutes searchQuery={searchQuery} />
       </div>
+      {showExternalTour && !activeProduct && (
+        <OnboardingTour
+          steps={externalTourSteps}
+          storageKey="tour_externo"
+          onComplete={() => setShowExternalTour(false)}
+        />
+      )}
     </div>
   );
 };
