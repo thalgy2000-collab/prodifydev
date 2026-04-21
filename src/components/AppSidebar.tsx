@@ -1,4 +1,5 @@
-import { Target, ListTodo, BarChart3, Calculator, LogOut, Moon, Sun, ChevronDown, Shield, Users, ArrowLeft, Check, Calendar, LayoutDashboard, Compass, Rocket, Settings } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Target, BarChart3, Calculator, LogOut, Moon, Sun, Shield, ArrowLeft, Check, LayoutDashboard, Compass, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 
 type Item = { title: string; url: string; tourId?: string };
-type Group = { label: string; icon: typeof Target; items: Item[] };
+type Group = { label: string; icon?: typeof Target; emoji?: string; items: Item[] };
 
 const groups: Group[] = [
   {
@@ -53,8 +54,8 @@ const groups: Group[] = [
     items: [{ title: 'Análises', url: '/analises' }],
   },
   {
-    label: 'Configurações',
-    icon: Settings,
+    label: 'Membros',
+    emoji: '👥',
     items: [{ title: 'Membros', url: '/membros' }],
   },
 ];
@@ -66,68 +67,116 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [expanded, setExpanded] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('sidebar_expanded') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sidebar_expanded', String(expanded));
+    } catch {}
+  }, [expanded]);
+
   const isGroupActive = (g: Group) => g.items.some(i => location.pathname === i.url);
   const isActive = (path: string) => location.pathname === path;
 
+  const renderGroupIcon = (group: Group, active: boolean) => {
+    if (group.emoji) {
+      return <span className="text-lg leading-none">{group.emoji}</span>;
+    }
+    const Icon = group.icon!;
+    return <Icon className="h-5 w-5" />;
+  };
+
   return (
     <TooltipProvider delayDuration={200}>
-      <aside className="h-screen sticky top-0 w-14 shrink-0 border-r border-border bg-card flex flex-col items-center py-2 gap-2 z-30">
+      <aside
+        className={cn(
+          'h-screen sticky top-0 shrink-0 border-r border-border bg-card flex flex-col items-stretch py-2 gap-2 z-30 relative',
+          'transition-[width] duration-200 ease-in-out',
+          expanded ? 'w-52' : 'w-14'
+        )}
+      >
+        {/* Toggle button on right edge */}
+        <button
+          onClick={() => setExpanded(v => !v)}
+          aria-label={expanded ? 'Recolher menu' : 'Expandir menu'}
+          className="absolute -right-3 top-4 z-40 h-6 w-6 rounded-full border border-border bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+        >
+          {expanded ? <ChevronLeft className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        </button>
+
         {/* Product switcher */}
         {activeProduct && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="h-10 w-10 rounded-lg flex items-center justify-center text-xl hover:bg-muted/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-                title={activeProduct.name}
-                aria-label="Trocar produto"
-              >
-                {activeProduct.emoji}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="start" className="w-[240px]">
-              <DropdownMenuItem onClick={() => setActiveProductId(null)} className="cursor-pointer text-muted-foreground">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar ao portfólio
-              </DropdownMenuItem>
-              <div className="h-px bg-border my-1" />
-              {products.map(product => (
-                <DropdownMenuItem
-                  key={product.id}
-                  onClick={() => setActiveProductId(product.id)}
-                  className="flex items-center gap-2 cursor-pointer"
+          <div className={cn('flex', expanded ? 'px-2' : 'justify-center')}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={cn(
+                    'h-10 rounded-lg flex items-center gap-2 hover:bg-muted/60 transition-colors focus:outline-none focus:ring-2 focus:ring-ring',
+                    expanded ? 'w-full px-2' : 'w-10 justify-center'
+                  )}
+                  title={activeProduct.name}
+                  aria-label="Trocar produto"
                 >
-                  <span className="text-base">{product.emoji}</span>
-                  <span className="truncate flex-1">{product.name}</span>
-                  {product.id === activeProduct.id && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  <span className="text-xl leading-none">{activeProduct.emoji}</span>
+                  {expanded && (
+                    <span className="truncate text-sm font-medium text-foreground">{activeProduct.name}</span>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="right" align="start" className="w-[240px]">
+                <DropdownMenuItem onClick={() => setActiveProductId(null)} className="cursor-pointer text-muted-foreground">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Voltar ao portfólio
                 </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <div className="h-px bg-border my-1" />
+                {products.map(product => (
+                  <DropdownMenuItem
+                    key={product.id}
+                    onClick={() => setActiveProductId(product.id)}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <span className="text-base">{product.emoji}</span>
+                    <span className="truncate flex-1">{product.name}</span>
+                    {product.id === activeProduct.id && <Check className="h-4 w-4 text-primary shrink-0" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
 
-        <div className="h-px w-8 bg-border my-1" />
+        <div className={cn('h-px bg-border my-1', expanded ? 'mx-2' : 'mx-3')} />
 
         {/* Overview */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <NavLink
-              to="/"
-              end
-              className={cn(
-                'h-10 w-10 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors'
-              )}
-              activeClassName="bg-primary/10 text-primary"
-            >
-              <LayoutDashboard className="h-5 w-5" />
-            </NavLink>
-          </TooltipTrigger>
-          <TooltipContent side="right">Visão Geral</TooltipContent>
-        </Tooltip>
+        <div className={cn('flex', expanded ? 'px-2' : 'justify-center')}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <NavLink
+                to="/"
+                end
+                className={cn(
+                  'h-10 rounded-lg flex items-center gap-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors',
+                  expanded ? 'w-full px-2' : 'w-10 justify-center'
+                )}
+                activeClassName="bg-primary/10 text-primary"
+              >
+                <LayoutDashboard className="h-5 w-5 shrink-0" />
+                {expanded && <span className="text-sm font-medium truncate">Visão Geral</span>}
+              </NavLink>
+            </TooltipTrigger>
+            {!expanded && <TooltipContent side="right">Visão Geral</TooltipContent>}
+          </Tooltip>
+        </div>
 
         {/* Groups with hover flyouts */}
-        <nav className="flex-1 flex flex-col gap-1 items-center mt-1">
+        <nav className={cn('flex-1 flex flex-col gap-1 mt-1', expanded ? 'px-2' : 'items-center')}>
           {groups.map(group => {
-            const Icon = group.icon;
             const active = isGroupActive(group);
             return (
               <HoverCard key={group.label} openDelay={80} closeDelay={120}>
@@ -136,14 +185,20 @@ export function AppSidebar() {
                     onClick={() => navigate(group.items[0].url)}
                     data-tour={group.items.find(i => i.tourId)?.tourId}
                     className={cn(
-                      'h-10 w-10 rounded-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-ring',
+                      'h-10 rounded-lg flex items-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-ring',
+                      expanded ? 'w-full px-2' : 'w-10 justify-center',
                       active
                         ? 'bg-primary/10 text-primary'
                         : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                     )}
                     aria-label={group.label}
                   >
-                    <Icon className="h-5 w-5" />
+                    <span className="shrink-0 flex items-center justify-center w-5 h-5">
+                      {renderGroupIcon(group, active)}
+                    </span>
+                    {expanded && (
+                      <span className="text-sm font-medium truncate">{group.label}</span>
+                    )}
                   </button>
                 </HoverCardTrigger>
                 <HoverCardContent side="right" align="start" className="w-56 p-1.5">
@@ -174,22 +229,32 @@ export function AppSidebar() {
         </nav>
 
         {/* Footer actions */}
-        <div className="flex flex-col gap-1 items-center pb-1">
+        <div className={cn('flex flex-col gap-1 pb-1', expanded ? 'px-2' : 'items-center')}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={toggle}>
-                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              <Button
+                variant="ghost"
+                onClick={toggle}
+                className={cn('h-10 justify-start gap-2', expanded ? 'w-full px-2' : 'w-10 px-0 justify-center')}
+              >
+                {isDark ? <Sun className="h-5 w-5 shrink-0" /> : <Moon className="h-5 w-5 shrink-0" />}
+                {expanded && <span className="text-sm">{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">{isDark ? 'Modo Claro' : 'Modo Escuro'}</TooltipContent>
+            {!expanded && <TooltipContent side="right">{isDark ? 'Modo Claro' : 'Modo Escuro'}</TooltipContent>}
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={signOut}>
-                <LogOut className="h-5 w-5" />
+              <Button
+                variant="ghost"
+                onClick={signOut}
+                className={cn('h-10 justify-start gap-2', expanded ? 'w-full px-2' : 'w-10 px-0 justify-center')}
+              >
+                <LogOut className="h-5 w-5 shrink-0" />
+                {expanded && <span className="text-sm">Sair</span>}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">Sair{user?.email ? ` (${user.email})` : ''}</TooltipContent>
+            {!expanded && <TooltipContent side="right">Sair{user?.email ? ` (${user.email})` : ''}</TooltipContent>}
           </Tooltip>
         </div>
       </aside>
