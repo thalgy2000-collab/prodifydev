@@ -95,7 +95,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   }, [activeProduct]);
 
   const loadRoadmapItemTask = useCallback(async (taskId: string) => {
-    const { data } = await (supabase.from('roadmap_item_tasks') as any)
+    const { data } = await (supabase as any).from('roadmap_item_tasks')
       .select('roadmap_item_id')
       .eq('task_id', taskId)
       .single();
@@ -106,7 +106,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
 
   const upsertRoadmapItemTask = useCallback(async (roadmapItemId: string, taskId: string) => {
     if (!roadmapItemId || roadmapItemId === 'none' || !taskId) return;
-    await (supabase.from('roadmap_item_tasks') as any).upsert({
+    await (supabase as any).from('roadmap_item_tasks').upsert({
       roadmap_item_id: roadmapItemId,
       task_id: taskId,
     });
@@ -114,7 +114,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
 
   const deleteRoadmapItemTask = useCallback(async (roadmapItemId: string, taskId: string) => {
     if (!roadmapItemId || !taskId) return;
-    await (supabase.from('roadmap_item_tasks') as any)
+    await (supabase as any).from('roadmap_item_tasks')
       .delete()
       .eq('roadmap_item_id', roadmapItemId)
       .eq('task_id', taskId);
