@@ -312,7 +312,7 @@ const AgendaPage = () => {
             {selectedDateActivities.length === 0 ? (
               <p className="text-xs text-muted-foreground">Nenhum evento neste dia</p>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 overflow-y-auto flex-1 min-h-0 pr-1">
                 {selectedDateActivities.map(act => (
                   <div
                     key={act.id}
