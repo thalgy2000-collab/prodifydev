@@ -366,7 +366,7 @@ const AgendaPage = () => {
         </aside>
 
         {/* Main calendar area */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col">
           {viewMode === 'month' && (
             <MonthView
               days={monthDays}
