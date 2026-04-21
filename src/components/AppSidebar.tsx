@@ -12,12 +12,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 
 type Item = { title: string; url: string; tourId?: string };
-type Group = { label: string; icon?: typeof Target; emoji?: string; items: Item[] };
+type Group = { label: string; icon?: typeof Target; emoji?: string; items: Item[]; tourKey: string };
 
 const groups: Group[] = [
   {
     label: 'Planejamento',
     icon: Target,
+    tourKey: 'planejamento',
     items: [
       { title: 'OKRs', url: '/okrs', tourId: 'okrs' },
       { title: 'Roadmap', url: '/roadmap', tourId: 'roadmap' },
@@ -29,6 +30,7 @@ const groups: Group[] = [
   {
     label: 'Discovery',
     icon: Compass,
+    tourKey: 'discovery',
     items: [
       { title: 'Oportunidades', url: '/oportunidades' },
       { title: 'SWOT', url: '/swot' },
@@ -37,11 +39,13 @@ const groups: Group[] = [
   {
     label: 'Priorização',
     icon: Calculator,
+    tourKey: 'priorizacao',
     items: [{ title: 'RICE', url: '/rice' }],
   },
   {
     label: 'Delivery',
     icon: Rocket,
+    tourKey: 'delivery',
     items: [
       { title: 'Backlog', url: '/backlog', tourId: 'backlog' },
       { title: 'Sprints', url: '/sprints', tourId: 'sprints' },
@@ -51,11 +55,13 @@ const groups: Group[] = [
   {
     label: 'Análises',
     icon: BarChart3,
+    tourKey: 'analises',
     items: [{ title: 'Análises', url: '/analises' }],
   },
   {
     label: 'Membros',
     emoji: '👥',
+    tourKey: 'membros',
     items: [{ title: 'Membros', url: '/membros' }],
   },
 ];
@@ -160,6 +166,7 @@ export function AppSidebar() {
               <NavLink
                 to="/"
                 end
+                data-tour-int="overview"
                 className={cn(
                   'h-10 rounded-lg flex items-center gap-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors',
                   expanded ? 'w-full px-2' : 'w-10 justify-center'
@@ -184,6 +191,7 @@ export function AppSidebar() {
                   <button
                     onClick={() => navigate(group.items[0].url)}
                     data-tour={group.items.find(i => i.tourId)?.tourId}
+                    data-tour-int={group.tourKey}
                     className={cn(
                       'h-10 rounded-lg flex items-center gap-2 transition-colors focus:outline-none focus:ring-2 focus:ring-ring',
                       expanded ? 'w-full px-2' : 'w-10 justify-center',
