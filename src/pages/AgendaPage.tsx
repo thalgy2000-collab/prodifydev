@@ -260,7 +260,7 @@ const AgendaPage = () => {
       {/* Content */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Sidebar - Mini calendar + Day detail */}
-        <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card shrink-0 overflow-y-auto">
+        <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card shrink-0 overflow-hidden h-full">
           {/* Mini calendar */}
           <div className="p-3">
             <div className="grid grid-cols-7 gap-0">
