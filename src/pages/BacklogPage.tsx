@@ -90,6 +90,41 @@ const BacklogPage = () => {
   const unassigned = getUnassigned();
   const filtered = unassigned.filter(t => filterStatus === 'all' || t.status === filterStatus);
 
+  // Collapsed state per sprint, persisted in localStorage
+  const getInitialCollapsed = (sprintId: string, status: SprintStatus) => {
+    const stored = localStorage.getItem(`sprint_collapsed_${sprintId}`);
+    if (stored !== null) return stored === 'true';
+    return status !== 'active'; // active expanded by default; planning/completed collapsed
+  };
+  const [collapsedSprints, setCollapsedSprints] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    setCollapsedSprints(prev => {
+      const next = { ...prev };
+      activeSprints.forEach(s => {
+        if (next[s.id] === undefined) next[s.id] = getInitialCollapsed(s.id, s.status);
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sprints]);
+
+  const toggleSprintCollapsed = (sprintId: string) => {
+    setCollapsedSprints(prev => {
+      const value = !prev[sprintId];
+      localStorage.setItem(`sprint_collapsed_${sprintId}`, String(value));
+      return { ...prev, [sprintId]: value };
+    });
+  };
+
+  const setAllCollapsed = (value: boolean) => {
+    const next: Record<string, boolean> = {};
+    activeSprints.forEach(s => {
+      next[s.id] = value;
+      localStorage.setItem(`sprint_collapsed_${s.id}`, String(value));
+    });
+    setCollapsedSprints(prev => ({ ...prev, ...next }));
+  };
+
   const handleCreate = () => {
     if (!newTitle.trim()) return;
     const init = initiatives.find(i => i.id === newInitiativeId);
