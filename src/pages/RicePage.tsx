@@ -229,7 +229,7 @@ const RicePage = () => {
                       <PopoverContent className="w-56 p-3" align="end">
                         <p className="text-sm font-medium mb-3">Remover do RICE?</p>
                         <div className="flex justify-end gap-2">
-                          <Popover open={false}><PopoverTrigger asChild><Button variant="outline" size="sm" onClick={(e) => (e.currentTarget.closest('[data-radix-popper-content-wrapper]') as HTMLElement)?.querySelector<HTMLButtonElement>('[data-cancel]')?.click()}>Cancelar</Button></PopoverTrigger></Popover>
+                          <Button variant="outline" size="sm" onClick={() => document.body.click()}>Cancelar</Button>
                           <Button
                             variant="destructive"
                             size="sm"
