@@ -177,7 +177,10 @@ const BacklogPage = () => {
     const sCfg = TASK_STATUS_CONFIG[task.status];
     const progress = getProgress(task.id);
     const assignee = task.assigneeId ? membersMap[task.assigneeId] : null;
-    const activeSprintsForMenu = sprints.filter(s => s.status === 'active');
+    const sortedSprintsForMenu = [...sprints].sort((a, b) => {
+      const order = { active: 0, planning: 1, completed: 2 } as const;
+      return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+    });
     const taskSprint = task.sprintId ? sprints.find(s => s.id === task.sprintId) : null;
     return (
       <div
@@ -222,27 +225,40 @@ const BacklogPage = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-popover">
-              <DropdownMenuLabel>Sprints ativas</DropdownMenuLabel>
+              <DropdownMenuLabel>Sprints do produto</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {activeSprintsForMenu.length === 0 ? (
+              {sortedSprintsForMenu.length === 0 ? (
                 <div className="px-2 py-3 text-xs text-muted-foreground text-center">
-                  Nenhuma sprint ativa no momento
+                  Nenhuma sprint cadastrada
                 </div>
               ) : (
-                activeSprintsForMenu.map(s => (
-                  <DropdownMenuItem
-                    key={s.id}
-                    disabled={task.sprintId === s.id}
-                    onClick={async () => {
-                      await assignToSprint(task.id, s.id);
-                      toast.success('Tarefa adicionada à Sprint!');
-                    }}
-                  >
-                    <Rocket className="h-3.5 w-3.5 mr-2" />
-                    {s.name}
-                    {task.sprintId === s.id && <span className="ml-auto text-xs text-muted-foreground">atual</span>}
-                  </DropdownMenuItem>
-                ))
+                sortedSprintsForMenu.map(s => {
+                  const sCfg = SPRINT_STATUS_CONFIG[s.status];
+                  return (
+                    <DropdownMenuItem
+                      key={s.id}
+                      disabled={task.sprintId === s.id}
+                      onClick={async () => {
+                        await assignToSprint(task.id, s.id);
+                        toast.success('Tarefa adicionada à Sprint!');
+                        if (s.status !== 'active') {
+                          toast('Esta sprint ainda não está ativa');
+                        }
+                      }}
+                    >
+                      <Rocket className="h-3.5 w-3.5 mr-2 shrink-0" />
+                      <span className="flex-1 truncate">{s.name}</span>
+                      <Badge
+                        variant="secondary"
+                        className="ml-2 text-[10px] py-0 px-1.5 h-4"
+                        style={{ backgroundColor: `hsl(${sCfg.color} / 0.15)`, color: `hsl(${sCfg.color})` }}
+                      >
+                        {sCfg.label}
+                      </Badge>
+                      {task.sprintId === s.id && <span className="ml-1 text-xs text-muted-foreground">atual</span>}
+                    </DropdownMenuItem>
+                  );
+                })
               )}
               {task.sprintId && (
                 <>

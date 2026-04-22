@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BacklogTask, TaskPriority, PRIORITY_CONFIG } from '@/types/backlog';
+import { SPRINT_STATUS_CONFIG } from '@/types/sprint';
 import { RoadmapItem } from '@/types/roadmap';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
@@ -87,11 +88,14 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const fetchSprints = useCallback(async () => {
     if (!activeProduct) { setSprintOptions([]); return; }
     const { data } = await (supabase.from('sprints') as any)
-      .select('id, name, status')
+      .select('id, name, status, start_date, end_date')
       .eq('product_id', activeProduct.id)
-      .neq('status', 'completed')
-      .order('created_at', { ascending: false });
-    setSprintOptions(data || []);
+      .order('start_date', { ascending: false });
+    const order = { active: 0, planning: 1, completed: 2 } as const;
+    const sorted = (data || []).sort((a: any, b: any) =>
+      (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3)
+    );
+    setSprintOptions(sorted);
   }, [activeProduct]);
 
   const loadRoadmapItemTask = useCallback(async (taskId: string) => {
@@ -152,6 +156,10 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       .update({ sprint_id: selectedSprintId })
       .eq('id', task.id);
     toast.success('Tarefa adicionada à sprint!');
+    const target = sprintOptions.find(s => s.id === selectedSprintId);
+    if (target && target.status !== 'active') {
+      toast('Esta sprint ainda não está ativa');
+    }
     onOpenChange(false);
   };
 
@@ -266,14 +274,32 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
                 <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRemoveFromSprint}>Remover da Sprint</Button>
               </div>
             ) : sprintOptions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma sprint ativa encontrada</p>
+              <p className="text-sm text-muted-foreground">Nenhuma sprint cadastrada para este produto</p>
             ) : (
               <div className="flex items-center gap-2">
                 <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
                   <SelectTrigger className="flex-1"><SelectValue placeholder="Selecione uma sprint" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhuma</SelectItem>
-                    {sprintOptions.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    {sprintOptions.map(s => {
+                      const sCfg = SPRINT_STATUS_CONFIG[s.status as keyof typeof SPRINT_STATUS_CONFIG];
+                      return (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="flex items-center gap-2">
+                            <span>{s.name}</span>
+                            {sCfg && (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] py-0 px-1.5 h-4"
+                                style={{ backgroundColor: `hsl(${sCfg.color} / 0.15)`, color: `hsl(${sCfg.color})` }}
+                              >
+                                {sCfg.label}
+                              </Badge>
+                            )}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <Button variant="outline" size="sm" className="shrink-0 h-9" disabled={selectedSprintId === 'none'} onClick={handleAddToSprint}>Adicionar à Sprint</Button>
