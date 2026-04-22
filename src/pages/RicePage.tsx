@@ -14,7 +14,7 @@ import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const RicePage = () => {
-  const { scores, setScore, getScore } = useRiceStore();
+  const { scores, setScore, getScore, deleteScore } = useRiceStore();
   const { tasks, updateTask } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { toast } = useToast();
