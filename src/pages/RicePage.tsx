@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 const RicePage = () => {
   const { scores, setScore, getScore, deleteScore } = useRiceStore();
-  const { tasks, updateTask } = useBacklogStore();
+  const { tasks, updateTask, reorderTasks } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { toast } = useToast();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
@@ -96,8 +96,8 @@ const RicePage = () => {
   };
 
   const handleReprioritizeBacklog = async () => {
-    const scored = tasks
-      .filter(t => t.status !== 'done')
+    const activeTasks = tasks.filter(t => t.status !== 'done');
+    const scored = activeTasks
       .map(t => {
         const s = scores.find(sc => sc.itemId === t.id);
         if (!s) return null;
@@ -120,7 +120,15 @@ const RicePage = () => {
     });
 
     await Promise.all(updates.map(u => updateTask(u.id, { priority: u.priority })));
-    sonnerToast.success('Backlog repriorizado com base no RICE score ✓');
+
+    // Reorder backlog: scored tasks (by RICE desc) first, then unscored tasks at the end
+    const scoredIds = scored.map(s => s.id);
+    const unscoredIds = activeTasks.filter(t => !scoredIds.includes(t.id)).map(t => t.id);
+    const doneIds = tasks.filter(t => t.status === 'done').map(t => t.id);
+    const finalOrder = [...scoredIds, ...unscoredIds, ...doneIds];
+    await reorderTasks(finalOrder);
+
+    sonnerToast.success('Backlog reordenado pelo score RICE ✓');
   };
 
   return (

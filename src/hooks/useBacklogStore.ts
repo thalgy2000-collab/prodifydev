@@ -12,7 +12,11 @@ export const useBacklogStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user || !activeProduct) { setTasks([]); return; }
-    const { data } = await (supabase.from('backlog_tasks') as any).select('*').eq('product_id', activeProduct.id);
+    const { data } = await (supabase.from('backlog_tasks') as any)
+      .select('*')
+      .eq('product_id', activeProduct.id)
+      .order('sort_order', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: true });
     if (data) {
       setTasks(data.map(d => ({
         id: d.id, title: d.title, description: d.description,
@@ -25,6 +29,7 @@ export const useBacklogStore = () => {
         scheduleActivityId: d.schedule_activity_id ?? undefined, assigneeId: d.assignee_id ?? undefined,
         completionPercentage: d.completion_percentage ?? 0,
         roadmapImpact: d.roadmap_impact ?? 0,
+        sortOrder: d.sort_order ?? undefined,
         createdAt: d.created_at,
       })));
     }
@@ -82,9 +87,18 @@ export const useBacklogStore = () => {
     await fetchAll();
   }, [fetchAll]);
 
+  const reorderTasks = useCallback(async (orderedIds: string[]) => {
+    await Promise.all(
+      orderedIds.map((id, idx) =>
+        (supabase.from('backlog_tasks') as any).update({ sort_order: idx + 1 }).eq('id', id)
+      )
+    );
+    await fetchAll();
+  }, [fetchAll]);
+
   const getByInitiative = useCallback((initiativeId: string) => tasks.filter(t => t.initiativeId === initiativeId), [tasks]);
   const getBySprint = useCallback((sprintId: string) => tasks.filter(t => t.sprintId === sprintId), [tasks]);
   const getUnassigned = useCallback(() => tasks.filter(t => !t.sprintId), [tasks]);
 
-  return { tasks, addTask, updateTask, deleteTask, assignToSprint, getByInitiative, getBySprint, getUnassigned };
+  return { tasks, addTask, updateTask, deleteTask, assignToSprint, reorderTasks, getByInitiative, getBySprint, getUnassigned };
 };
