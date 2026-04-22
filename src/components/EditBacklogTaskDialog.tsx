@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BacklogTask, TaskPriority, PRIORITY_CONFIG } from '@/types/backlog';
+import { SPRINT_STATUS_CONFIG } from '@/types/sprint';
 import { RoadmapItem } from '@/types/roadmap';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
