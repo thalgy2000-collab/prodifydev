@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 const RicePage = () => {
   const { scores, setScore, getScore, deleteScore } = useRiceStore();
-  const { tasks, updateTask } = useBacklogStore();
+  const { tasks, updateTask, reorderTasks } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { toast } = useToast();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
