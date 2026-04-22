@@ -91,8 +91,9 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       .select('id, name, status, start_date, end_date')
       .eq('product_id', activeProduct.id)
       .order('start_date', { ascending: false });
-    const order = { active: 0, planning: 1, completed: 2 } as const;
-    const sorted = (data || []).sort((a: any, b: any) =>
+    const order = { active: 0, planning: 1 } as const;
+    const filtered = (data || []).filter((s: any) => s.status !== 'completed');
+    const sorted = filtered.sort((a: any, b: any) =>
       (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3)
     );
     setSprintOptions(sorted);
