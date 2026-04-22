@@ -87,11 +87,14 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const fetchSprints = useCallback(async () => {
     if (!activeProduct) { setSprintOptions([]); return; }
     const { data } = await (supabase.from('sprints') as any)
-      .select('id, name, status')
+      .select('id, name, status, start_date, end_date')
       .eq('product_id', activeProduct.id)
-      .neq('status', 'completed')
-      .order('created_at', { ascending: false });
-    setSprintOptions(data || []);
+      .order('start_date', { ascending: false });
+    const order = { active: 0, planning: 1, completed: 2 } as const;
+    const sorted = (data || []).sort((a: any, b: any) =>
+      (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3)
+    );
+    setSprintOptions(sorted);
   }, [activeProduct]);
 
   const loadRoadmapItemTask = useCallback(async (taskId: string) => {
