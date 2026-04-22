@@ -23,6 +23,7 @@ export interface BacklogTask {
   assigneeId?: string;
   completionPercentage?: number;
   roadmapImpact?: number;
+  sortOrder?: number;
   createdAt: string;
 }
 
