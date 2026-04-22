@@ -188,6 +188,7 @@ const RicePage = () => {
                     {sortConfig?.field === 'total' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
                   </span>
                 </th>
+                <th className="px-4 py-3 text-center font-medium w-12"></th>
               </tr>
             </thead>
             <tbody>
