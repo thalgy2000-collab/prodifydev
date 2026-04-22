@@ -274,14 +274,32 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
                 <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleRemoveFromSprint}>Remover da Sprint</Button>
               </div>
             ) : sprintOptions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma sprint ativa encontrada</p>
+              <p className="text-sm text-muted-foreground">Nenhuma sprint cadastrada para este produto</p>
             ) : (
               <div className="flex items-center gap-2">
                 <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
                   <SelectTrigger className="flex-1"><SelectValue placeholder="Selecione uma sprint" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhuma</SelectItem>
-                    {sprintOptions.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                    {sprintOptions.map(s => {
+                      const sCfg = SPRINT_STATUS_CONFIG[s.status as keyof typeof SPRINT_STATUS_CONFIG];
+                      return (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="flex items-center gap-2">
+                            <span>{s.name}</span>
+                            {sCfg && (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] py-0 px-1.5 h-4"
+                                style={{ backgroundColor: `hsl(${sCfg.color} / 0.15)`, color: `hsl(${sCfg.color})` }}
+                              >
+                                {sCfg.label}
+                              </Badge>
+                            )}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 <Button variant="outline" size="sm" className="shrink-0 h-9" disabled={selectedSprintId === 'none'} onClick={handleAddToSprint}>Adicionar à Sprint</Button>
