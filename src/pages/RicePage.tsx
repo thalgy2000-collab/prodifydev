@@ -219,6 +219,32 @@ const RicePage = () => {
                       onChange={e => handleFieldChange(item.id, 'effort', e.target.value === '' ? '' : Number(e.target.value))} />
                   </td>
                   <td className="px-4 py-3 text-center font-mono font-bold">{item.total.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-center">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-3" align="end">
+                        <p className="text-sm font-medium mb-3">Remover do RICE?</p>
+                        <div className="flex justify-end gap-2">
+                          <Popover open={false}><PopoverTrigger asChild><Button variant="outline" size="sm" onClick={(e) => (e.currentTarget.closest('[data-radix-popper-content-wrapper]') as HTMLElement)?.querySelector<HTMLButtonElement>('[data-cancel]')?.click()}>Cancelar</Button></PopoverTrigger></Popover>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={async () => {
+                              await deleteScore(item.id);
+                              sonnerToast.success('Item removido do RICE ✓');
+                              document.body.click();
+                            }}
+                          >
+                            Remover
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </td>
                 </tr>
               ))}
             </tbody>
