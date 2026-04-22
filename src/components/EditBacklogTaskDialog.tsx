@@ -156,6 +156,10 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       .update({ sprint_id: selectedSprintId })
       .eq('id', task.id);
     toast.success('Tarefa adicionada à sprint!');
+    const target = sprintOptions.find(s => s.id === selectedSprintId);
+    if (target && target.status !== 'active') {
+      toast('Esta sprint ainda não está ativa');
+    }
     onOpenChange(false);
   };
 
