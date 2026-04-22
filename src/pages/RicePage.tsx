@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2 } from 'lucide-react';
+import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const RicePage = () => {
-  const { scores, setScore, getScore } = useRiceStore();
+  const { scores, setScore, getScore, deleteScore } = useRiceStore();
   const { tasks, updateTask } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { toast } = useToast();
@@ -187,6 +188,7 @@ const RicePage = () => {
                     {sortConfig?.field === 'total' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
                   </span>
                 </th>
+                <th className="px-4 py-3 text-center font-medium w-12"></th>
               </tr>
             </thead>
             <tbody>
@@ -217,6 +219,32 @@ const RicePage = () => {
                       onChange={e => handleFieldChange(item.id, 'effort', e.target.value === '' ? '' : Number(e.target.value))} />
                   </td>
                   <td className="px-4 py-3 text-center font-mono font-bold">{item.total.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-center">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-3" align="end">
+                        <p className="text-sm font-medium mb-3">Remover do RICE?</p>
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm" onClick={() => document.body.click()}>Cancelar</Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={async () => {
+                              await deleteScore(item.id);
+                              sonnerToast.success('Item removido do RICE ✓');
+                              document.body.click();
+                            }}
+                          >
+                            Remover
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </td>
                 </tr>
               ))}
             </tbody>
