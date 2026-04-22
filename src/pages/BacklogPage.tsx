@@ -177,7 +177,10 @@ const BacklogPage = () => {
     const sCfg = TASK_STATUS_CONFIG[task.status];
     const progress = getProgress(task.id);
     const assignee = task.assigneeId ? membersMap[task.assigneeId] : null;
-    const activeSprintsForMenu = sprints.filter(s => s.status === 'active');
+    const sortedSprintsForMenu = [...sprints].sort((a, b) => {
+      const order = { active: 0, planning: 1, completed: 2 } as const;
+      return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+    });
     const taskSprint = task.sprintId ? sprints.find(s => s.id === task.sprintId) : null;
     return (
       <div
