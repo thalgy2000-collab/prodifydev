@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle } from 'lucide-react';
+import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
@@ -89,6 +89,41 @@ const BacklogPage = () => {
   const activeSprints = sprints.filter(s => s.status !== 'completed');
   const unassigned = getUnassigned();
   const filtered = unassigned.filter(t => filterStatus === 'all' || t.status === filterStatus);
+
+  // Collapsed state per sprint, persisted in localStorage
+  const getInitialCollapsed = (sprintId: string, status: SprintStatus) => {
+    const stored = localStorage.getItem(`sprint_collapsed_${sprintId}`);
+    if (stored !== null) return stored === 'true';
+    return status !== 'active'; // active expanded by default; planning/completed collapsed
+  };
+  const [collapsedSprints, setCollapsedSprints] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    setCollapsedSprints(prev => {
+      const next = { ...prev };
+      activeSprints.forEach(s => {
+        if (next[s.id] === undefined) next[s.id] = getInitialCollapsed(s.id, s.status);
+      });
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sprints]);
+
+  const toggleSprintCollapsed = (sprintId: string) => {
+    setCollapsedSprints(prev => {
+      const value = !prev[sprintId];
+      localStorage.setItem(`sprint_collapsed_${sprintId}`, String(value));
+      return { ...prev, [sprintId]: value };
+    });
+  };
+
+  const setAllCollapsed = (value: boolean) => {
+    const next: Record<string, boolean> = {};
+    activeSprints.forEach(s => {
+      next[s.id] = value;
+      localStorage.setItem(`sprint_collapsed_${s.id}`, String(value));
+    });
+    setCollapsedSprints(prev => ({ ...prev, ...next }));
+  };
 
   const handleCreate = () => {
     if (!newTitle.trim()) return;
@@ -328,10 +363,21 @@ const BacklogPage = () => {
       </div>
 
       {/* Active Sprints */}
+      {activeSprints.length > 0 && (
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => setAllCollapsed(false)}>
+            <ChevronDown className="h-3.5 w-3.5" /> Expandir tudo
+          </Button>
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => setAllCollapsed(true)}>
+            <ChevronRight className="h-3.5 w-3.5" /> Recolher tudo
+          </Button>
+        </div>
+      )}
       {activeSprints.map(sprint => {
         const sprintTasks = getBySprint(sprint.id);
         const totalPoints = sprintTasks.reduce((s, t) => s + (t.storyPoints || 0), 0);
         const sCfg = SPRINT_STATUS_CONFIG[sprint.status];
+        const isCollapsed = collapsedSprints[sprint.id] ?? (sprint.status !== 'active');
         return (
           <div
             key={sprint.id}
@@ -345,13 +391,19 @@ const BacklogPage = () => {
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
+              <button
+                type="button"
+                onClick={() => toggleSprintCollapsed(sprint.id)}
+                className="flex items-center gap-2 flex-1 min-w-0 text-left hover:opacity-80 transition-opacity"
+                aria-expanded={!isCollapsed}
+              >
+                {isCollapsed ? <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />}
+                <Zap className="h-4 w-4 text-primary shrink-0" />
                 <h2 className="text-lg font-semibold">{sprint.name}</h2>
                 <Badge variant="secondary" style={{ backgroundColor: `hsl(${sCfg.color} / 0.15)`, color: `hsl(${sCfg.color})` }}>{sCfg.label}</Badge>
                 <span className="font-mono text-xs text-muted-foreground">{sprint.startDate} → {sprint.endDate}</span>
-                <span className="font-mono text-xs text-muted-foreground">({totalPoints} pts)</span>
-              </div>
+                <span className="font-mono text-xs text-muted-foreground">({sprintTasks.length} {sprintTasks.length === 1 ? 'tarefa' : 'tarefas'} • {totalPoints} pts)</span>
+              </button>
               <div className="flex items-center gap-1">
                 <Select value={sprint.status} onValueChange={v => updateSprint(sprint.id, { status: v as SprintStatus })}>
                   <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
@@ -360,15 +412,19 @@ const BacklogPage = () => {
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteSprint(sprint.id)}><Trash2 className="h-4 w-4" /></Button>
               </div>
             </div>
-            {sprintTasks.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-                Arraste tarefas do backlog para esta sprint
+            <div className={`grid transition-all duration-200 ease-in-out ${isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}>
+              <div className="overflow-hidden">
+                {sprintTasks.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+                    Arraste tarefas do backlog para esta sprint
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {sprintTasks.map(task => <TaskRow key={task.id} task={task} />)}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="space-y-2">
-                {sprintTasks.map(task => <TaskRow key={task.id} task={task} />)}
-              </div>
-            )}
+            </div>
           </div>
         );
       })}
