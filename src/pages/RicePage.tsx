@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2 } from 'lucide-react';
+import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const RicePage = () => {
   const { scores, setScore, getScore } = useRiceStore();
