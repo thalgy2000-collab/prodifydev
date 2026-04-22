@@ -84,6 +84,7 @@ export type Database = {
           returned_from_sprint_id: string | null
           roadmap_impact: number | null
           schedule_activity_id: string | null
+          sort_order: number | null
           sprint_id: string | null
           status: string
           story_points: number | null
@@ -108,6 +109,7 @@ export type Database = {
           returned_from_sprint_id?: string | null
           roadmap_impact?: number | null
           schedule_activity_id?: string | null
+          sort_order?: number | null
           sprint_id?: string | null
           status?: string
           story_points?: number | null
@@ -132,6 +134,7 @@ export type Database = {
           returned_from_sprint_id?: string | null
           roadmap_impact?: number | null
           schedule_activity_id?: string | null
+          sort_order?: number | null
           sprint_id?: string | null
           status?: string
           story_points?: number | null
