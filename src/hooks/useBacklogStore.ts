@@ -87,9 +87,18 @@ export const useBacklogStore = () => {
     await fetchAll();
   }, [fetchAll]);
 
+  const reorderTasks = useCallback(async (orderedIds: string[]) => {
+    await Promise.all(
+      orderedIds.map((id, idx) =>
+        (supabase.from('backlog_tasks') as any).update({ sort_order: idx + 1 }).eq('id', id)
+      )
+    );
+    await fetchAll();
+  }, [fetchAll]);
+
   const getByInitiative = useCallback((initiativeId: string) => tasks.filter(t => t.initiativeId === initiativeId), [tasks]);
   const getBySprint = useCallback((sprintId: string) => tasks.filter(t => t.sprintId === sprintId), [tasks]);
   const getUnassigned = useCallback(() => tasks.filter(t => !t.sprintId), [tasks]);
 
-  return { tasks, addTask, updateTask, deleteTask, assignToSprint, getByInitiative, getBySprint, getUnassigned };
+  return { tasks, addTask, updateTask, deleteTask, assignToSprint, reorderTasks, getByInitiative, getBySprint, getUnassigned };
 };
