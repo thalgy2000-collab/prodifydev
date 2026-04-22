@@ -12,7 +12,11 @@ export const useBacklogStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user || !activeProduct) { setTasks([]); return; }
-    const { data } = await (supabase.from('backlog_tasks') as any).select('*').eq('product_id', activeProduct.id);
+    const { data } = await (supabase.from('backlog_tasks') as any)
+      .select('*')
+      .eq('product_id', activeProduct.id)
+      .order('sort_order', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: true });
     if (data) {
       setTasks(data.map(d => ({
         id: d.id, title: d.title, description: d.description,
@@ -25,6 +29,7 @@ export const useBacklogStore = () => {
         scheduleActivityId: d.schedule_activity_id ?? undefined, assigneeId: d.assignee_id ?? undefined,
         completionPercentage: d.completion_percentage ?? 0,
         roadmapImpact: d.roadmap_impact ?? 0,
+        sortOrder: d.sort_order ?? undefined,
         createdAt: d.created_at,
       })));
     }
