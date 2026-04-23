@@ -84,10 +84,10 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <>
-      <div className="flex w-full min-h-screen">
+      <div className="flex w-full h-screen overflow-hidden">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 flex items-center justify-end border-b border-border bg-card px-3">
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+          <header className="h-12 flex items-center justify-end border-b border-border bg-card px-3 sticky top-0 z-20">
             <div className="flex items-center gap-2">
               <NotificationBell />
               <button
