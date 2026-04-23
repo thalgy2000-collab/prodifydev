@@ -456,6 +456,7 @@ const BacklogPage = () => {
                   <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
                   <SelectContent>{Object.entries(SPRINT_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
                 </Select>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSprint(sprint.id)} title="Editar sprint"><Pencil className="h-4 w-4" /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteSprint(sprint.id)}><Trash2 className="h-4 w-4" /></Button>
               </div>
             </div>
