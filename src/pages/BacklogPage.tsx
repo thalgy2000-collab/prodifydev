@@ -75,6 +75,35 @@ const BacklogPage = () => {
   const [sprintStart, setSprintStart] = useState('');
   const [sprintEnd, setSprintEnd] = useState('');
 
+  // Edit sprint dialog
+  const [editSprintId, setEditSprintId] = useState<string | null>(null);
+  const [editSprintName, setEditSprintName] = useState('');
+  const [editSprintGoal, setEditSprintGoal] = useState('');
+  const [editSprintStart, setEditSprintStart] = useState('');
+  const [editSprintEnd, setEditSprintEnd] = useState('');
+
+  const openEditSprint = (id: string) => {
+    const s = sprints.find(x => x.id === id);
+    if (!s) return;
+    setEditSprintId(s.id);
+    setEditSprintName(s.name);
+    setEditSprintGoal(s.goal || '');
+    setEditSprintStart(s.startDate);
+    setEditSprintEnd(s.endDate);
+  };
+
+  const handleSaveEditSprint = async () => {
+    if (!editSprintId || !editSprintName.trim() || !editSprintStart || !editSprintEnd) return;
+    await updateSprint(editSprintId, {
+      name: editSprintName,
+      goal: editSprintGoal,
+      startDate: editSprintStart,
+      endDate: editSprintEnd,
+    });
+    setEditSprintId(null);
+    toast.success('Sprint atualizada');
+  };
+
   const [dragOverSprintId, setDragOverSprintId] = useState<string | null>(null);
   const [dragOverBacklog, setDragOverBacklog] = useState(false);
   const dragTaskId = useRef<string | null>(null);
@@ -427,6 +456,7 @@ const BacklogPage = () => {
                   <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
                   <SelectContent>{Object.entries(SPRINT_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
                 </Select>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditSprint(sprint.id)} title="Editar sprint"><Pencil className="h-4 w-4" /></Button>
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteSprint(sprint.id)}><Trash2 className="h-4 w-4" /></Button>
               </div>
             </div>
@@ -483,6 +513,36 @@ const BacklogPage = () => {
       </div>
 
       <EditBacklogTaskDialog task={editTask} open={!!editTask} onOpenChange={async (o) => { if (!o) { setEditTask(null); await refreshInitiatives(); } }} onSave={updateTask} initiatives={initiatives} />
+
+      <Dialog open={!!editSprintId} onOpenChange={(o) => { if (!o) setEditSprintId(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar sprint</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nome</Label>
+              <Input value={editSprintName} onChange={e => setEditSprintName(e.target.value)} />
+            </div>
+            <div>
+              <Label>Objetivo</Label>
+              <Textarea value={editSprintGoal} onChange={e => setEditSprintGoal(e.target.value)} rows={3} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Início</Label>
+                <Input type="date" value={editSprintStart} onChange={e => setEditSprintStart(e.target.value)} />
+              </div>
+              <div>
+                <Label>Fim</Label>
+                <Input type="date" value={editSprintEnd} onChange={e => setEditSprintEnd(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => setEditSprintId(null)}>Cancelar</Button>
+              <Button onClick={handleSaveEditSprint}>Salvar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
