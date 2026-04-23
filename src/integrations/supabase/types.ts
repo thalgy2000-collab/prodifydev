@@ -1044,6 +1044,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_update_sprint_status: { Args: never; Returns: undefined }
       check_stale_roadmap_items: { Args: never; Returns: undefined }
       create_notification:
         | {
