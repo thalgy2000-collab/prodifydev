@@ -75,6 +75,35 @@ const BacklogPage = () => {
   const [sprintStart, setSprintStart] = useState('');
   const [sprintEnd, setSprintEnd] = useState('');
 
+  // Edit sprint dialog
+  const [editSprintId, setEditSprintId] = useState<string | null>(null);
+  const [editSprintName, setEditSprintName] = useState('');
+  const [editSprintGoal, setEditSprintGoal] = useState('');
+  const [editSprintStart, setEditSprintStart] = useState('');
+  const [editSprintEnd, setEditSprintEnd] = useState('');
+
+  const openEditSprint = (id: string) => {
+    const s = sprints.find(x => x.id === id);
+    if (!s) return;
+    setEditSprintId(s.id);
+    setEditSprintName(s.name);
+    setEditSprintGoal(s.goal || '');
+    setEditSprintStart(s.startDate);
+    setEditSprintEnd(s.endDate);
+  };
+
+  const handleSaveEditSprint = async () => {
+    if (!editSprintId || !editSprintName.trim() || !editSprintStart || !editSprintEnd) return;
+    await updateSprint(editSprintId, {
+      name: editSprintName,
+      goal: editSprintGoal,
+      startDate: editSprintStart,
+      endDate: editSprintEnd,
+    });
+    setEditSprintId(null);
+    toast.success('Sprint atualizada');
+  };
+
   const [dragOverSprintId, setDragOverSprintId] = useState<string | null>(null);
   const [dragOverBacklog, setDragOverBacklog] = useState(false);
   const dragTaskId = useRef<string | null>(null);
