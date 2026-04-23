@@ -101,7 +101,10 @@ const AuthPage = () => {
   };
 
   const handleSocialLogin = async (provider: 'google' | 'github') => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/inicio` },
+    });
     if (error) toast.error(error.message);
   };
 
