@@ -513,6 +513,36 @@ const BacklogPage = () => {
       </div>
 
       <EditBacklogTaskDialog task={editTask} open={!!editTask} onOpenChange={async (o) => { if (!o) { setEditTask(null); await refreshInitiatives(); } }} onSave={updateTask} initiatives={initiatives} />
+
+      <Dialog open={!!editSprintId} onOpenChange={(o) => { if (!o) setEditSprintId(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar sprint</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Nome</Label>
+              <Input value={editSprintName} onChange={e => setEditSprintName(e.target.value)} />
+            </div>
+            <div>
+              <Label>Objetivo</Label>
+              <Textarea value={editSprintGoal} onChange={e => setEditSprintGoal(e.target.value)} rows={3} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Início</Label>
+                <Input type="date" value={editSprintStart} onChange={e => setEditSprintStart(e.target.value)} />
+              </div>
+              <div>
+                <Label>Fim</Label>
+                <Input type="date" value={editSprintEnd} onChange={e => setEditSprintEnd(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="ghost" onClick={() => setEditSprintId(null)}>Cancelar</Button>
+              <Button onClick={handleSaveEditSprint}>Salvar</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
