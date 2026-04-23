@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Package, Target, List, Map, CheckSquare, TrendingUp, ClipboardList } from 'lucide-react';
+import { Package, Target, CheckSquare, TrendingUp, CalendarDays } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface Metrics {
@@ -15,24 +14,18 @@ interface Metrics {
   totalOpenTasks: number;
 }
 
-interface RecentTask {
+interface UpcomingActivity {
   id: string;
   title: string;
-  priority: string;
+  activity_date: string;
+  start_time: string | null;
   status: string;
 }
 
-const priorityColors: Record<string, string> = {
-  high: 'bg-destructive text-destructive-foreground',
-  medium: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
-  low: 'bg-muted text-muted-foreground',
-};
-
 const statusLabels: Record<string, string> = {
-  open: 'Aberta',
+  pending: 'Pendente',
   in_progress: 'Em andamento',
   done: 'Concluída',
-  cancelled: 'Cancelada',
 };
 
 const HomePage = () => {
@@ -42,7 +35,7 @@ const HomePage = () => {
 
   const [metrics, setMetrics] = useState<Metrics>({ totalProducts: 0, totalObjectives: 0, totalOpenTasks: 0 });
   const [okrProgress, setOkrProgress] = useState(0);
-  const [recentTasks, setRecentTasks] = useState<RecentTask[]>([]);
+  const [upcoming, setUpcoming] = useState<UpcomingActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,13 +43,22 @@ const HomePage = () => {
 
     const fetchData = async () => {
       setLoading(true);
+      const today = new Date().toISOString().slice(0, 10);
 
-      const [productsRes, objectivesRes, tasksCountRes, krsRes, recentRes] = await Promise.all([
+      const [productsRes, objectivesRes, tasksCountRes, krsRes, upcomingRes] = await Promise.all([
         supabase.from('products').select('id', { count: 'exact', head: true }).eq('owner_id', user.id),
         supabase.from('objectives').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('backlog_tasks').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'open'),
         supabase.from('key_results').select('current_value, target_value').eq('user_id', user.id),
-        supabase.from('backlog_tasks').select('id, title, priority, status').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+        supabase
+          .from('schedule_activities')
+          .select('id, title, activity_date, start_time, status')
+          .eq('user_id', user.id)
+          .gte('activity_date', today)
+          .neq('status', 'done')
+          .order('activity_date', { ascending: true })
+          .order('start_time', { ascending: true, nullsFirst: false })
+          .limit(5),
       ]);
 
       setMetrics({
@@ -75,27 +77,12 @@ const HomePage = () => {
         setOkrProgress(0);
       }
 
-      setRecentTasks(
-        (recentRes.data ?? []).map((t) => ({
-          id: t.id,
-          title: t.title,
-          priority: t.priority,
-          status: t.status,
-        }))
-      );
-
+      setUpcoming((upcomingRes.data ?? []) as UpcomingActivity[]);
       setLoading(false);
     };
 
     fetchData();
   }, [user]);
-
-  const shortcuts = [
-    { title: 'Meus Produtos', description: 'Gerencie seus produtos e portfólio', icon: Package, path: '/produtos' },
-    { title: 'OKRs', description: 'Acompanhe seus objetivos e resultados', icon: Target, path: '/okrs' },
-    { title: 'Backlog', description: 'Organize e priorize suas tarefas', icon: List, path: '/backlog' },
-    { title: 'Roadmap', description: 'Planeje e visualize seu futuro', icon: Map, path: '/roadmap' },
-  ];
 
   const metricCards = [
     { label: 'Produtos', value: metrics.totalProducts, icon: Package, color: 'text-primary' },
@@ -104,6 +91,11 @@ const HomePage = () => {
   ];
 
   const progressColor = okrProgress >= 70 ? 'bg-green-500' : okrProgress >= 40 ? 'bg-yellow-500' : 'bg-destructive';
+
+  const formatDate = (d: string) => {
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y.slice(2)}`;
+  };
 
   return (
     <div className="space-y-8 p-6 md:p-8 max-w-6xl mx-auto">
@@ -168,65 +160,50 @@ const HomePage = () => {
         </CardContent>
       </Card>
 
-      {/* Recent tasks */}
+      {/* Upcoming tasks from agenda */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <ClipboardList className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-foreground">Tarefas recentes</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-foreground">Próximas tarefas</span>
+            </div>
+            <button
+              onClick={() => navigate('/agenda')}
+              className="text-xs text-primary hover:underline"
+            >
+              Ver agenda
+            </button>
           </div>
           {loading ? (
             <p className="text-sm text-muted-foreground">Carregando...</p>
-          ) : recentTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma tarefa encontrada.</p>
+          ) : upcoming.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma tarefa próxima na agenda.</p>
           ) : (
             <div className="space-y-3">
-              {recentTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-3"
+              {upcoming.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => navigate('/agenda')}
+                  className="flex w-full items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left"
                 >
                   <span className="text-sm font-medium text-foreground truncate mr-3">
-                    {task.title}
+                    {a.title}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Badge
-                      variant="secondary"
-                      className={priorityColors[task.priority] || 'bg-muted text-muted-foreground'}
-                    >
-                      {task.priority}
-                    </Badge>
                     <Badge variant="outline">
-                      {statusLabels[task.status] || task.status}
+                      {formatDate(a.activity_date)}{a.start_time ? ` · ${a.start_time}` : ''}
+                    </Badge>
+                    <Badge variant="secondary">
+                      {statusLabels[a.status] || a.status}
                     </Badge>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Quick shortcuts */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Atalhos rápidos</h2>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          {shortcuts.map((s) => {
-            const Icon = s.icon;
-            return (
-              <button
-                key={s.title}
-                onClick={() => navigate(s.path)}
-                className="rounded-xl border border-border bg-card p-6 transition-all hover:shadow-md hover:border-primary/50 text-left"
-              >
-                <Icon className="mb-3 h-8 w-8 text-primary" />
-                <h3 className="font-semibold text-foreground">{s.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 };
