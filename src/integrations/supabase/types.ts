@@ -824,6 +824,7 @@ export type Database = {
           objective_id: string | null
           product_id: string | null
           progress: number | null
+          progress_updated_at: string
           quarter: string
           start_month: number
           status: string
@@ -842,6 +843,7 @@ export type Database = {
           objective_id?: string | null
           product_id?: string | null
           progress?: number | null
+          progress_updated_at?: string
           quarter: string
           start_month?: number
           status?: string
@@ -860,6 +862,7 @@ export type Database = {
           objective_id?: string | null
           product_id?: string | null
           progress?: number | null
+          progress_updated_at?: string
           quarter?: string
           start_month?: number
           status?: string
@@ -1041,6 +1044,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_stale_roadmap_items: { Args: never; Returns: undefined }
       create_notification:
         | {
             Args: {
