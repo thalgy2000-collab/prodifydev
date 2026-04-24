@@ -107,23 +107,7 @@ export function AppSidebar() {
           'transition-[width] duration-200 ease-in-out',
           expanded ? 'w-52' : 'w-14'
         )}
-      >
-        {/* Mobile: Back to Home button */}
-        <div className={cn('flex md:hidden', expanded ? 'px-2' : 'justify-center')}>
-          <button
-            onClick={() => navigate('/inicio')}
-            className={cn(
-              'h-10 rounded-lg flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors',
-              expanded ? 'w-full px-2' : 'w-10 justify-center'
-            )}
-            aria-label="Voltar ao Início"
-          >
-            <ArrowLeft className="h-5 w-5 shrink-0" />
-            {expanded && <span className="text-sm font-medium truncate">Início</span>}
-          </button>
-        </div>
-        <div className={cn('h-px bg-border md:hidden', expanded ? 'mx-2' : 'mx-3')} />
-
+        >
         {/* Toggle button on right edge */}
         <button
           onClick={() => setExpanded(v => !v)}
