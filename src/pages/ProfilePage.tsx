@@ -253,6 +253,15 @@ const ProfilePage = () => {
       <div className="flex h-full">
         {/* Sidebar */}
         <div className="w-64 bg-muted/30 border-r border-border p-6">
+          {/* Botão Voltar ao Início */}
+          <button
+            onClick={() => navigate('/inicio')}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-4 -ml-1"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            <span>Voltar ao Início</span>
+          </button>
+
           <h2 className="text-lg font-semibold mb-6">Configurações</h2>
           <nav className="space-y-1">
             {menuItems.map(({ id, label, icon: Icon }) => (
