@@ -9,9 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, Mail, Calendar, Palette, Trash2 } from 'lucide-react';
+import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, Mail, Calendar, Palette, Trash2, ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { useNavigate } from 'react-router-dom';
 
 const ProfilePage = () => {
   const { profile, loading, initial, avatarColor, refetch } = useProfile();
