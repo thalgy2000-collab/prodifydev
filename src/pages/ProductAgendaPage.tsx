@@ -125,34 +125,34 @@ const ProductAgendaPage = () => {
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card shrink-0">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold text-foreground">Agenda do Produto</h1>
-          <Button variant="outline" size="sm" onClick={goToToday}>Hoje</Button>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-3 border-b border-border bg-card shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
+          <h1 className="text-base sm:text-xl font-bold text-foreground truncate">Agenda do Produto</h1>
+          <Button variant="outline" size="sm" onClick={goToToday} className="h-7 px-2 text-xs sm:h-8 sm:px-3 sm:text-sm">Hoje</Button>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateMonth(-1)}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => navigateMonth(-1)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigateMonth(1)}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => navigateMonth(1)}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          <h2 className="text-lg font-semibold text-foreground capitalize">
+          <h2 className="text-sm sm:text-lg font-semibold text-foreground capitalize truncate">
             {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
           </h2>
         </div>
         <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button size="sm" className="gap-1.5" onClick={() => openCreate()}>
+            <Button size="sm" className="hidden md:inline-flex gap-1.5" onClick={() => openCreate()}>
               <Plus className="h-4 w-4" /> Novo Evento
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="md:max-w-lg max-w-full w-full md:rounded-lg rounded-t-2xl md:bottom-auto md:top-[50%] md:translate-y-[-50%] bottom-0 top-auto translate-y-0 md:max-h-[85vh] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingActivity ? 'Editar Evento' : 'Novo Evento'}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 pt-2">
+            <div className="space-y-4 pt-2 pb-4">
               <div className="space-y-2">
                 <Label>Título</Label>
                 <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Adicionar título" />
@@ -197,8 +197,8 @@ const ProductAgendaPage = () => {
 
       {/* Content */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Sidebar - Mini calendar + day detail */}
-        <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-card shrink-0 overflow-y-auto">
+        {/* Sidebar - Mini calendar + day detail (full width on mobile) */}
+        <aside className="flex flex-col w-full lg:w-64 lg:border-r border-border bg-card shrink-0 overflow-y-auto">
           <div className="p-3">
             <div className="grid grid-cols-7 gap-0">
               {WEEK_DAYS_SHORT.map(d => (
@@ -213,7 +213,7 @@ const ProductAgendaPage = () => {
                     key={day.toISOString()}
                     onClick={() => { setSelectedDate(day); setCurrentDate(day); }}
                     className={cn(
-                      'relative h-7 w-7 mx-auto rounded-full text-xs flex items-center justify-center transition-colors',
+                      'relative h-10 w-10 lg:h-7 lg:w-7 mx-auto rounded-full text-sm lg:text-xs flex items-center justify-center transition-colors',
                       !isSameMonth(day, currentDate) && 'text-muted-foreground/40',
                       isSameDay(day, selectedDate) && 'bg-primary text-primary-foreground',
                       isToday(day) && !isSameDay(day, selectedDate) && 'bg-primary/20 text-primary font-bold',
