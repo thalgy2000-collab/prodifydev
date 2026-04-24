@@ -9,14 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, Mail, Calendar, Palette, Trash2 } from 'lucide-react';
+import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, Mail, Calendar, Palette, Trash2, ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { useNavigate } from 'react-router-dom';
 
 const ProfilePage = () => {
   const { profile, loading, initial, avatarColor, refetch } = useProfile();
   const { activeProduct, deleteProduct } = useProduct();
   const { isDark, toggle } = useTheme();
+  const navigate = useNavigate();
 
   // ✅ TODOS os hooks ANTES de qualquer return condicional
   const [displayName, setDisplayName] = useState('');
@@ -251,6 +253,15 @@ const ProfilePage = () => {
       <div className="flex h-full">
         {/* Sidebar */}
         <div className="w-64 bg-muted/30 border-r border-border p-6">
+          {/* Botão Voltar ao Início */}
+          <button
+            onClick={() => navigate('/inicio')}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-4 -ml-1"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            <span>Voltar ao Início</span>
+          </button>
+
           <h2 className="text-lg font-semibold mb-6">Configurações</h2>
           <nav className="space-y-1">
             {menuItems.map(({ id, label, icon: Icon }) => (
