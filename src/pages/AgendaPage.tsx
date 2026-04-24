@@ -276,7 +276,7 @@ const AgendaPage = () => {
                     key={day.toISOString()}
                     onClick={() => { setSelectedDate(day); if (viewMode === 'month') setCurrentDate(day); }}
                     className={cn(
-                      'relative h-7 w-7 mx-auto rounded-full text-xs flex items-center justify-center transition-colors',
+                      'relative h-10 w-10 lg:h-7 lg:w-7 mx-auto rounded-full text-sm lg:text-xs flex items-center justify-center transition-colors',
                       !isSameMonth(day, currentDate) && 'text-muted-foreground/40',
                       isSameDay(day, selectedDate) && 'bg-primary text-primary-foreground',
                       isToday(day) && !isSameDay(day, selectedDate) && 'bg-primary/20 text-primary font-bold',
@@ -365,8 +365,8 @@ const AgendaPage = () => {
           </div>
         </aside>
 
-        {/* Main calendar area */}
-        <div className="flex-1 min-w-0 min-h-0 overflow-hidden flex flex-col">
+        {/* Main calendar area - hidden on mobile */}
+        <div className="hidden lg:flex flex-1 min-w-0 min-h-0 overflow-hidden flex-col">
           {viewMode === 'month' && (
             <MonthView
               days={monthDays}
@@ -407,6 +407,15 @@ const AgendaPage = () => {
           )}
         </div>
       </div>
+
+      {/* Mobile FAB */}
+      <button
+        onClick={() => openCreate()}
+        aria-label="Nova atividade"
+        className="lg:hidden fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
     </div>
   );
 };
