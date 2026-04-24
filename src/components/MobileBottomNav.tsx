@@ -34,6 +34,7 @@ const categories: NavCategory[] = [
       { title: 'Agenda do produto', url: '/produto-agenda' },
       { title: 'Oportunidades', url: '/oportunidades' },
       { title: 'SWOT', url: '/swot' },
+      { title: 'Concorrência', url: '/concorrencia' },
       { title: 'RICE', url: '/rice' },
     ],
   },

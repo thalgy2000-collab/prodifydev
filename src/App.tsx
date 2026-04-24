@@ -26,6 +26,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
 import ReleasePlanningPage from "./pages/ReleasePlanningPage";
 import SwotPage from "./pages/SwotPage";
+import CompetitionPage from "./pages/CompetitionPage";
 import PrdPage from "./pages/PrdPage";
 import MembersPage from "./pages/MembersPage";
 import ProductAgendaPage from "./pages/ProductAgendaPage";
@@ -75,6 +76,7 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/okrs" element={<OKRPage />} />
         <Route path="/oportunidades" element={<OpportunityTreePage />} />
         <Route path="/swot" element={<SwotPage />} />
+        <Route path="/concorrencia" element={<CompetitionPage />} />
         <Route path="/roadmap" element={<RoadmapPage />} />
         <Route path="/backlog" element={<BacklogPage />} />
         <Route path="/sprints" element={<SprintsPage />} />
