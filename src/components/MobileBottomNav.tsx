@@ -19,6 +19,13 @@ const categories: NavCategory[] = [
     key: 'inicio',
     label: 'Início',
     icon: LayoutDashboard,
+    directUrl: '/inicio',
+    items: [{ title: 'Visão Geral', url: '/inicio' }],
+  },
+  {
+    key: 'visao-geral',
+    label: 'Visão Geral',
+    icon: LayoutDashboard,
     directUrl: '/',
     items: [{ title: 'Visão Geral', url: '/' }],
   },
