@@ -65,6 +65,11 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
     return <AgendaPage />;
   }
 
+  // Always render portfolio page on /produtos (even when a product is active)
+  if (location.pathname === '/produtos') {
+    return <PortfolioPage searchQuery={searchQuery} />;
+  }
+
   if (!activeProduct) {
     return <PortfolioPage searchQuery={searchQuery} />;
   }
