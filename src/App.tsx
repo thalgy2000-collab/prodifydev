@@ -76,6 +76,7 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/okrs" element={<OKRPage />} />
         <Route path="/oportunidades" element={<OpportunityTreePage />} />
         <Route path="/swot" element={<SwotPage />} />
+        <Route path="/concorrencia" element={<CompetitionPage />} />
         <Route path="/roadmap" element={<RoadmapPage />} />
         <Route path="/backlog" element={<BacklogPage />} />
         <Route path="/sprints" element={<SprintsPage />} />
