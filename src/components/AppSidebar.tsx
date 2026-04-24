@@ -34,6 +34,7 @@ const groups: Group[] = [
     items: [
       { title: 'Oportunidades', url: '/oportunidades' },
       { title: 'SWOT', url: '/swot' },
+      { title: 'Concorrência', url: '/concorrencia' },
     ],
   },
   {
