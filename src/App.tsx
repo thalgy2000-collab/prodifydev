@@ -65,6 +65,11 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
     return <AgendaPage />;
   }
 
+  // Always render portfolio page on /produtos (even when a product is active)
+  if (location.pathname === '/produtos') {
+    return <PortfolioPage searchQuery={searchQuery} />;
+  }
+
   if (!activeProduct) {
     return <PortfolioPage searchQuery={searchQuery} />;
   }
@@ -120,7 +125,7 @@ const externalTourSteps = [
   },
 ];
 
-const GLOBAL_ROUTES = ['/inicio', '/agenda', '/perfil', '/admin'];
+const GLOBAL_ROUTES = ['/inicio', '/agenda', '/perfil', '/admin', '/produtos'];
 
 const AuthenticatedLayout = () => {
   const [searchQuery, setSearchQuery] = useState('');

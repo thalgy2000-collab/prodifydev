@@ -16,13 +16,6 @@ type NavCategory = {
 
 const categories: NavCategory[] = [
   {
-    key: 'inicio',
-    label: 'Início',
-    icon: LayoutDashboard,
-    directUrl: '/inicio',
-    items: [{ title: 'Visão Geral', url: '/inicio' }],
-  },
-  {
     key: 'visao-geral',
     label: 'Visão Geral',
     icon: LayoutDashboard,
@@ -97,7 +90,7 @@ export function MobileBottomNav() {
         className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card pb-[env(safe-area-inset-bottom)]"
         aria-label="Navegação principal"
       >
-        <ul className="grid grid-cols-6">
+        <ul className="grid grid-cols-5">
           {categories.map(cat => {
             const Icon = cat.icon;
             const active = isCategoryActive(cat);
