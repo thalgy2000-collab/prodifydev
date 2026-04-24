@@ -98,10 +98,10 @@ const HomePage = () => {
   };
 
   return (
-    <div className="space-y-8 p-6 md:p-8 max-w-6xl mx-auto">
+    <div className="space-y-3 sm:space-y-6 p-4 sm:p-6 md:p-8 max-w-6xl mx-auto">
       {/* Greeting */}
-      <div className="flex items-center gap-4">
-        <Avatar className="h-16 w-16 text-xl font-bold">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <Avatar className="h-10 w-10 sm:h-16 sm:w-16 text-sm sm:text-xl font-bold">
           {profile?.avatarUrl ? (
             <AvatarImage src={profile.avatarUrl} alt="Avatar" />
           ) : null}
@@ -110,28 +110,28 @@ const HomePage = () => {
           </AvatarFallback>
         </Avatar>
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-foreground">
             Olá, {profile?.displayName || profile?.fullName || 'Usuário'}!
           </h1>
-          <p className="text-muted-foreground">Bem-vindo ao Prodify</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Bem-vindo ao Prodify</p>
         </div>
       </div>
 
       {/* Metrics */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-3">
         {metricCards.map((m) => {
           const Icon = m.icon;
           return (
-            <Card key={m.label}>
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Icon className={`h-6 w-6 ${m.color}`} />
+            <Card key={m.label} className="overflow-hidden">
+              <CardContent className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4 p-3 sm:p-6">
+                <div className="flex h-8 w-8 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Icon className={`h-4 w-4 sm:h-6 sm:w-6 ${m.color}`} />
                 </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground">
+                <div className="text-center sm:text-left">
+                  <p className="text-xl sm:text-3xl font-bold text-foreground">
                     {loading ? '—' : m.value}
                   </p>
-                  <p className="text-sm text-muted-foreground">{m.label}</p>
+                  <p className="text-[10px] sm:text-sm text-muted-foreground whitespace-nowrap">{m.label}</p>
                 </div>
               </CardContent>
             </Card>
@@ -141,17 +141,17 @@ const HomePage = () => {
 
       {/* OKR Progress */}
       <Card>
-        <CardContent className="p-6 space-y-3">
+        <CardContent className="p-4 sm:p-6 space-y-2 sm:space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">Progresso geral dos OKRs</span>
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <span className="text-sm sm:text-base font-semibold text-foreground">Progresso geral dos OKRs</span>
             </div>
-            <span className="text-2xl font-bold text-foreground">
+            <span className="text-lg sm:text-2xl font-bold text-foreground">
               {loading ? '—' : `${okrProgress}%`}
             </span>
           </div>
-          <div className="relative h-3 w-full rounded-full bg-muted overflow-hidden">
+          <div className="relative h-2.5 sm:h-3 w-full rounded-full bg-muted overflow-hidden">
             <div
               className={`absolute left-0 top-0 h-full rounded-full transition-all ${progressColor}`}
               style={{ width: `${okrProgress}%` }}
@@ -162,11 +162,11 @@ const HomePage = () => {
 
       {/* Upcoming tasks from agenda */}
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <div className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">Próximas tarefas</span>
+              <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <span className="text-sm sm:text-base font-semibold text-foreground">Próximas tarefas</span>
             </div>
             <button
               onClick={() => navigate('/agenda')}
@@ -180,23 +180,23 @@ const HomePage = () => {
           ) : upcoming.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma tarefa próxima na agenda.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {upcoming.map((a) => (
                 <button
                   key={a.id}
                   onClick={() => navigate('/agenda')}
-                  className="flex w-full items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left"
+                  className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left gap-2"
                 >
-                  <span className="text-sm font-medium text-foreground truncate mr-3">
+                  <span className="text-sm font-medium text-foreground truncate w-full sm:w-auto">
                     {a.title}
                   </span>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant="outline">
-                      {formatDate(a.activity_date)}{a.start_time ? ` · ${a.start_time}` : ''}
+                    <Badge variant="outline" className="text-xs">
+                      {formatDate(a.activity_date)}{a.start_time ? ` · ${a.start_time.slice(0, 5)}` : ''}
                     </Badge>
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="text-xs">
                       {statusLabels[a.status] || a.status}
-                    </Badge>
+              </Badge>
                   </div>
                 </button>
               ))}
@@ -207,5 +207,7 @@ const HomePage = () => {
     </div>
   );
 };
+
+export default HomePage;
 
 export default HomePage;
