@@ -186,6 +186,142 @@ export type Database = {
           },
         ]
       }
+      competitive_analysis: {
+        Row: {
+          competitor_name: string
+          competitor_type: string
+          created_at: string | null
+          differentiators: string[] | null
+          id: string
+          notes: string | null
+          price_model: string | null
+          product_id: string
+          strengths: string[] | null
+          target_audience: string | null
+          threat_level: string | null
+          updated_at: string | null
+          user_id: string
+          value_proposition: string | null
+          weaknesses: string[] | null
+          website_url: string | null
+        }
+        Insert: {
+          competitor_name: string
+          competitor_type: string
+          created_at?: string | null
+          differentiators?: string[] | null
+          id?: string
+          notes?: string | null
+          price_model?: string | null
+          product_id: string
+          strengths?: string[] | null
+          target_audience?: string | null
+          threat_level?: string | null
+          updated_at?: string | null
+          user_id: string
+          value_proposition?: string | null
+          weaknesses?: string[] | null
+          website_url?: string | null
+        }
+        Update: {
+          competitor_name?: string
+          competitor_type?: string
+          created_at?: string | null
+          differentiators?: string[] | null
+          id?: string
+          notes?: string | null
+          price_model?: string | null
+          product_id?: string
+          strengths?: string[] | null
+          target_audience?: string | null
+          threat_level?: string | null
+          updated_at?: string | null
+          user_id?: string
+          value_proposition?: string | null
+          weaknesses?: string[] | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitive_analysis_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitive_criteria: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          product_id: string
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          product_id: string
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          product_id?: string
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitive_criteria_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitive_scores: {
+        Row: {
+          competitor_id: string
+          criteria_id: string
+          id: string
+          score: number | null
+        }
+        Insert: {
+          competitor_id: string
+          criteria_id: string
+          id?: string
+          score?: number | null
+        }
+        Update: {
+          competitor_id?: string
+          criteria_id?: string
+          id?: string
+          score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitive_scores_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitive_analysis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competitive_scores_criteria_id_fkey"
+            columns: ["criteria_id"]
+            isOneToOne: false
+            referencedRelation: "competitive_criteria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           created_at: string | null
