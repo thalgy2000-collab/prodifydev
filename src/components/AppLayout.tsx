@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppSidebar } from '@/components/AppSidebar';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { OnboardingTour, TourStep } from '@/components/OnboardingTour';
 import { PendingInviteBanner } from '@/components/PendingInviteBanner';
 import { NotificationBell } from '@/components/NotificationBell';
@@ -85,10 +86,20 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <div className="flex w-full h-screen overflow-hidden">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-          <header className="h-12 flex items-center justify-end border-b border-border bg-card px-3 sticky top-0 z-20">
-            <div className="flex items-center gap-2">
+        <div className="hidden lg:block">
+          <AppSidebar />
+        </div>
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto pb-16 lg:pb-0">
+          <header className="h-12 flex items-center justify-between gap-2 border-b border-border bg-card px-3 sticky top-0 z-20">
+            <div className="lg:hidden flex items-center gap-2 min-w-0">
+              {activeProduct && (
+                <>
+                  <span className="text-lg leading-none">{activeProduct.emoji}</span>
+                  <span className="text-sm font-semibold truncate">{activeProduct.name}</span>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
               <NotificationBell />
               <button
                 onClick={() => navigate('/perfil')}
@@ -105,10 +116,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </header>
           <PendingInviteBanner />
-          <main className="flex-1 p-6 max-w-5xl mx-auto w-full">
+          <main className="flex-1 p-4 sm:p-6 max-w-5xl mx-auto w-full">
             {children}
           </main>
         </div>
+        <MobileBottomNav />
       </div>
       {showTour && storageKey && (
         <OnboardingTour

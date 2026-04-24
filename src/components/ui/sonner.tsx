@@ -10,6 +10,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      position={typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches ? 'top-center' : 'bottom-right'}
       toastOptions={{
         classNames: {
           toast:
