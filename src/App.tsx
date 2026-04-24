@@ -125,7 +125,7 @@ const externalTourSteps = [
   },
 ];
 
-const GLOBAL_ROUTES = ['/inicio', '/agenda', '/perfil', '/admin'];
+const GLOBAL_ROUTES = ['/inicio', '/agenda', '/perfil', '/admin', '/produtos'];
 
 const AuthenticatedLayout = () => {
   const [searchQuery, setSearchQuery] = useState('');
