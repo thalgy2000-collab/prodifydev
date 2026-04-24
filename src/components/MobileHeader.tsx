@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Menu, Home, Package, Search, Settings, LogOut, Moon, Sun, X } from 'lucide-react';
+import { Menu, Home, Package, CalendarDays, ShieldCheck, LogOut, Moon, Sun } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useTheme } from '@/hooks/useTheme';
