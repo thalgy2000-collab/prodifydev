@@ -22,7 +22,6 @@ export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps)
   const { isDark, toggle } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const [showSearch, setShowSearch] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -33,11 +32,14 @@ export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps)
   const go = (url: string) => { navigate(url); setOpen(false); };
   const isActive = (url: string) => location.pathname === url;
 
-  const navItems = [
-    { title: 'Início', url: '/', icon: Home },
+  const baseNav = [
+    { title: 'Início', url: '/inicio', icon: Home },
     { title: 'Meus Produtos', url: '/produtos', icon: Package },
-    { title: 'Configurações', url: '/configuracoes', icon: Settings },
+    { title: 'Agenda', url: '/agenda', icon: CalendarDays },
   ];
+  const navItems = profile?.isAdmin
+    ? [...baseNav, { title: 'Admin', url: '/admin', icon: ShieldCheck }]
+    : baseNav;
 
   return (
     <header className="md:hidden h-14 flex items-center justify-between border-b border-border bg-card px-4">
@@ -84,38 +86,6 @@ export function MobileHeader({ searchQuery, onSearchChange }: MobileHeaderProps)
                 {item.title}
               </button>
             ))}
-
-            <button
-              onClick={() => setShowSearch(!showSearch)}
-              className={cn(
-                'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                showSearch ? 'bg-primary/10 text-primary' : 'hover:bg-muted'
-              )}
-            >
-              <Search className="h-4 w-4" />
-              Pesquisar Produto
-            </button>
-            {showSearch && (
-              <div className="px-1 pb-1">
-                <div className="relative">
-                  <Input
-                    value={searchQuery}
-                    onChange={e => onSearchChange(e.target.value)}
-                    placeholder="Buscar produto..."
-                    className="pr-8 h-9 text-sm"
-                    autoFocus
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => onSearchChange('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
           </nav>
 
           <div className="p-3 border-t border-border space-y-2">
