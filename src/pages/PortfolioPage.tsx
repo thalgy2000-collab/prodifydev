@@ -45,14 +45,14 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
 
   return (
     <div className="w-full">
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-12">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-2xl font-bold tracking-tight">Meus Produtos</h1>
         </div>
         <p className="text-sm text-muted-foreground mb-6">Selecione um produto para gerenciar ou crie um novo.</p>
 
         {/* Search bar */}
-        <div className="relative mb-6 max-w-sm">
+        <div className="relative mb-6 w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={externalQuery === undefined ? localSearch : externalQuery}
@@ -60,7 +60,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
               if (externalQuery === undefined) setLocalSearch(e.target.value);
             }}
             placeholder="Buscar produto..."
-            className="pl-9 pr-8"
+            className="pl-9 pr-8 w-full"
             readOnly={externalQuery !== undefined}
           />
           {searchQuery && externalQuery === undefined && (
@@ -79,7 +79,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
             <p className="text-sm">Nenhum produto encontrado para "{searchQuery}"</p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map(product => (
               <Card
                 key={product.id}

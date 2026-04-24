@@ -8,7 +8,7 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
 import { useProduct } from '@/contexts/ProductContext';
-import { LayoutDashboard, Target, Compass, Calculator, Rocket, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Target, Compass, Calculator, Rocket, BarChart3, ChevronLeft } from 'lucide-react';
 
 const buildInternalSteps = (): TourStep[] => [
   {
@@ -92,6 +92,13 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto pb-16 lg:pb-0">
           <header className="h-12 flex items-center justify-between gap-2 border-b border-border bg-card px-3 sticky top-0 z-20">
             <div className="lg:hidden flex items-center gap-2 min-w-0">
+              <button
+                onClick={() => navigate('/inicio')}
+                aria-label="Voltar ao Início"
+                className="p-1.5 -ml-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
               {activeProduct && (
                 <>
                   <span className="text-lg leading-none">{activeProduct.emoji}</span>
