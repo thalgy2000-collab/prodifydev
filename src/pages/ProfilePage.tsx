@@ -331,7 +331,7 @@ const ProfilePage = () => {
                     <Textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} placeholder="Conte um pouco sobre você..." rows={3} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>E-mail</Label>
                       <Input value={profile.email || ''} disabled className="opacity-60" />
