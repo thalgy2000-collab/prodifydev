@@ -250,10 +250,9 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex h-full">
-        {/* Sidebar */}
-        <div className="w-64 bg-muted/30 border-r border-border p-6">
-          {/* Botão Voltar ao Início */}
+      <div className="flex flex-col lg:flex-row h-full">
+        {/* Sidebar (desktop) / Top tabs (mobile) */}
+        <div className="w-full lg:w-64 bg-muted/30 border-b lg:border-b-0 lg:border-r border-border p-4 lg:p-6">
           <button
             onClick={() => navigate('/inicio')}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mb-4 -ml-1"
@@ -262,13 +261,13 @@ const ProfilePage = () => {
             <span>Voltar ao Início</span>
           </button>
 
-          <h2 className="text-lg font-semibold mb-6">Configurações</h2>
-          <nav className="space-y-1">
+          <h2 className="text-lg font-semibold mb-4 lg:mb-6">Configurações</h2>
+          <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible">
             {menuItems.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveSection(id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                className={`flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-3 px-3 py-2 rounded-lg text-left transition-colors whitespace-nowrap ${
                   activeSection === id
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-muted text-muted-foreground hover:text-foreground'
@@ -282,7 +281,7 @@ const ProfilePage = () => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8">
           {activeSection === 'profile' && (
             <div className="max-w-2xl mx-auto space-y-6">
               <div>
@@ -316,7 +315,7 @@ const ProfilePage = () => {
                   </div>
 
                   {/* Campos */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="fullName">Nome completo</Label>
                       <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Seu nome completo" />
@@ -332,7 +331,7 @@ const ProfilePage = () => {
                     <Textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} placeholder="Conte um pouco sobre você..." rows={3} />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>E-mail</Label>
                       <Input value={profile.email || ''} disabled className="opacity-60" />
