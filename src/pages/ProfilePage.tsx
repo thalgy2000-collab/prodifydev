@@ -18,6 +18,7 @@ const ProfilePage = () => {
   const { profile, loading, initial, avatarColor, refetch } = useProfile();
   const { activeProduct, deleteProduct } = useProduct();
   const { isDark, toggle } = useTheme();
+  const navigate = useNavigate();
 
   // ✅ TODOS os hooks ANTES de qualquer return condicional
   const [displayName, setDisplayName] = useState('');
