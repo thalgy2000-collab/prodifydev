@@ -280,8 +280,8 @@ const ProductAgendaPage = () => {
           </div>
         </aside>
 
-        {/* Main month grid */}
-        <div className="flex-1 overflow-auto">
+        {/* Main month grid - hidden on mobile */}
+        <div className="hidden lg:block flex-1 overflow-auto">
           <div className="h-full flex flex-col">
             <div className="grid grid-cols-7 border-b border-border bg-muted/30">
               {WEEK_DAYS_SHORT.map(d => (
@@ -344,6 +344,15 @@ const ProductAgendaPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile FAB */}
+      <button
+        onClick={() => openCreate()}
+        aria-label="Novo evento"
+        className="lg:hidden fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
     </div>
   );
 };
