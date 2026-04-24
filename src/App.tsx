@@ -26,6 +26,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
 import ReleasePlanningPage from "./pages/ReleasePlanningPage";
 import SwotPage from "./pages/SwotPage";
+import CompetitionPage from "./pages/CompetitionPage";
 import PrdPage from "./pages/PrdPage";
 import MembersPage from "./pages/MembersPage";
 import ProductAgendaPage from "./pages/ProductAgendaPage";
