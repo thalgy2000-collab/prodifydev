@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { riceTourSteps } from '@/lib/featureTours';
 
 const RicePage = () => {
   const { scores, setScore, getScore, deleteScore } = useRiceStore();
