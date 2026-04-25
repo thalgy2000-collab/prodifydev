@@ -171,7 +171,7 @@ const RicePage = () => {
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Item</th>
                 <th className="px-4 py-3 text-left font-medium">Tipo</th>
-                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('r')}>
+                <th data-tour-feature="rice-inputs" className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('r')}>
                   <span className="flex items-center justify-center gap-1">
                     Alcance
                     {sortConfig?.field === 'r' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
