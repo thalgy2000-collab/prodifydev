@@ -112,6 +112,7 @@ const RoadmapPage = () => {
                         >
                           {/* Progress fill overlay */}
                           <div
+                            data-tour-feature="roadmap-progress"
                             className="absolute inset-y-0 left-0 transition-all"
                             style={{
                               width: `${progress}%`,
