@@ -9,6 +9,8 @@ import { RoadmapItem } from '@/types/roadmap';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Map, Trash2, Link2, Pencil } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { roadmapTourSteps } from '@/lib/featureTours';
 
 const getProgressColor = (p: number) => {
   if (p >= 100) return 'hsl(var(--success))';
