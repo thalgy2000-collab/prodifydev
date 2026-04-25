@@ -450,6 +450,7 @@ const SprintsPage = () => {
                     </div>
                   ) : (
                     <Button
+                      data-tour-feature="sprint-add"
                       variant="ghost"
                       className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
                       onClick={() => setQuickAddColumn(col.id)}
