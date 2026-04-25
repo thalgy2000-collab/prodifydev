@@ -42,9 +42,10 @@ export const useOpportunityTreeStore = () => {
     if (patch.title !== undefined) dbPatch.title = patch.title;
     if (patch.description !== undefined) dbPatch.description = patch.description;
     if (patch.type !== undefined) dbPatch.type = patch.type;
+    // Optimistic update
+    setNodes(prev => prev.map(n => n.id === id ? { ...n, ...patch } : n));
     await (supabase.from('opportunity_nodes') as any).update(dbPatch).eq('id', id);
-    await fetchAll();
-  }, [fetchAll]);
+  }, []);
 
   const deleteNode = useCallback(async (id: string) => {
     await (supabase.from('opportunity_nodes') as any).delete().eq('id', id);
