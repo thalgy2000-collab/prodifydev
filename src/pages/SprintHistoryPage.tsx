@@ -35,7 +35,7 @@ const SprintHistoryPage = () => {
             const done = sprintTasks.filter(t => t.status === 'done').length;
             const total = sprintTasks.length;
             return (
-              <div key={sprint.id} className="rounded-xl border border-border bg-card p-5 shadow-sm">
+              <div key={sprint.id} data-tour-feature="history-card" className="rounded-xl border border-border bg-card p-5 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-lg font-semibold">{sprint.name}</h2>
