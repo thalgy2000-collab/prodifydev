@@ -287,10 +287,13 @@ const CompetitionPage = () => {
     return g;
   }, [competitors]);
 
+  const { TourElement } = useFeatureTour('concorrencia', competitionTourSteps);
+
   if (!activeProduct) return null;
 
   return (
-    <div className="space-y-6">
+    <div data-tour-feature="comp-map" className="space-y-6">
+      {TourElement}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
