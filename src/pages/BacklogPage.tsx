@@ -486,6 +486,7 @@ const BacklogPage = () => {
 
       {/* Backlog section */}
       <div
+        data-tour-feature="backlog-list"
         onDragOver={e => { e.preventDefault(); setDragOverBacklog(true); }}
         onDragLeave={() => setDragOverBacklog(false)}
         onDrop={onDropBacklog}
@@ -498,13 +499,15 @@ const BacklogPage = () => {
             <ListTodo className="h-4 w-4" /> Backlog
             <span className="text-sm font-normal text-muted-foreground">({filtered.length})</span>
           </h2>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os status</SelectItem>
-              {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div data-tour-feature="backlog-priority">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
