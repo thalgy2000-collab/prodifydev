@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Shield } from 'lucide-react';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { swotTourSteps } from '@/lib/featureTours';
 
 const CATEGORIES: SwotCategory[] = ['strength', 'weakness', 'opportunity', 'threat'];
 
