@@ -133,15 +133,18 @@ const RicePage = () => {
     sonnerToast.success('Backlog reordenado pelo score RICE ✓');
   };
 
+  const { TourElement } = useFeatureTour('rice', riceTourSteps);
+
   return (
     <div className="space-y-6">
+      {TourElement}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">RICE Score</h1>
           <p className="text-sm text-muted-foreground">Priorize tarefas e iniciativas com o framework RICE</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleReprioritizeBacklog} variant="outline" className="gap-2">
+          <Button data-tour-feature="rice-apply" onClick={handleReprioritizeBacklog} variant="outline" className="gap-2">
             <Wand2 className="h-4 w-4" />
             Repriorizar Backlog
           </Button>
