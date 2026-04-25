@@ -224,6 +224,7 @@ const SprintsPage = () => {
 
     return (
       <div
+        data-tour-feature="sprint-task"
         draggable
         onDragStart={e => onDragStart(e, task.id)}
         onClick={() => handleOpenEditTask(task)}
