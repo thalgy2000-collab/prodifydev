@@ -17,6 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
 import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { sprintsTourSteps } from '@/lib/featureTours';
 
 interface KanbanColumn {
   id: string;
