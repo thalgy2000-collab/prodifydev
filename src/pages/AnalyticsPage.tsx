@@ -7,6 +7,8 @@ import { TASK_STATUS_CONFIG } from '@/types/backlog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { BarChart3, Target, ListTodo, Zap, Map } from 'lucide-react';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { analyticsTourSteps } from '@/lib/featureTours';
 
 const AnalyticsPage = () => {
   const { objectives, getObjectiveProgress } = useOKRStore();
