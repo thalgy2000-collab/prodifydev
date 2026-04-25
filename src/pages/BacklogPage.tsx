@@ -217,6 +217,7 @@ const BacklogPage = () => {
     const taskSprint = task.sprintId ? sprints.find(s => s.id === task.sprintId) : null;
     return (
       <div
+        data-tour-feature="backlog-card"
         draggable
         onDragStart={e => onDragStart(e, task.id)}
         className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md cursor-grab active:cursor-grabbing"
