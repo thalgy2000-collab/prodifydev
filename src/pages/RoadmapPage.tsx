@@ -36,9 +36,12 @@ const RoadmapPage = () => {
   // Sort by startMonth then endMonth
   const sorted = [...filtered].sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
 
+  const { TourElement } = useFeatureTour('roadmap', roadmapTourSteps);
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        {TourElement}
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -49,7 +52,9 @@ const RoadmapPage = () => {
         </div>
 
         {/* Quarter & Year Navigation */}
-        <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={handleQuarterChange} />
+        <div data-tour-feature="roadmap-quarter">
+          <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={handleQuarterChange} />
+        </div>
 
         {/* Gantt Chart */}
         {filtered.length === 0 ? (
@@ -59,7 +64,7 @@ const RoadmapPage = () => {
             <p className="mt-1 text-sm text-muted-foreground/70">Crie sua primeira iniciativa para este trimestre</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div data-tour-feature="roadmap-grid" className="rounded-xl border border-border bg-card overflow-hidden">
             {/* Month Headers */}
             <div className="grid grid-cols-3 border-b border-border">
               {months.map((month, i) => (
