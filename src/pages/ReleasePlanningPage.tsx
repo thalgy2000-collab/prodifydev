@@ -98,14 +98,14 @@ const ReleasePlanningPage = () => {
           <p className="mt-1 text-sm text-muted-foreground/70">Crie sua primeira release</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div data-tour-feature="release-list" className="space-y-4">
           {releases.map(release => {
             const linkedItems = getItemsForRelease(release.id);
             const linkedRoadmapItems = linkedItems.map(li => roadmapItems.find(ri => ri.id === li.roadmapItemId)).filter(Boolean);
             const unlinkedRoadmap = roadmapItems.filter(ri => !linkedItems.some(li => li.roadmapItemId === ri.id));
 
             return (
-              <div key={release.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
+              <div key={release.id} data-tour-feature="release-card" className="rounded-xl border border-border bg-card p-5 space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <Package className="h-5 w-5 text-primary shrink-0" />
