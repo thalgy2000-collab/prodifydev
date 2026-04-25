@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { UserPlus, Trash2, Users, Mail, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { membersTourSteps } from '@/lib/featureTours';
 
 const ROLE_LABELS: Record<string, string> = { owner: 'Dono', editor: 'Editor', viewer: 'Visualizador' };
 
