@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Pencil, Trash2, X, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { competitionTourSteps } from '@/lib/featureTours';
 
 type CompetitorType = 'direct' | 'indirect' | 'substitute' | 'potential';
 type ThreatLevel = 'low' | 'medium' | 'high' | 'critical';
