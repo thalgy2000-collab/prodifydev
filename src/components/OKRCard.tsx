@@ -58,7 +58,7 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
           {objective.keyResults.map(kr => {
             const pct = kr.targetValue > 0 ? (kr.currentValue / kr.targetValue) * 100 : 0;
             return (
-              <div key={kr.id} className="space-y-2">
+              <div key={kr.id} data-tour-feature="okr-kr-progress" className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-foreground">{kr.title}</span>
                   <span className="font-mono text-xs text-muted-foreground">{kr.currentValue} / {kr.targetValue} {kr.unit}</span>
