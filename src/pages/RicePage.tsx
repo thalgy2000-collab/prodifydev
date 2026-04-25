@@ -165,7 +165,7 @@ const RicePage = () => {
           <p className="mt-1 text-sm text-muted-foreground/70">Crie tarefas no backlog ou iniciativas no roadmap</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div data-tour-feature="rice-table" className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-sm">
             <thead className="bg-secondary sticky top-0 z-10">
               <tr>
