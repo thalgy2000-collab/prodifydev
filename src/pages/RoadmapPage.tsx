@@ -102,6 +102,7 @@ const RoadmapPage = () => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div
+                          data-tour-feature="roadmap-card"
                           className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md relative overflow-hidden"
                           style={{
                             backgroundColor: item.color,
