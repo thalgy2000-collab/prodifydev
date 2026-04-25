@@ -37,8 +37,11 @@ const ReleasePlanningPage = () => {
     setOpen(false);
   };
 
+  const { TourElement } = useFeatureTour('releases', releasesTourSteps);
+
   return (
     <div className="space-y-6">
+      {TourElement}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Release Planning</h1>
@@ -46,7 +49,7 @@ const ReleasePlanningPage = () => {
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button data-tour-feature="release-create" className="gap-2">
               <Plus className="h-4 w-4" />
               Nova Release
             </Button>
