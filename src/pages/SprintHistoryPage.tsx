@@ -13,8 +13,11 @@ const SprintHistoryPage = () => {
 
   const completed = sprints.filter(s => s.status === 'completed');
 
+  const { TourElement } = useFeatureTour('historico', historyTourSteps);
+
   return (
-    <div className="space-y-6">
+    <div data-tour-feature="history-list" className="space-y-6">
+      {TourElement}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Histórico de Sprints</h1>
         <p className="text-sm text-muted-foreground">Revisão das sprints concluídas</p>
