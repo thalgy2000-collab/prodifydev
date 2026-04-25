@@ -141,7 +141,7 @@ const ReleasePlanningPage = () => {
                 </div>
 
                 {/* Linked initiatives */}
-                <div className="space-y-2">
+                <div data-tour-feature="release-items" className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Iniciativas vinculadas</p>
                   {linkedRoadmapItems.length === 0 ? (
                     <p className="text-xs text-muted-foreground/60 italic">Nenhuma iniciativa vinculada</p>
