@@ -1229,6 +1229,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      seed_example_data: { Args: { new_user_id: string }; Returns: undefined }
       touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
