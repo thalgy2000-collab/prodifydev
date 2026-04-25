@@ -58,13 +58,17 @@ export function OnboardingTour({ steps, storageKey, onComplete }: Props) {
   }, [updateSpotlight]);
 
   useEffect(() => {
-    if (!spotlightRect || !tooltipRef.current) {
-      setTooltipStyle({});
-      return;
-    }
+    if (!tooltipRef.current) return;
     const tooltip = tooltipRef.current;
     const tooltipWidth = 320;
     const padding = 16;
+    // Fallback: if spotlight target wasn't found, center the tooltip on screen.
+    if (!spotlightRect) {
+      const left = Math.max(padding, (window.innerWidth - tooltipWidth) / 2);
+      const top = Math.max(padding, (window.innerHeight - tooltip.offsetHeight) / 2);
+      setTooltipStyle({ position: 'fixed', left, top, width: tooltipWidth });
+      return;
+    }
     let left = spotlightRect.right + padding;
     let top = spotlightRect.top;
     if (left + tooltipWidth > window.innerWidth - padding) {
