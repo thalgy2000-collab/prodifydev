@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { prdTourSteps } from '@/lib/featureTours';
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
   draft: { label: 'Rascunho', variant: 'secondary' },
