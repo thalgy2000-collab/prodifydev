@@ -399,6 +399,7 @@ const SprintsPage = () => {
             return (
               <div
                 key={col.id}
+                data-tour-feature="sprint-column"
                 className={`flex flex-col rounded-xl border-2 transition-colors min-w-[280px] w-[300px] shrink-0 ${
                   isDragOver ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'
                 }`}
