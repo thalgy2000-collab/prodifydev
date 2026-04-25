@@ -138,8 +138,11 @@ const OpportunityTreePage = () => {
   const objNodes = selectedObjective ? getNodesByObjective(selectedObjective) : [];
   const rootNodes = objNodes.filter(n => !n.parentId);
 
+  const { TourElement } = useFeatureTour('oportunidades', opportunityTourSteps);
+
   return (
-    <div className="space-y-6">
+    <div data-tour-feature="opp-tree" className="space-y-6">
+      {TourElement}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Árvore de Oportunidades</h1>
@@ -155,7 +158,7 @@ const OpportunityTreePage = () => {
           </SelectContent>
         </Select>
         {selectedObjective && (
-          <Button variant="outline" className="gap-2" onClick={() => openAddDialog(null, selectedObjective)}>
+          <Button data-tour-feature="opp-add" variant="outline" className="gap-2" onClick={() => openAddDialog(null, selectedObjective)}>
             <Plus className="h-4 w-4" />Adicionar Nó
           </Button>
         )}
