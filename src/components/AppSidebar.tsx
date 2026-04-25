@@ -23,7 +23,6 @@ const groups: Group[] = [
       { title: 'OKRs', url: '/okrs', tourId: 'okrs' },
       { title: 'Roadmap', url: '/roadmap', tourId: 'roadmap' },
       { title: 'Release Planning', url: '/releases' },
-      { title: 'PRD', url: '/prd' },
       { title: 'Agenda', url: '/produto-agenda' },
     ],
   },
@@ -32,6 +31,7 @@ const groups: Group[] = [
     icon: Compass,
     tourKey: 'discovery',
     items: [
+      { title: 'PRD', url: '/prd' },
       { title: 'Oportunidades', url: '/oportunidades' },
       { title: 'SWOT', url: '/swot' },
       { title: 'Concorrência', url: '/concorrencia' },
