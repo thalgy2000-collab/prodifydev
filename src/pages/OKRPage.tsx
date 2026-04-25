@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Target, Search } from 'lucide-react';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { okrTourSteps } from '@/lib/featureTours';
 
 const OKRPage = () => {
   const [selectedQuarter, setSelectedQuarter] = usePersistedState('okr_quarter', getCurrentQuarter());
