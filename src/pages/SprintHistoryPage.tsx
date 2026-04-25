@@ -4,6 +4,8 @@ import { SPRINT_STATUS_CONFIG } from '@/types/sprint';
 import { TASK_STATUS_CONFIG } from '@/types/backlog';
 import { Badge } from '@/components/ui/badge';
 import { History } from 'lucide-react';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { historyTourSteps } from '@/lib/featureTours';
 
 const SprintHistoryPage = () => {
   const { sprints } = useSprintStore();
