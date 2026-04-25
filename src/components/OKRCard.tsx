@@ -19,7 +19,7 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
   const navigate = useNavigate();
   return (
     <>
-      <div className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+      <div data-tour-feature="okr-card" className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
