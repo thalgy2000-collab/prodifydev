@@ -39,24 +39,29 @@ const OKRPage = () => {
     return Math.round(total / allKRs.length);
   }, [filteredAndSearched]);
 
+  const { TourElement } = useFeatureTour('okrs', okrTourSteps);
+
   if (loading) {
     return <div className="flex items-center justify-center py-20 text-muted-foreground">Carregando OKRs...</div>;
   }
 
   return (
     <div className="space-y-6">
+      {TourElement}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">OKRs</h1>
           <p className="text-sm text-muted-foreground">Gerencie seus objetivos e resultados-chave</p>
         </div>
         <div className="flex items-center gap-2">
-          <ImportOKRDialog onImported={refetch} quarter={selectedQuarter} />
-          <CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} />
+          <span data-tour-feature="okr-import"><ImportOKRDialog onImported={refetch} quarter={selectedQuarter} /></span>
+          <span data-tour-feature="okr-create"><CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} /></span>
         </div>
       </div>
 
-      <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={setSelectedQuarter} />
+      <div data-tour-feature="okr-quarter">
+        <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={setSelectedQuarter} />
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -84,7 +89,7 @@ const OKRPage = () => {
 
       {/* Barra de progresso geral */}
       {filteredAndSearched.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div data-tour-feature="okr-overall" className="rounded-xl border border-border bg-card p-5">
           <p className="text-sm text-muted-foreground mb-2">Progresso geral — {selectedQuarter}</p>
           <div className="flex items-end justify-between mb-3">
             <span className="text-3xl font-bold text-foreground">{overallProgress}%</span>
