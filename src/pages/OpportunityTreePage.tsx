@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Plus, TreePine, Trash2 } from 'lucide-react';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { opportunityTourSteps } from '@/lib/featureTours';
 
 const TreeNode = ({ node, getChildren, onAdd, onDelete }: {
   node: OpportunityNode;
