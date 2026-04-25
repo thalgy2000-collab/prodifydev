@@ -28,11 +28,14 @@ export default function PrdPage() {
     if (prd) setEditPrd(prd);
   };
 
+  const { TourElement } = useFeatureTour('prd', prdTourSteps);
+
   return (
-    <div className="p-6 space-y-6">
+    <div data-tour-feature="prd-doc" className="p-6 space-y-6">
+      {TourElement}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">PRD</h1>
-        <Button onClick={handleCreate} className="gap-1">
+        <Button data-tour-feature="prd-edit" onClick={handleCreate} className="gap-1">
           <Plus className="h-4 w-4" /> Novo PRD
         </Button>
       </div>
