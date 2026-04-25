@@ -275,8 +275,11 @@ const SprintsPage = () => {
     );
   };
 
+  const { TourElement } = useFeatureTour('sprints', sprintsTourSteps);
+
   return (
     <div className="space-y-6 h-full flex flex-col">
+      {TourElement}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
         <div>
