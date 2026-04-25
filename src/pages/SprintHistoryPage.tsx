@@ -4,6 +4,8 @@ import { SPRINT_STATUS_CONFIG } from '@/types/sprint';
 import { TASK_STATUS_CONFIG } from '@/types/backlog';
 import { Badge } from '@/components/ui/badge';
 import { History } from 'lucide-react';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { historyTourSteps } from '@/lib/featureTours';
 
 const SprintHistoryPage = () => {
   const { sprints } = useSprintStore();
@@ -11,8 +13,11 @@ const SprintHistoryPage = () => {
 
   const completed = sprints.filter(s => s.status === 'completed');
 
+  const { TourElement } = useFeatureTour('historico', historyTourSteps);
+
   return (
-    <div className="space-y-6">
+    <div data-tour-feature="history-list" className="space-y-6">
+      {TourElement}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Histórico de Sprints</h1>
         <p className="text-sm text-muted-foreground">Revisão das sprints concluídas</p>
@@ -30,7 +35,7 @@ const SprintHistoryPage = () => {
             const done = sprintTasks.filter(t => t.status === 'done').length;
             const total = sprintTasks.length;
             return (
-              <div key={sprint.id} className="rounded-xl border border-border bg-card p-5 shadow-sm">
+              <div key={sprint.id} data-tour-feature="history-card" className="rounded-xl border border-border bg-card p-5 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-lg font-semibold">{sprint.name}</h2>

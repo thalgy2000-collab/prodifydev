@@ -9,6 +9,8 @@ import { RoadmapItem } from '@/types/roadmap';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Map, Trash2, Link2, Pencil } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { roadmapTourSteps } from '@/lib/featureTours';
 
 const getProgressColor = (p: number) => {
   if (p >= 100) return 'hsl(var(--success))';
@@ -34,9 +36,12 @@ const RoadmapPage = () => {
   // Sort by startMonth then endMonth
   const sorted = [...filtered].sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
 
+  const { TourElement } = useFeatureTour('roadmap', roadmapTourSteps);
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        {TourElement}
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -47,7 +52,9 @@ const RoadmapPage = () => {
         </div>
 
         {/* Quarter & Year Navigation */}
-        <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={handleQuarterChange} />
+        <div data-tour-feature="roadmap-quarter">
+          <QuarterSelector selectedQuarter={selectedQuarter} onQuarterChange={handleQuarterChange} />
+        </div>
 
         {/* Gantt Chart */}
         {filtered.length === 0 ? (
@@ -57,7 +64,7 @@ const RoadmapPage = () => {
             <p className="mt-1 text-sm text-muted-foreground/70">Crie sua primeira iniciativa para este trimestre</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div data-tour-feature="roadmap-grid" className="rounded-xl border border-border bg-card overflow-hidden">
             {/* Month Headers */}
             <div className="grid grid-cols-3 border-b border-border">
               {months.map((month, i) => (
@@ -95,6 +102,7 @@ const RoadmapPage = () => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div
+                          data-tour-feature="roadmap-card"
                           className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md relative overflow-hidden"
                           style={{
                             backgroundColor: item.color,
@@ -104,6 +112,7 @@ const RoadmapPage = () => {
                         >
                           {/* Progress fill overlay */}
                           <div
+                            data-tour-feature="roadmap-progress"
                             className="absolute inset-y-0 left-0 transition-all"
                             style={{
                               width: `${progress}%`,

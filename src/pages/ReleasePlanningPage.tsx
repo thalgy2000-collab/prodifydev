@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Package, Trash2, CalendarDays, Link2, X } from 'lucide-react';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { releasesTourSteps } from '@/lib/featureTours';
 
 const statusColors: Record<Release['status'], string> = {
   planned: 'bg-muted text-muted-foreground',
@@ -35,8 +37,11 @@ const ReleasePlanningPage = () => {
     setOpen(false);
   };
 
+  const { TourElement } = useFeatureTour('releases', releasesTourSteps);
+
   return (
     <div className="space-y-6">
+      {TourElement}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Release Planning</h1>
@@ -44,7 +49,7 @@ const ReleasePlanningPage = () => {
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button data-tour-feature="release-create" className="gap-2">
               <Plus className="h-4 w-4" />
               Nova Release
             </Button>
@@ -93,14 +98,14 @@ const ReleasePlanningPage = () => {
           <p className="mt-1 text-sm text-muted-foreground/70">Crie sua primeira release</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div data-tour-feature="release-list" className="space-y-4">
           {releases.map(release => {
             const linkedItems = getItemsForRelease(release.id);
             const linkedRoadmapItems = linkedItems.map(li => roadmapItems.find(ri => ri.id === li.roadmapItemId)).filter(Boolean);
             const unlinkedRoadmap = roadmapItems.filter(ri => !linkedItems.some(li => li.roadmapItemId === ri.id));
 
             return (
-              <div key={release.id} className="rounded-xl border border-border bg-card p-5 space-y-4">
+              <div key={release.id} data-tour-feature="release-card" className="rounded-xl border border-border bg-card p-5 space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <Package className="h-5 w-5 text-primary shrink-0" />
@@ -136,7 +141,7 @@ const ReleasePlanningPage = () => {
                 </div>
 
                 {/* Linked initiatives */}
-                <div className="space-y-2">
+                <div data-tour-feature="release-items" className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Iniciativas vinculadas</p>
                   {linkedRoadmapItems.length === 0 ? (
                     <p className="text-xs text-muted-foreground/60 italic">Nenhuma iniciativa vinculada</p>

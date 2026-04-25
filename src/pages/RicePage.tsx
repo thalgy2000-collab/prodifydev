@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { riceTourSteps } from '@/lib/featureTours';
 
 const RicePage = () => {
   const { scores, setScore, getScore, deleteScore } = useRiceStore();
@@ -131,15 +133,18 @@ const RicePage = () => {
     sonnerToast.success('Backlog reordenado pelo score RICE ✓');
   };
 
+  const { TourElement } = useFeatureTour('rice', riceTourSteps);
+
   return (
     <div className="space-y-6">
+      {TourElement}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">RICE Score</h1>
           <p className="text-sm text-muted-foreground">Priorize tarefas e iniciativas com o framework RICE</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={handleReprioritizeBacklog} variant="outline" className="gap-2">
+          <Button data-tour-feature="rice-apply" onClick={handleReprioritizeBacklog} variant="outline" className="gap-2">
             <Wand2 className="h-4 w-4" />
             Repriorizar Backlog
           </Button>
@@ -160,13 +165,13 @@ const RicePage = () => {
           <p className="mt-1 text-sm text-muted-foreground/70">Crie tarefas no backlog ou iniciativas no roadmap</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <div data-tour-feature="rice-table" className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-sm">
             <thead className="bg-secondary sticky top-0 z-10">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Item</th>
                 <th className="px-4 py-3 text-left font-medium">Tipo</th>
-                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('r')}>
+                <th data-tour-feature="rice-inputs" className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('r')}>
                   <span className="flex items-center justify-center gap-1">
                     Alcance
                     {sortConfig?.field === 'r' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
@@ -190,7 +195,7 @@ const RicePage = () => {
                     {sortConfig?.field === 'e' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
                   </span>
                 </th>
-                <th className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('total')}>
+                <th data-tour-feature="rice-score" className="px-4 py-3 text-center font-medium cursor-pointer select-none hover:text-foreground" onClick={() => handleSort('total')}>
                   <span className="flex items-center justify-center gap-1">
                     Score
                     {sortConfig?.field === 'total' ? (sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />) : <ChevronsUpDown className="h-3 w-3 opacity-40" />}
@@ -230,7 +235,7 @@ const RicePage = () => {
                   <td className="px-4 py-3 text-center">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                        <Button data-tour-feature="rice-delete" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </PopoverTrigger>

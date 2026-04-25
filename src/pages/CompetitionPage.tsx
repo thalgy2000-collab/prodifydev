@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Pencil, Trash2, X, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { competitionTourSteps } from '@/lib/featureTours';
 
 type CompetitorType = 'direct' | 'indirect' | 'substitute' | 'potential';
 type ThreatLevel = 'low' | 'medium' | 'high' | 'critical';
@@ -285,10 +287,13 @@ const CompetitionPage = () => {
     return g;
   }, [competitors]);
 
+  const { TourElement } = useFeatureTour('concorrencia', competitionTourSteps);
+
   if (!activeProduct) return null;
 
   return (
-    <div className="space-y-6">
+    <div data-tour-feature="comp-map" className="space-y-6">
+      {TourElement}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

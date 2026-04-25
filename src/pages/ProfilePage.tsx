@@ -615,6 +615,19 @@ const ProfilePage = () => {
                       >
                         Resetar tour do produto
                       </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          try {
+                            Object.keys(localStorage)
+                              .filter(k => k.startsWith('tour_'))
+                              .forEach(k => localStorage.removeItem(k));
+                          } catch {}
+                          toast.success('Tours resetados! Serão exibidos na próxima visita a cada aba.');
+                        }}
+                      >
+                        🔄 Resetar todos os tours das features
+                      </Button>
                     </div>
                   </div>
                   <div className="border-t pt-6 space-y-2">

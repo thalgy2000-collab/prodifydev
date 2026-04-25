@@ -11,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { UserPlus, Trash2, Users, Mail, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { membersTourSteps } from '@/lib/featureTours';
 
 const ROLE_LABELS: Record<string, string> = { owner: 'Dono', editor: 'Editor', viewer: 'Visualizador' };
 
@@ -46,14 +48,17 @@ const MembersPage = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
+  const { TourElement } = useFeatureTour('membros', membersTourSteps);
+
   return (
-    <div className="space-y-6">
+    <div data-tour-feature="members-list" className="space-y-6">
+      {TourElement}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Membros</h1>
           <p className="text-sm text-muted-foreground">Gerencie quem tem acesso a {activeProduct?.name}</p>
         </div>
-        <Button onClick={() => setInviteOpen(true)} className="gap-2">
+        <Button data-tour-feature="members-invite" onClick={() => setInviteOpen(true)} className="gap-2">
           <UserPlus className="h-4 w-4" /> Convidar Membro
         </Button>
       </div>

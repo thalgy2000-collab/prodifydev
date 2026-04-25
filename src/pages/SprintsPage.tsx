@@ -17,6 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
 import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { sprintsTourSteps } from '@/lib/featureTours';
 
 interface KanbanColumn {
   id: string;
@@ -222,6 +224,7 @@ const SprintsPage = () => {
 
     return (
       <div
+        data-tour-feature="sprint-task"
         draggable
         onDragStart={e => onDragStart(e, task.id)}
         onClick={() => handleOpenEditTask(task)}
@@ -273,8 +276,11 @@ const SprintsPage = () => {
     );
   };
 
+  const { TourElement } = useFeatureTour('sprints', sprintsTourSteps);
+
   return (
     <div className="space-y-6 h-full flex flex-col">
+      {TourElement}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
         <div>
@@ -314,10 +320,11 @@ const SprintsPage = () => {
 
       {/* Sprint info bar */}
       {selectedSprint && (
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shrink-0">
+        <div data-tour-feature="sprint-active" className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shrink-0">
           <Zap className="h-4 w-4 text-primary" />
           <span className="font-semibold">{selectedSprint.name}</span>
           <Badge
+            data-tour-feature="sprint-status"
             variant="secondary"
             style={{
               backgroundColor: `hsl(${SPRINT_STATUS_CONFIG[selectedSprint.status].color} / 0.15)`,
@@ -393,6 +400,7 @@ const SprintsPage = () => {
             return (
               <div
                 key={col.id}
+                data-tour-feature="sprint-column"
                 className={`flex flex-col rounded-xl border-2 transition-colors min-w-[280px] w-[300px] shrink-0 ${
                   isDragOver ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'
                 }`}
@@ -442,6 +450,7 @@ const SprintsPage = () => {
                     </div>
                   ) : (
                     <Button
+                      data-tour-feature="sprint-add"
                       variant="ghost"
                       className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
                       onClick={() => setQuickAddColumn(col.id)}

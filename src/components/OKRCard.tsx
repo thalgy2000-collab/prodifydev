@@ -19,7 +19,7 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
   const navigate = useNavigate();
   return (
     <>
-      <div className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+      <div data-tour-feature="okr-card" className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -58,7 +58,7 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) =
           {objective.keyResults.map(kr => {
             const pct = kr.targetValue > 0 ? (kr.currentValue / kr.targetValue) * 100 : 0;
             return (
-              <div key={kr.id} className="space-y-2">
+              <div key={kr.id} data-tour-feature="okr-kr-progress" className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-foreground">{kr.title}</span>
                   <span className="font-mono text-xs text-muted-foreground">{kr.currentValue} / {kr.targetValue} {kr.unit}</span>

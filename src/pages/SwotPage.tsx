@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Shield } from 'lucide-react';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { swotTourSteps } from '@/lib/featureTours';
 
 const CATEGORIES: SwotCategory[] = ['strength', 'weakness', 'opportunity', 'threat'];
 
@@ -26,8 +28,11 @@ const SwotPage = () => {
     setNewContent('');
   };
 
+  const { TourElement } = useFeatureTour('swot', swotTourSteps);
+
   return (
-    <div className="space-y-6">
+    <div data-tour-feature="swot-grid" className="space-y-6">
+      {TourElement}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Análise SWOT</h1>
         <p className="text-sm text-muted-foreground">Avalie forças, fraquezas, oportunidades e ameaças</p>

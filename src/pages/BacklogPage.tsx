@@ -22,6 +22,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import type { DragEvent } from 'react';
+import { useFeatureTour } from '@/hooks/useFeatureTour';
+import { backlogTourSteps } from '@/lib/featureTours';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
@@ -215,6 +217,7 @@ const BacklogPage = () => {
     const taskSprint = task.sprintId ? sprints.find(s => s.id === task.sprintId) : null;
     return (
       <div
+        data-tour-feature="backlog-card"
         draggable
         onDragStart={e => onDragStart(e, task.id)}
         className="group flex items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md cursor-grab active:cursor-grabbing"
@@ -313,8 +316,11 @@ const BacklogPage = () => {
     );
   };
 
+  const { TourElement } = useFeatureTour('backlog', backlogTourSteps);
+
   return (
     <div className="space-y-6">
+      {TourElement}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Backlog</h1>
@@ -428,6 +434,7 @@ const BacklogPage = () => {
         return (
           <div
             key={sprint.id}
+            data-tour-feature="backlog-sprint-section"
             onDragOver={e => { e.preventDefault(); setDragOverSprintId(sprint.id); }}
             onDragLeave={() => setDragOverSprintId(null)}
             onDrop={e => onDropSprint(e, sprint.id)}
@@ -479,6 +486,7 @@ const BacklogPage = () => {
 
       {/* Backlog section */}
       <div
+        data-tour-feature="backlog-list"
         onDragOver={e => { e.preventDefault(); setDragOverBacklog(true); }}
         onDragLeave={() => setDragOverBacklog(false)}
         onDrop={onDropBacklog}
@@ -491,13 +499,15 @@ const BacklogPage = () => {
             <ListTodo className="h-4 w-4" /> Backlog
             <span className="text-sm font-normal text-muted-foreground">({filtered.length})</span>
           </h2>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os status</SelectItem>
-              {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div data-tour-feature="backlog-priority">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
