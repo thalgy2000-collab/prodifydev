@@ -434,6 +434,7 @@ const BacklogPage = () => {
         return (
           <div
             key={sprint.id}
+            data-tour-feature="backlog-sprint-section"
             onDragOver={e => { e.preventDefault(); setDragOverSprintId(sprint.id); }}
             onDragLeave={() => setDragOverSprintId(null)}
             onDrop={e => onDropSprint(e, sprint.id)}
