@@ -348,10 +348,11 @@ const CompetitionPage = () => {
                       {list.length === 0 ? (
                         <p className="text-xs text-muted-foreground italic">Nenhum concorrente</p>
                       ) : (
-                        list.map(c => {
+                        list.map((c, idx) => {
                           const threat = c.threat_level ? THREAT_CONFIG[c.threat_level] : null;
+                          const isFirst = type === 'direct' && idx === 0;
                           return (
-                            <div key={c.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
+                            <div key={c.id} {...(isFirst ? { id: 'competitor-card' } : {})} className="rounded-lg border border-border bg-card p-3 space-y-2">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="font-medium text-sm text-foreground">{c.competitor_name}</div>
                                 {threat && (
