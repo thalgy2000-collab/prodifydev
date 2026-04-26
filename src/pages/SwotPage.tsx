@@ -79,6 +79,7 @@ const SwotPage = () => {
           return (
             <div
               key={cat}
+              id={`swot-${cat}`}
               className="rounded-xl border-2 bg-card overflow-hidden"
               style={{ borderColor: `hsl(${cfg.color} / 0.4)` }}
             >
