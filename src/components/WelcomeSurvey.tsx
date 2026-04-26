@@ -236,22 +236,23 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
                   <Label className="text-base font-medium">
                     Qual é o seu principal objetivo com o Prodify?
                   </Label>
+                  <p className="text-xs text-muted-foreground">Você pode selecionar mais de uma opção</p>
                   <div className="grid grid-cols-1 gap-2">
-                    {GOAL_OPTIONS.map((opt) => (
+                    {[...GOAL_OPTIONS, { value: ALL_GOALS_VALUE, label: 'Todas elas' }].map((opt) => (
                       <button
-                        key={opt.label}
+                        key={opt.value}
                         type="button"
-                        onClick={() => setMainGoal(opt.value)}
+                        onClick={() => toggleGoal(opt.value)}
                         className={cn(
                           'relative text-left p-4 rounded-lg border transition-all',
                           'hover:border-primary/50 hover:bg-muted/40',
-                          mainGoal === opt.value
+                          mainGoals.includes(opt.value)
                             ? 'border-primary bg-primary/10 ring-1 ring-primary'
                             : 'border-border bg-card'
                         )}
                       >
                         <span className="text-sm font-medium text-foreground">{opt.label}</span>
-                        {mainGoal === opt.value && (
+                        {mainGoals.includes(opt.value) && (
                           <Check className="h-4 w-4 text-primary absolute top-4 right-4" />
                         )}
                       </button>
