@@ -49,14 +49,17 @@ export function OnboardingTour({ steps, storageKey, onComplete }: Props) {
   }, [step]);
 
   useEffect(() => {
+    try { step?.before?.(); } catch {}
     updateSpotlight();
-    const t = setTimeout(updateSpotlight, 80);
+    const t1 = setTimeout(updateSpotlight, 80);
+    const t2 = setTimeout(updateSpotlight, 350);
     window.addEventListener('resize', updateSpotlight);
     return () => {
-      clearTimeout(t);
+      clearTimeout(t1);
+      clearTimeout(t2);
       window.removeEventListener('resize', updateSpotlight);
     };
-  }, [updateSpotlight]);
+  }, [updateSpotlight, step]);
 
   useEffect(() => {
     if (!tooltipRef.current) return;
