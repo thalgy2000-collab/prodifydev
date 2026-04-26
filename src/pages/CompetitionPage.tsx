@@ -405,7 +405,7 @@ const CompetitionPage = () => {
         </TabsContent>
 
         {/* TABLE TAB */}
-        <TabsContent value="table" className="mt-6 space-y-4">
+        <TabsContent value="table" className="mt-6 space-y-4" id="competition-table">
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder="Novo critério..."
