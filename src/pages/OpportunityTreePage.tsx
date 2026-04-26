@@ -219,7 +219,7 @@ const OpportunityTreePage = () => {
     setEditingNode(node);
     setEditTitle(node.title);
     setEditDesc(node.description || '');
-    setEditType(node.type);
+    setEditType(resolveType(node.type));
   };
 
   const handleSaveEdit = async () => {
