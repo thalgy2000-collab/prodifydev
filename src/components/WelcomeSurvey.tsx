@@ -98,7 +98,7 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
         job_title: jobTitle,
         pm_experience: experience,
         company_size: companySize,
-        main_goal: mainGoal,
+        main_goal: mainGoals.filter(g => g !== ALL_GOALS_VALUE),
         how_found: howFound,
         survey_completed: true,
         survey_completed_at: new Date().toISOString(),
