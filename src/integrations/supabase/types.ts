@@ -713,6 +713,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           full_name: string | null
+          how_found: string | null
           id: string
           is_active: boolean
           is_admin: boolean | null
@@ -721,6 +722,8 @@ export type Database = {
           main_goal: string | null
           onboarding_completed: boolean
           pm_experience: string | null
+          sector: string | null
+          survey_completed: boolean | null
           survey_completed_at: string | null
           terms_accepted_at: string | null
         }
@@ -733,6 +736,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           full_name?: string | null
+          how_found?: string | null
           id: string
           is_active?: boolean
           is_admin?: boolean | null
@@ -741,6 +745,8 @@ export type Database = {
           main_goal?: string | null
           onboarding_completed?: boolean
           pm_experience?: string | null
+          sector?: string | null
+          survey_completed?: boolean | null
           survey_completed_at?: string | null
           terms_accepted_at?: string | null
         }
@@ -753,6 +759,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           full_name?: string | null
+          how_found?: string | null
           id?: string
           is_active?: boolean
           is_admin?: boolean | null
@@ -761,6 +768,8 @@ export type Database = {
           main_goal?: string | null
           onboarding_completed?: boolean
           pm_experience?: string | null
+          sector?: string | null
+          survey_completed?: boolean | null
           survey_completed_at?: string | null
           terms_accepted_at?: string | null
         }
