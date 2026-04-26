@@ -23,6 +23,42 @@ const ZOOM_MIN = 50;
 const ZOOM_MAX = 150;
 const ZOOM_STEP = 10;
 
+// Map legacy/Portuguese type values to canonical keys
+const TYPE_ALIASES: Record<string, OpportunityNodeType> = {
+  problema: 'outcome',
+  problem: 'outcome',
+  oportunidade: 'opportunity',
+  solucao: 'solution',
+  'solução': 'solution',
+  experimento: 'experiment',
+  metrica: 'outcome',
+  'métrica': 'outcome',
+};
+
+const resolveType = (t: string | undefined | null): OpportunityNodeType => {
+  if (!t) return 'opportunity';
+  if ((NODE_TYPE_CONFIG as Record<string, unknown>)[t]) return t as OpportunityNodeType;
+  return TYPE_ALIASES[t.toLowerCase()] ?? 'opportunity';
+};
+
+class TreeErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error) { console.error('OpportunityTree error:', error); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+          <TreePine className="mb-3 h-10 w-10 text-muted-foreground/50" />
+          <p className="font-medium text-muted-foreground">Erro ao carregar a árvore</p>
+          <p className="mt-1 text-sm text-muted-foreground/70">Tente selecionar outro objetivo.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const TreeNode = ({ node, getChildren, onAdd, onEdit, onDelete }: {
   node: OpportunityNode;
   getChildren: (parentId: string) => OpportunityNode[];
@@ -30,8 +66,10 @@ const TreeNode = ({ node, getChildren, onAdd, onEdit, onDelete }: {
   onEdit: (node: OpportunityNode) => void;
   onDelete: (id: string) => void;
 }) => {
-  const cfg = NODE_TYPE_CONFIG[node.type];
-  const children = getChildren(node.id);
+  if (!node || !node.id) return null;
+  const safeType = resolveType(node.type);
+  const cfg = NODE_TYPE_CONFIG[safeType];
+  const children = (getChildren(node.id) || []).filter(c => c && c.id);
 
   return (
     <div className="flex flex-col items-center">
