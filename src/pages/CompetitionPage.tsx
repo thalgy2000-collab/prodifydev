@@ -310,15 +310,15 @@ const CompetitionPage = () => {
           </h1>
           <p className="text-sm text-muted-foreground">Analise seus concorrentes e alternativas de mercado</p>
         </div>
-        <Button onClick={openCreate} className="gap-2 w-full sm:w-auto">
+        <Button id="add-competitor-btn" onClick={openCreate} className="gap-2 w-full sm:w-auto">
           <Plus className="h-4 w-4" /> Adicionar Concorrente
         </Button>
       </div>
 
-      <Tabs defaultValue="map">
+      <Tabs value={activeTab} onValueChange={v => setActiveTab(v as 'map' | 'table')}>
         <TabsList>
-          <TabsTrigger value="map">Mapa Visual</TabsTrigger>
-          <TabsTrigger value="table">Tabela Comparativa</TabsTrigger>
+          <TabsTrigger id="competition-map-tab" value="map">Mapa Visual</TabsTrigger>
+          <TabsTrigger id="competition-table-tab" value="table">Tabela Comparativa</TabsTrigger>
         </TabsList>
 
         {/* MAP TAB */}
