@@ -270,7 +270,7 @@ const OpportunityTreePage = () => {
     if (e.touches.length < 2) pinchDistRef.current = null;
   };
 
-  const objNodes = selectedObjective ? getNodesByObjective(selectedObjective) : [];
+  const objNodes = (selectedObjective ? getNodesByObjective(selectedObjective) : []).filter(n => n && n.id && n.title);
   const rootNodes = objNodes.filter(n => !n.parentId);
 
   const { TourElement } = useFeatureTour('oportunidades', opportunityTourSteps);
