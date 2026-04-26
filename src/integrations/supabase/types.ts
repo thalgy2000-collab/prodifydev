@@ -707,6 +707,8 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          company: string | null
+          company_size: string | null
           created_at: string
           display_name: string | null
           email: string | null
@@ -714,13 +716,19 @@ export type Database = {
           id: string
           is_active: boolean
           is_admin: boolean | null
+          job_title: string | null
           last_seen_at: string | null
+          main_goal: string | null
           onboarding_completed: boolean
+          pm_experience: string | null
+          survey_completed_at: string | null
           terms_accepted_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          company?: string | null
+          company_size?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -728,13 +736,19 @@ export type Database = {
           id: string
           is_active?: boolean
           is_admin?: boolean | null
+          job_title?: string | null
           last_seen_at?: string | null
+          main_goal?: string | null
           onboarding_completed?: boolean
+          pm_experience?: string | null
+          survey_completed_at?: string | null
           terms_accepted_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          company?: string | null
+          company_size?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
@@ -742,8 +756,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_admin?: boolean | null
+          job_title?: string | null
           last_seen_at?: string | null
+          main_goal?: string | null
           onboarding_completed?: boolean
+          pm_experience?: string | null
+          survey_completed_at?: string | null
           terms_accepted_at?: string | null
         }
         Relationships: []
