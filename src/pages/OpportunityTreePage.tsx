@@ -42,7 +42,10 @@ const resolveType = (t: string | undefined | null): OpportunityNodeType => {
 };
 
 class TreeErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
-  state = { hasError: false };
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
   static getDerivedStateFromError() { return { hasError: true }; }
   componentDidCatch(error: Error) { console.error('OpportunityTree error:', error); }
   render() {
