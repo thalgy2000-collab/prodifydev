@@ -287,12 +287,19 @@ const CompetitionPage = () => {
     return g;
   }, [competitors]);
 
-  const { TourElement } = useFeatureTour('concorrencia', competitionTourSteps);
+  const [activeTab, setActiveTab] = useState<'map' | 'table'>('map');
+  const tourSteps = useMemo(() => competitionTourSteps.map(s => {
+    if (s.selector === '#competition-table-tab' || s.selector === '#competition-table') {
+      return { ...s, before: () => setActiveTab('table') };
+    }
+    return { ...s, before: () => setActiveTab('map') };
+  }), []);
+  const { TourElement } = useFeatureTour('concorrencia', tourSteps);
 
   if (!activeProduct) return null;
 
   return (
-    <div data-tour-feature="comp-map" className="space-y-6">
+    <div id="competition-map" data-tour-feature="comp-map" className="space-y-6">
       {TourElement}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
