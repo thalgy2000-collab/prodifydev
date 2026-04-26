@@ -170,6 +170,13 @@ const OpportunityTreePage = () => {
     }
   }, [searchParams, objectives]);
 
+  // Auto-select first objective when none is selected
+  useEffect(() => {
+    if (objectives && objectives.length > 0 && !selectedObjective) {
+      setSelectedObjective(objectives[0].id);
+    }
+  }, [objectives, selectedObjective]);
+
   // Create dialog
   const [createOpen, setCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
