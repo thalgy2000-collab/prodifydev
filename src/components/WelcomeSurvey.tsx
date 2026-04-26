@@ -163,19 +163,19 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {EXPERIENCE_OPTIONS.map((opt) => (
                       <button
-                        key={opt}
+                        key={opt.value}
                         type="button"
-                        onClick={() => setExperience(opt)}
+                        onClick={() => setExperience(opt.value)}
                         className={cn(
                           'relative text-left p-4 rounded-lg border transition-all',
                           'hover:border-primary/50 hover:bg-muted/40',
-                          experience === opt
+                          experience === opt.value
                             ? 'border-primary bg-primary/10 ring-1 ring-primary'
                             : 'border-border bg-card'
                         )}
                       >
-                        <span className="text-sm font-medium text-foreground">{opt}</span>
-                        {experience === opt && (
+                        <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                        {experience === opt.value && (
                           <Check className="h-4 w-4 text-primary absolute top-3 right-3" />
                         )}
                       </button>
@@ -196,18 +196,18 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
                       <button
                         key={opt.label}
                         type="button"
-                        onClick={() => setCompanySize(opt.label)}
+                        onClick={() => setCompanySize(opt.value)}
                         className={cn(
                           'relative text-left p-4 rounded-lg border transition-all flex items-center gap-3',
                           'hover:border-primary/50 hover:bg-muted/40',
-                          companySize === opt.label
+                          companySize === opt.value
                             ? 'border-primary bg-primary/10 ring-1 ring-primary'
                             : 'border-border bg-card'
                         )}
                       >
                         <span className="text-xl">{opt.icon}</span>
                         <span className="text-sm font-medium text-foreground flex-1">{opt.label}</span>
-                        {companySize === opt.label && (
+                        {companySize === opt.value && (
                           <Check className="h-4 w-4 text-primary" />
                         )}
                       </button>
@@ -222,19 +222,19 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
                   <div className="grid grid-cols-1 gap-2">
                     {GOAL_OPTIONS.map((opt) => (
                       <button
-                        key={opt}
+                        key={opt.label}
                         type="button"
-                        onClick={() => setMainGoal(opt)}
+                        onClick={() => setMainGoal(opt.value)}
                         className={cn(
                           'relative text-left p-4 rounded-lg border transition-all',
                           'hover:border-primary/50 hover:bg-muted/40',
-                          mainGoal === opt
+                          mainGoal === opt.value
                             ? 'border-primary bg-primary/10 ring-1 ring-primary'
                             : 'border-border bg-card'
                         )}
                       >
-                        <span className="text-sm font-medium text-foreground">{opt}</span>
-                        {mainGoal === opt && (
+                        <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                        {mainGoal === opt.value && (
                           <Check className="h-4 w-4 text-primary absolute top-4 right-4" />
                         )}
                       </button>
