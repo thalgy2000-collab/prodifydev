@@ -68,10 +68,10 @@ export const opportunityTourSteps: TourStep[] = [
 ];
 
 export const swotTourSteps: TourStep[] = [
-  { type: 'spotlight', selector: '[data-tour-feature="swot-grid"]', title: 'Quadrante SWOT', description: 'Analise Forças, Fraquezas, Oportunidades e Ameaças.' },
-  { type: 'spotlight', selector: '[data-tour-feature="swot-strengths"]', title: 'Forças', description: 'Liste os pontos fortes internos do produto.' },
-  { type: 'spotlight', selector: '[data-tour-feature="swot-weaknesses"]', title: 'Fraquezas', description: 'Identifique os pontos a melhorar internamente.' },
-  { type: 'spotlight', selector: '[data-tour-feature="swot-external"]', title: 'Oportunidades & Ameaças', description: 'Avalie os fatores externos que impactam o produto.' },
+  { type: 'spotlight', selector: '#swot-strength', title: 'Forças', description: 'Liste os pontos fortes internos do produto.' },
+  { type: 'spotlight', selector: '#swot-weakness', title: 'Fraquezas', description: 'Identifique os pontos a melhorar internamente.' },
+  { type: 'spotlight', selector: '#swot-opportunity', title: 'Oportunidades', description: 'Avalie os fatores externos favoráveis.' },
+  { type: 'spotlight', selector: '#swot-threat', title: 'Ameaças', description: 'Identifique os fatores externos desfavoráveis.' },
 ];
 
 export const competitionTourSteps: TourStep[] = [
