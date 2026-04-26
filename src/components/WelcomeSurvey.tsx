@@ -20,28 +20,28 @@ const JOB_OPTIONS = [
   'Outro',
 ];
 
-const EXPERIENCE_OPTIONS = [
-  'Estou começando agora',
-  'Menos de 1 ano',
-  '1 a 3 anos',
-  '3 a 5 anos',
-  'Mais de 5 anos',
+const EXPERIENCE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'estudante', label: 'Estou começando agora' },
+  { value: 'menos_1_ano', label: 'Menos de 1 ano' },
+  { value: '1_3_anos', label: '1 a 3 anos' },
+  { value: '3_5_anos', label: '3 a 5 anos' },
+  { value: '5_mais_anos', label: 'Mais de 5 anos' },
 ];
 
-const COMPANY_OPTIONS = [
-  { icon: '🚀', label: 'Startup (até 50 pessoas)' },
-  { icon: '📈', label: 'Scaleup (50 a 500 pessoas)' },
-  { icon: '🏢', label: 'Empresa (mais de 500 pessoas)' },
-  { icon: '👤', label: 'Freelancer / Autônomo' },
-  { icon: '🎓', label: 'Estudante / Acadêmico' },
+const COMPANY_OPTIONS: { value: string; icon: string; label: string }[] = [
+  { value: '2-10', icon: '🚀', label: 'Startup (até 50 pessoas)' },
+  { value: '51-200', icon: '📈', label: 'Scaleup (50 a 500 pessoas)' },
+  { value: '1000+', icon: '🏢', label: 'Empresa (mais de 500 pessoas)' },
+  { value: 'solo', icon: '👤', label: 'Freelancer / Autônomo' },
+  { value: '11-50', icon: '🎓', label: 'Estudante / Acadêmico' },
 ];
 
-const GOAL_OPTIONS = [
-  'Organizar meus OKRs',
-  'Gerenciar meu backlog',
-  'Alinhar estratégia e execução',
-  'Melhorar minha priorização',
-  'Aprender sobre gestão de produto',
+const GOAL_OPTIONS: { value: string; label: string }[] = [
+  { value: 'organizar_produto', label: 'Organizar meus OKRs' },
+  { value: 'organizar_produto', label: 'Gerenciar meu backlog' },
+  { value: 'liderar_time', label: 'Alinhar estratégia e execução' },
+  { value: 'portfolio', label: 'Melhorar minha priorização' },
+  { value: 'aprender_pm', label: 'Aprender sobre gestão de produto' },
 ];
 
 const HOW_FOUND_OPTIONS = [
@@ -163,19 +163,19 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {EXPERIENCE_OPTIONS.map((opt) => (
                       <button
-                        key={opt}
+                        key={opt.value}
                         type="button"
-                        onClick={() => setExperience(opt)}
+                        onClick={() => setExperience(opt.value)}
                         className={cn(
                           'relative text-left p-4 rounded-lg border transition-all',
                           'hover:border-primary/50 hover:bg-muted/40',
-                          experience === opt
+                          experience === opt.value
                             ? 'border-primary bg-primary/10 ring-1 ring-primary'
                             : 'border-border bg-card'
                         )}
                       >
-                        <span className="text-sm font-medium text-foreground">{opt}</span>
-                        {experience === opt && (
+                        <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                        {experience === opt.value && (
                           <Check className="h-4 w-4 text-primary absolute top-3 right-3" />
                         )}
                       </button>
@@ -196,18 +196,18 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
                       <button
                         key={opt.label}
                         type="button"
-                        onClick={() => setCompanySize(opt.label)}
+                        onClick={() => setCompanySize(opt.value)}
                         className={cn(
                           'relative text-left p-4 rounded-lg border transition-all flex items-center gap-3',
                           'hover:border-primary/50 hover:bg-muted/40',
-                          companySize === opt.label
+                          companySize === opt.value
                             ? 'border-primary bg-primary/10 ring-1 ring-primary'
                             : 'border-border bg-card'
                         )}
                       >
                         <span className="text-xl">{opt.icon}</span>
                         <span className="text-sm font-medium text-foreground flex-1">{opt.label}</span>
-                        {companySize === opt.label && (
+                        {companySize === opt.value && (
                           <Check className="h-4 w-4 text-primary" />
                         )}
                       </button>
@@ -222,19 +222,19 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
                   <div className="grid grid-cols-1 gap-2">
                     {GOAL_OPTIONS.map((opt) => (
                       <button
-                        key={opt}
+                        key={opt.label}
                         type="button"
-                        onClick={() => setMainGoal(opt)}
+                        onClick={() => setMainGoal(opt.value)}
                         className={cn(
                           'relative text-left p-4 rounded-lg border transition-all',
                           'hover:border-primary/50 hover:bg-muted/40',
-                          mainGoal === opt
+                          mainGoal === opt.value
                             ? 'border-primary bg-primary/10 ring-1 ring-primary'
                             : 'border-border bg-card'
                         )}
                       >
-                        <span className="text-sm font-medium text-foreground">{opt}</span>
-                        {mainGoal === opt && (
+                        <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                        {mainGoal === opt.value && (
                           <Check className="h-4 w-4 text-primary absolute top-4 right-4" />
                         )}
                       </button>
