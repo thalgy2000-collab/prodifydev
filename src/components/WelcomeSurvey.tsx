@@ -109,6 +109,9 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
       toast.error('Erro ao salvar perfil. Tente novamente.');
       return;
     }
+    // Garante que o tour externo apareça após o primeiro cadastro,
+    // mesmo que o navegador já tenha a flag de sessões anteriores.
+    try { localStorage.removeItem('tour_externo'); } catch {}
     toast.success('Perfil configurado! Bem-vindo ao Prodify 🚀');
     onCompleted();
   };
