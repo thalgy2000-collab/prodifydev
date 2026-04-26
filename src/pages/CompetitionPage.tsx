@@ -287,12 +287,19 @@ const CompetitionPage = () => {
     return g;
   }, [competitors]);
 
-  const { TourElement } = useFeatureTour('concorrencia', competitionTourSteps);
+  const [activeTab, setActiveTab] = useState<'map' | 'table'>('map');
+  const tourSteps = useMemo(() => competitionTourSteps.map(s => {
+    if (s.selector === '#competition-table-tab' || s.selector === '#competition-table') {
+      return { ...s, before: () => setActiveTab('table') };
+    }
+    return { ...s, before: () => setActiveTab('map') };
+  }), []);
+  const { TourElement } = useFeatureTour('concorrencia', tourSteps);
 
   if (!activeProduct) return null;
 
   return (
-    <div data-tour-feature="comp-map" className="space-y-6">
+    <div id="competition-map" data-tour-feature="comp-map" className="space-y-6">
       {TourElement}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -303,15 +310,15 @@ const CompetitionPage = () => {
           </h1>
           <p className="text-sm text-muted-foreground">Analise seus concorrentes e alternativas de mercado</p>
         </div>
-        <Button onClick={openCreate} className="gap-2 w-full sm:w-auto">
+        <Button id="add-competitor-btn" onClick={openCreate} className="gap-2 w-full sm:w-auto">
           <Plus className="h-4 w-4" /> Adicionar Concorrente
         </Button>
       </div>
 
-      <Tabs defaultValue="map">
+      <Tabs value={activeTab} onValueChange={v => setActiveTab(v as 'map' | 'table')}>
         <TabsList>
-          <TabsTrigger value="map">Mapa Visual</TabsTrigger>
-          <TabsTrigger value="table">Tabela Comparativa</TabsTrigger>
+          <TabsTrigger id="competition-map-tab" value="map">Mapa Visual</TabsTrigger>
+          <TabsTrigger id="competition-table-tab" value="table">Tabela Comparativa</TabsTrigger>
         </TabsList>
 
         {/* MAP TAB */}
@@ -341,10 +348,11 @@ const CompetitionPage = () => {
                       {list.length === 0 ? (
                         <p className="text-xs text-muted-foreground italic">Nenhum concorrente</p>
                       ) : (
-                        list.map(c => {
+                        list.map((c, idx) => {
                           const threat = c.threat_level ? THREAT_CONFIG[c.threat_level] : null;
+                          const isFirst = type === 'direct' && idx === 0;
                           return (
-                            <div key={c.id} className="rounded-lg border border-border bg-card p-3 space-y-2">
+                            <div key={c.id} {...(isFirst ? { id: 'competitor-card' } : {})} className="rounded-lg border border-border bg-card p-3 space-y-2">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="font-medium text-sm text-foreground">{c.competitor_name}</div>
                                 {threat && (
@@ -397,7 +405,7 @@ const CompetitionPage = () => {
         </TabsContent>
 
         {/* TABLE TAB */}
-        <TabsContent value="table" className="mt-6 space-y-4">
+        <TabsContent value="table" className="mt-6 space-y-4" id="competition-table">
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
               placeholder="Novo critério..."

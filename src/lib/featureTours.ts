@@ -75,11 +75,11 @@ export const swotTourSteps: TourStep[] = [
 ];
 
 export const competitionTourSteps: TourStep[] = [
-  { type: 'spotlight', selector: '[data-tour-feature="comp-map"]', title: 'Mapa de Alternativas', description: 'Visualize seus concorrentes agrupados por tipo.' },
-  { type: 'spotlight', selector: '[data-tour-feature="comp-types"]', title: 'Tipos de concorrentes', description: 'Diretos, Indiretos, Substitutos e Potenciais.' },
-  { type: 'spotlight', selector: '[data-tour-feature="comp-card"]', title: 'Card de concorrente', description: 'Veja pontos fortes, fracos e nível de ameaça.' },
-  { type: 'spotlight', selector: '[data-tour-feature="comp-table"]', title: 'Tabela Comparativa', description: 'Compare concorrentes por critérios e scores de 0 a 10.' },
-  { type: 'spotlight', selector: '[data-tour-feature="comp-add"]', title: 'Adicionar Concorrente', description: 'Cadastre um novo concorrente no mapa.' },
+  { type: 'spotlight', selector: '#competition-map-tab', title: 'Mapa de Alternativas', description: 'Visualize seus concorrentes agrupados por tipo.' },
+  { type: 'spotlight', selector: '#competitor-card', title: 'Card de Concorrente', description: 'Veja pontos fortes, fracos e nível de ameaça.' },
+  { type: 'spotlight', selector: '#competition-table-tab', title: 'Tabela Comparativa', description: 'Compare concorrentes por critérios e scores.' },
+  { type: 'spotlight', selector: '#competition-table', title: 'Scores por Critério', description: 'Avalie cada concorrente de 0 a 10 por critério.' },
+  { type: 'spotlight', selector: '#add-competitor-btn', title: 'Adicionar Concorrente', description: 'Cadastre um novo concorrente no mapa.' },
 ];
 
 export const analyticsTourSteps: TourStep[] = [
