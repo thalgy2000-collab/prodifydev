@@ -20,28 +20,28 @@ const JOB_OPTIONS = [
   'Outro',
 ];
 
-const EXPERIENCE_OPTIONS = [
-  'Estou começando agora',
-  'Menos de 1 ano',
-  '1 a 3 anos',
-  '3 a 5 anos',
-  'Mais de 5 anos',
+const EXPERIENCE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'estudante', label: 'Estou começando agora' },
+  { value: 'menos_1_ano', label: 'Menos de 1 ano' },
+  { value: '1_3_anos', label: '1 a 3 anos' },
+  { value: '3_5_anos', label: '3 a 5 anos' },
+  { value: '5_mais_anos', label: 'Mais de 5 anos' },
 ];
 
-const COMPANY_OPTIONS = [
-  { icon: '🚀', label: 'Startup (até 50 pessoas)' },
-  { icon: '📈', label: 'Scaleup (50 a 500 pessoas)' },
-  { icon: '🏢', label: 'Empresa (mais de 500 pessoas)' },
-  { icon: '👤', label: 'Freelancer / Autônomo' },
-  { icon: '🎓', label: 'Estudante / Acadêmico' },
+const COMPANY_OPTIONS: { value: string; icon: string; label: string }[] = [
+  { value: '2-10', icon: '🚀', label: 'Startup (até 50 pessoas)' },
+  { value: '51-200', icon: '📈', label: 'Scaleup (50 a 500 pessoas)' },
+  { value: '1000+', icon: '🏢', label: 'Empresa (mais de 500 pessoas)' },
+  { value: 'solo', icon: '👤', label: 'Freelancer / Autônomo' },
+  { value: '11-50', icon: '🎓', label: 'Estudante / Acadêmico' },
 ];
 
-const GOAL_OPTIONS = [
-  'Organizar meus OKRs',
-  'Gerenciar meu backlog',
-  'Alinhar estratégia e execução',
-  'Melhorar minha priorização',
-  'Aprender sobre gestão de produto',
+const GOAL_OPTIONS: { value: string; label: string }[] = [
+  { value: 'organizar_produto', label: 'Organizar meus OKRs' },
+  { value: 'organizar_produto', label: 'Gerenciar meu backlog' },
+  { value: 'liderar_time', label: 'Alinhar estratégia e execução' },
+  { value: 'portfolio', label: 'Melhorar minha priorização' },
+  { value: 'aprender_pm', label: 'Aprender sobre gestão de produto' },
 ];
 
 const HOW_FOUND_OPTIONS = [
