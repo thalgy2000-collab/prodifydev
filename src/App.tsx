@@ -12,6 +12,7 @@ import { NotificationBell } from "./components/NotificationBell";
 import AppLayout from "./components/AppLayout";
 import { OnboardingTour } from "./components/OnboardingTour";
 import TermsModal from "./components/TermsModal";
+import WelcomeSurvey from "./components/WelcomeSurvey";
 import { PageViewTracker } from "./components/PageViewTracker";
 import { useProfile } from "./hooks/useProfile";
 import PortfolioPage from "./pages/PortfolioPage";
@@ -188,6 +189,10 @@ const ProtectedRoutes = () => {
 
   if (profile && !profile.termsAcceptedAt) {
     return <TermsModal onAccepted={refetch} />;
+  }
+
+  if (profile && !profile.surveyCompleted) {
+    return <WelcomeSurvey onCompleted={refetch} />;
   }
 
   return (
