@@ -8,6 +8,7 @@ export interface TourStep {
   title: string;
   description: string;
   icon?: React.ReactNode;
+  before?: () => void;
 }
 
 interface Props {
