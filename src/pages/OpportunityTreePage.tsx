@@ -320,26 +320,28 @@ const OpportunityTreePage = () => {
           className="relative"
         >
           <ScrollArea className="w-full">
-            <div
-              style={{
-                transform: `scale(${zoom / 100})`,
-                transformOrigin: 'top center',
-                transition: 'transform 0.2s ease',
-              }}
-            >
-              <div className="flex gap-10 justify-center py-8 px-4 min-w-fit">
-                {rootNodes.map(node => (
-                  <TreeNode
-                    key={node.id}
-                    node={node}
-                    getChildren={getChildren}
-                    onAdd={openAddDialog}
-                    onEdit={openEditDialog}
-                    onDelete={(id) => setDeleteId(id)}
-                  />
-                ))}
+            <TreeErrorBoundary>
+              <div
+                style={{
+                  transform: `scale(${zoom / 100})`,
+                  transformOrigin: 'top center',
+                  transition: 'transform 0.2s ease',
+                }}
+              >
+                <div className="flex gap-10 justify-center py-8 px-4 min-w-fit">
+                  {rootNodes.map(node => (
+                    <TreeNode
+                      key={node.id}
+                      node={node}
+                      getChildren={getChildren}
+                      onAdd={openAddDialog}
+                      onEdit={openEditDialog}
+                      onDelete={(id) => setDeleteId(id)}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            </TreeErrorBoundary>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
 
