@@ -37,12 +37,15 @@ const COMPANY_OPTIONS: { value: string; icon: string; label: string }[] = [
 ];
 
 const GOAL_OPTIONS: { value: string; label: string }[] = [
-  { value: 'organizar_produto', label: 'Organizar meus OKRs' },
-  { value: 'organizar_produto', label: 'Gerenciar meu backlog' },
-  { value: 'liderar_time', label: 'Alinhar estratégia e execução' },
-  { value: 'portfolio', label: 'Melhorar minha priorização' },
+  { value: 'organizar_okrs', label: 'Organizar meus OKRs' },
+  { value: 'gerenciar_backlog', label: 'Gerenciar meu backlog' },
+  { value: 'alinhar_estrategia', label: 'Alinhar estratégia e execução' },
+  { value: 'melhorar_priorizacao', label: 'Melhorar minha priorização' },
   { value: 'aprender_pm', label: 'Aprender sobre gestão de produto' },
 ];
+
+const ALL_GOALS_VALUE = 'todas';
+const ALL_GOAL_VALUES = GOAL_OPTIONS.map(o => o.value);
 
 const HOW_FOUND_OPTIONS = [
   'LinkedIn',
