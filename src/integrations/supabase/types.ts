@@ -719,7 +719,7 @@ export type Database = {
           is_admin: boolean | null
           job_title: string | null
           last_seen_at: string | null
-          main_goal: string | null
+          main_goal: string[] | null
           onboarding_completed: boolean
           pm_experience: string | null
           sector: string | null
@@ -742,7 +742,7 @@ export type Database = {
           is_admin?: boolean | null
           job_title?: string | null
           last_seen_at?: string | null
-          main_goal?: string | null
+          main_goal?: string[] | null
           onboarding_completed?: boolean
           pm_experience?: string | null
           sector?: string | null
@@ -765,7 +765,7 @@ export type Database = {
           is_admin?: boolean | null
           job_title?: string | null
           last_seen_at?: string | null
-          main_goal?: string | null
+          main_goal?: string[] | null
           onboarding_completed?: boolean
           pm_experience?: string | null
           sector?: string | null

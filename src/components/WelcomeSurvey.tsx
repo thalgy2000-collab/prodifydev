@@ -37,12 +37,15 @@ const COMPANY_OPTIONS: { value: string; icon: string; label: string }[] = [
 ];
 
 const GOAL_OPTIONS: { value: string; label: string }[] = [
-  { value: 'organizar_produto', label: 'Organizar meus OKRs' },
-  { value: 'organizar_produto', label: 'Gerenciar meu backlog' },
-  { value: 'liderar_time', label: 'Alinhar estratégia e execução' },
-  { value: 'portfolio', label: 'Melhorar minha priorização' },
+  { value: 'organizar_okrs', label: 'Organizar meus OKRs' },
+  { value: 'gerenciar_backlog', label: 'Gerenciar meu backlog' },
+  { value: 'alinhar_estrategia', label: 'Alinhar estratégia e execução' },
+  { value: 'melhorar_priorizacao', label: 'Melhorar minha priorização' },
   { value: 'aprender_pm', label: 'Aprender sobre gestão de produto' },
 ];
+
+const ALL_GOALS_VALUE = 'todas';
+const ALL_GOAL_VALUES = GOAL_OPTIONS.map(o => o.value);
 
 const HOW_FOUND_OPTIONS = [
   'LinkedIn',
@@ -66,11 +69,25 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
   const [jobTitle, setJobTitle] = useState('');
   const [experience, setExperience] = useState('');
   const [companySize, setCompanySize] = useState('');
-  const [mainGoal, setMainGoal] = useState('');
+  const [mainGoals, setMainGoals] = useState<string[]>([]);
   const [howFound, setHowFound] = useState('');
 
   const canNext = jobTitle && experience;
-  const canFinish = companySize && mainGoal && howFound;
+  const canFinish = companySize && mainGoals.length > 0 && howFound;
+
+  const toggleGoal = (value: string) => {
+    if (value === ALL_GOALS_VALUE) {
+      setMainGoals(prev =>
+        prev.includes(ALL_GOALS_VALUE) ? [] : [...ALL_GOAL_VALUES, ALL_GOALS_VALUE]
+      );
+      return;
+    }
+    setMainGoals(prev =>
+      prev.includes(value)
+        ? prev.filter(g => g !== value && g !== ALL_GOALS_VALUE)
+        : [...prev.filter(g => g !== ALL_GOALS_VALUE), value]
+    );
+  };
 
   const handleSubmit = async () => {
     if (!user || !canFinish) return;
@@ -81,7 +98,7 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
         job_title: jobTitle,
         pm_experience: experience,
         company_size: companySize,
-        main_goal: mainGoal,
+        main_goal: mainGoals.filter(g => g !== ALL_GOALS_VALUE),
         how_found: howFound,
         survey_completed: true,
         survey_completed_at: new Date().toISOString(),
@@ -219,22 +236,23 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
                   <Label className="text-base font-medium">
                     Qual é o seu principal objetivo com o Prodify?
                   </Label>
+                  <p className="text-xs text-muted-foreground">Você pode selecionar mais de uma opção</p>
                   <div className="grid grid-cols-1 gap-2">
-                    {GOAL_OPTIONS.map((opt) => (
+                    {[...GOAL_OPTIONS, { value: ALL_GOALS_VALUE, label: 'Todas elas' }].map((opt) => (
                       <button
-                        key={opt.label}
+                        key={opt.value}
                         type="button"
-                        onClick={() => setMainGoal(opt.value)}
+                        onClick={() => toggleGoal(opt.value)}
                         className={cn(
                           'relative text-left p-4 rounded-lg border transition-all',
                           'hover:border-primary/50 hover:bg-muted/40',
-                          mainGoal === opt.value
+                          mainGoals.includes(opt.value)
                             ? 'border-primary bg-primary/10 ring-1 ring-primary'
                             : 'border-border bg-card'
                         )}
                       >
                         <span className="text-sm font-medium text-foreground">{opt.label}</span>
-                        {mainGoal === opt.value && (
+                        {mainGoals.includes(opt.value) && (
                           <Check className="h-4 w-4 text-primary absolute top-4 right-4" />
                         )}
                       </button>
