@@ -69,11 +69,25 @@ const WelcomeSurvey = ({ onCompleted }: Props) => {
   const [jobTitle, setJobTitle] = useState('');
   const [experience, setExperience] = useState('');
   const [companySize, setCompanySize] = useState('');
-  const [mainGoal, setMainGoal] = useState('');
+  const [mainGoals, setMainGoals] = useState<string[]>([]);
   const [howFound, setHowFound] = useState('');
 
   const canNext = jobTitle && experience;
-  const canFinish = companySize && mainGoal && howFound;
+  const canFinish = companySize && mainGoals.length > 0 && howFound;
+
+  const toggleGoal = (value: string) => {
+    if (value === ALL_GOALS_VALUE) {
+      setMainGoals(prev =>
+        prev.includes(ALL_GOALS_VALUE) ? [] : [...ALL_GOAL_VALUES, ALL_GOALS_VALUE]
+      );
+      return;
+    }
+    setMainGoals(prev =>
+      prev.includes(value)
+        ? prev.filter(g => g !== value && g !== ALL_GOALS_VALUE)
+        : [...prev.filter(g => g !== ALL_GOALS_VALUE), value]
+    );
+  };
 
   const handleSubmit = async () => {
     if (!user || !canFinish) return;
