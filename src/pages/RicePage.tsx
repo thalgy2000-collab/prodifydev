@@ -3,17 +3,33 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 import { useRiceStore } from '@/hooks/useRiceStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
+import { useOKRStore } from '@/hooks/useOKRStore';
+import { useProduct } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
-import { calcRiceScore, IMPACT_OPTIONS, CONFIDENCE_OPTIONS } from '@/types/rice';
+import { calcRiceScore, IMPACT_OPTIONS, CONFIDENCE_OPTIONS, mapAiImpact, mapAiConfidence } from '@/types/rice';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2 } from 'lucide-react';
+import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2, Sparkles, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { supabase } from '@/integrations/supabase/client';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { riceTourSteps } from '@/lib/featureTours';
+
+interface AiSuggestion {
+  reach: number;
+  impact: number;
+  confidence: number;
+  effort: number;
+  justificativas: {
+    reach: string;
+    impact: string;
+    confidence: string;
+    effort: string;
+  };
+}
 
 const RicePage = () => {
   const { scores, setScore, getScore, deleteScore } = useRiceStore();
