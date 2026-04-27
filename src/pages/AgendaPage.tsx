@@ -374,7 +374,7 @@ const AgendaPage = () => {
                         )}
                       </div>
                       <button
-                        onClick={(e) => { e.stopPropagation(); deleteActivity(act.id); }}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(act.id); }}
                         className="shrink-0 opacity-60 hover:opacity-100"
                       >
                         <Trash2 className="h-3 w-3" />
