@@ -422,7 +422,7 @@ const AgendaPage = () => {
               onCreateEvent={() => openCreate(format(selectedDate, 'yyyy-MM-dd'))}
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
-              onDeleteEvent={deleteActivity}
+              onDeleteEvent={handleDelete}
               getProductInfo={getProductInfo}
               isTaskActivity={isTaskActivity}
             />
