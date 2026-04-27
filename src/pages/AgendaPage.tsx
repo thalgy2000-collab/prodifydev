@@ -231,6 +231,31 @@ const AgendaPage = () => {
                 Criar
               </Button>
             </DialogTrigger>
+            {/* Google Calendar connect / disconnect */}
+            {!gcal.connected ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden md:inline-flex gap-1.5"
+                onClick={gcal.connect}
+                disabled={gcal.loading}
+              >
+                <Link2 className="h-4 w-4" />
+                Conectar Google
+              </Button>
+            ) : (
+              <div className="hidden md:inline-flex items-center gap-1">
+                <Badge variant="secondary" className="text-[10px] gap-1" title={gcal.email || ''}>
+                  <CalendarDays className="h-3 w-3" /> Google: {gcal.email || 'conectado'}
+                </Badge>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={gcal.refresh} title="Atualizar eventos">
+                  <RefreshCw className={cn("h-4 w-4", gcal.loading && "animate-spin")} />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={gcal.disconnect} title="Desconectar">
+                  <Unlink className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <DialogContent className="md:max-w-lg max-w-full w-full md:rounded-lg rounded-t-2xl md:bottom-auto md:top-[50%] md:translate-y-[-50%] bottom-0 top-auto translate-y-0 md:max-h-[85vh] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingActivity ? 'Editar Atividade' : 'Nova Atividade'}</DialogTitle>
