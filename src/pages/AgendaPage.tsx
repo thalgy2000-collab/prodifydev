@@ -99,6 +99,10 @@ const AgendaPage = () => {
   };
 
   const openEdit = (act: ScheduleActivity) => {
+    if (isGoogleEventId(act.id)) {
+      toast.info('Eventos do Google Calendar são somente leitura.');
+      return;
+    }
     setEditingActivity(act);
     setTitle(act.title);
     setDesc(act.description);
@@ -129,7 +133,16 @@ const AgendaPage = () => {
   };
 
   const toggleStatus = (act: ScheduleActivity) => {
+    if (isGoogleEventId(act.id)) return;
     updateActivity(act.id, { status: act.status === 'pending' ? 'done' : 'pending' });
+  };
+
+  const handleDelete = (id: string) => {
+    if (isGoogleEventId(id)) {
+      toast.info('Eventos do Google Calendar não podem ser removidos daqui.');
+      return;
+    }
+    deleteActivity(id);
   };
 
   // Calendar grid for month view
