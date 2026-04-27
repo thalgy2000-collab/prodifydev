@@ -1,1 +1,4 @@
 project_id = "lyfvpwnrseavtxlmlzis"
+
+[functions.suggest-rice-scores]
+verify_jwt = false
