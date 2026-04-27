@@ -53,10 +53,10 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const apiKey = Deno.env.get('GOOGLE_API_KEY') || Deno.env.get('GEMINI_API_KEY');
+    const apiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: 'GOOGLE_API_KEY não configurada' }),
+        JSON.stringify({ error: 'LOVABLE_API_KEY não configurada' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
@@ -81,28 +81,45 @@ ${(body.history || []).length === 0 ? '(sem histórico)' : (body.history || []).
 
 Sugira valores RICE coerentes com o contexto e o histórico acima.`;
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    const geminiResp = await fetch(geminiUrl, {
+    const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.4 },
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.4,
       }),
     });
 
-    if (!geminiResp.ok) {
-      const errText = await geminiResp.text();
-      console.error('Gemini error:', geminiResp.status, errText);
+    if (!aiResp.ok) {
+      const errText = await aiResp.text();
+      console.error('AI Gateway error:', aiResp.status, errText);
+      if (aiResp.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Limite de uso da IA atingido. Tente novamente em instantes.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      if (aiResp.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Créditos de IA esgotados. Adicione saldo em Settings → Cloud & AI balance.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
       return new Response(
-        JSON.stringify({ error: `Falha na IA (${geminiResp.status})`, details: errText }),
+        JSON.stringify({ error: `Falha na IA (${aiResp.status})`, details: errText }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    const data = await geminiResp.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const data = await aiResp.json();
+    const text = data?.choices?.[0]?.message?.content || '';
     let parsed: any;
     try {
       parsed = JSON.parse(text);
