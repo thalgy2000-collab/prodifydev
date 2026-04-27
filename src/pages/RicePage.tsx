@@ -3,25 +3,46 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 import { useRiceStore } from '@/hooks/useRiceStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
+import { useOKRStore } from '@/hooks/useOKRStore';
+import { useProduct } from '@/contexts/ProductContext';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
-import { calcRiceScore, IMPACT_OPTIONS, CONFIDENCE_OPTIONS } from '@/types/rice';
+import { calcRiceScore, IMPACT_OPTIONS, CONFIDENCE_OPTIONS, mapAiImpact, mapAiConfidence } from '@/types/rice';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2 } from 'lucide-react';
+import { Calculator, Save, ChevronUp, ChevronDown, ChevronsUpDown, Wand2, Trash2, Sparkles, Loader2 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { supabase } from '@/integrations/supabase/client';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { riceTourSteps } from '@/lib/featureTours';
+
+interface AiSuggestion {
+  reach: number;
+  impact: number;
+  confidence: number;
+  effort: number;
+  justificativas: {
+    reach: string;
+    impact: string;
+    confidence: string;
+    effort: string;
+  };
+}
 
 const RicePage = () => {
   const { scores, setScore, getScore, deleteScore } = useRiceStore();
   const { tasks, updateTask, reorderTasks } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
+  const { objectives } = useOKRStore();
+  const { activeProduct } = useProduct();
   const { toast } = useToast();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
   const [sortConfig, setSortConfig] = usePersistedState<{ field: string; direction: 'asc' | 'desc' } | null>('rice_sort', null);
+  const [loadingAi, setLoadingAi] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
+  const [openSuggestion, setOpenSuggestion] = useState<string | null>(null);
 
   const handleSort = (field: string) => {
     const newConfig = sortConfig?.field === field
@@ -31,9 +52,72 @@ const RicePage = () => {
   };
 
   const allItems = [
-    ...tasks.filter(t => t.status !== 'done').map(t => ({ id: t.id, title: t.title, type: 'task' as const })),
-    ...initiatives.map(i => ({ id: i.id, title: i.title, type: 'initiative' as const })),
+    ...tasks.filter(t => t.status !== 'done').map(t => ({ id: t.id, title: t.title, description: t.description, type: 'task' as const })),
+    ...initiatives.map(i => ({ id: i.id, title: i.title, description: i.description, type: 'initiative' as const })),
   ];
+
+  const handleSuggestAi = async (itemId: string, title: string, description?: string) => {
+    if (!activeProduct) return;
+    setLoadingAi(itemId);
+    try {
+      const keyResults = objectives.flatMap(o => o.keyResults.map(k => ({
+        title: k.title,
+        current_value: k.currentValue,
+        target_value: k.targetValue,
+        unit: k.unit,
+      })));
+      const history = scores.slice(0, 10).map(s => {
+        const t = tasks.find(t => t.id === s.itemId) || initiatives.find(i => i.id === s.itemId);
+        return {
+          title: t?.title || s.itemId,
+          reach: s.reach,
+          impact: s.impact,
+          confidence: s.confidence,
+          effort: s.effort,
+          score: Number(calcRiceScore(s.reach, s.impact, s.confidence, s.effort).toFixed(2)),
+        };
+      });
+
+      const { data, error } = await supabase.functions.invoke('suggest-rice-scores', {
+        body: { title, description, keyResults, history },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setAiSuggestions(prev => ({ ...prev, [itemId]: data as AiSuggestion }));
+      setOpenSuggestion(itemId);
+    } catch (e) {
+      sonnerToast.error('Erro ao gerar sugestão da IA', {
+        description: e instanceof Error ? e.message : 'Tente novamente',
+      });
+    } finally {
+      setLoadingAi(null);
+    }
+  };
+
+  const handleApplySuggestion = async (itemId: string) => {
+    const sug = aiSuggestions[itemId];
+    if (!sug) return;
+    const item = allItems.find(i => i.id === itemId);
+    if (!item) return;
+    const mappedImpact = mapAiImpact(Number(sug.impact));
+    const mappedConfidence = mapAiConfidence(Number(sug.confidence));
+    await setScore(itemId, item.type, {
+      reach: Number(sug.reach) || 0,
+      impact: mappedImpact,
+      confidence: mappedConfidence,
+      effort: Number(sug.effort) || 1,
+      aiSuggested: true,
+    });
+    setPendingScores(prev => {
+      const { [itemId]: _, ...rest } = prev;
+      return rest;
+    });
+    setOpenSuggestion(null);
+    sonnerToast.success('Sugestão da IA aplicada ✨');
+  };
+
+
 
   const ranked = allItems.map(item => {
     const score = getScore(item.id);
@@ -205,9 +289,98 @@ const RicePage = () => {
               </tr>
             </thead>
             <tbody>
-              {sortedItems.map(item => (
+              {sortedItems.map(item => {
+                const savedScore = getScore(item.id);
+                const isAi = !!savedScore?.aiSuggested;
+                const sug = aiSuggestions[item.id];
+                return (
                 <tr key={item.id} className="border-t border-border">
-                  <td className="px-4 py-3 font-medium">{item.title}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <div className="flex items-center gap-2">
+                      <span>{item.title}</span>
+                      <Popover
+                        open={openSuggestion === item.id}
+                        onOpenChange={(o) => setOpenSuggestion(o ? item.id : null)}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+                            disabled={loadingAi === item.id}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (sug) {
+                                setOpenSuggestion(item.id);
+                              } else {
+                                handleSuggestAi(item.id, item.title, item.description);
+                              }
+                            }}
+                          >
+                            {loadingAi === item.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5" />
+                            )}
+                            Sugerir
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-96 p-4" align="start">
+                          {sug ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="h-4 w-4 text-primary" />
+                                <p className="text-sm font-semibold">Sugestão da IA</p>
+                              </div>
+                              <div className="space-y-2 text-xs">
+                                <div className="rounded-md border border-border bg-muted/30 p-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">Alcance</span>
+                                    <span className="font-mono font-bold">{sug.reach}</span>
+                                  </div>
+                                  <p className="mt-1 text-muted-foreground">{sug.justificativas?.reach}</p>
+                                </div>
+                                <div className="rounded-md border border-border bg-muted/30 p-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">Impacto</span>
+                                    <span className="font-mono font-bold">{sug.impact} → {mapAiImpact(Number(sug.impact))}x</span>
+                                  </div>
+                                  <p className="mt-1 text-muted-foreground">{sug.justificativas?.impact}</p>
+                                </div>
+                                <div className="rounded-md border border-border bg-muted/30 p-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">Confiança</span>
+                                    <span className="font-mono font-bold">{sug.confidence}% → {Math.round(mapAiConfidence(Number(sug.confidence)) * 100)}%</span>
+                                  </div>
+                                  <p className="mt-1 text-muted-foreground">{sug.justificativas?.confidence}</p>
+                                </div>
+                                <div className="rounded-md border border-border bg-muted/30 p-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">Esforço</span>
+                                    <span className="font-mono font-bold">{sug.effort}</span>
+                                  </div>
+                                  <p className="mt-1 text-muted-foreground">{sug.justificativas?.effort}</p>
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-2 pt-1">
+                                <Button variant="outline" size="sm" onClick={() => setOpenSuggestion(null)}>Fechar</Button>
+                                <Button size="sm" className="gap-1" onClick={() => handleApplySuggestion(item.id)}>
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                  Aplicar sugestão
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Gerando sugestão...
+                            </div>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{item.type === 'task' ? 'Tarefa' : 'Iniciativa'}</td>
                   <td className="px-4 py-3 text-center">
                     <Input type="number" min={1} placeholder="Ex: 5" className="h-8 w-16 text-center mx-auto"
@@ -231,7 +404,17 @@ const RicePage = () => {
                       value={getValue(item.id, 'effort', item.e) ?? ''}
                       onChange={e => handleFieldChange(item.id, 'effort', e.target.value === '' ? '' : Number(e.target.value))} />
                   </td>
-                  <td className="px-4 py-3 text-center font-mono font-bold">{item.total.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-center font-mono font-bold">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span>{item.total.toFixed(1)}</span>
+                      {isAi && (
+                        <Badge variant="secondary" className="gap-1 px-1.5 py-0 text-[10px] font-normal">
+                          <Sparkles className="h-2.5 w-2.5" />
+                          IA
+                        </Badge>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <Popover>
                       <PopoverTrigger asChild>
@@ -259,7 +442,9 @@ const RicePage = () => {
                     </Popover>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
+
             </tbody>
           </table>
         </div>
