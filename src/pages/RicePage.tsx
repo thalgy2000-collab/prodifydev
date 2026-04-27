@@ -289,9 +289,98 @@ const RicePage = () => {
               </tr>
             </thead>
             <tbody>
-              {sortedItems.map(item => (
+              {sortedItems.map(item => {
+                const savedScore = getScore(item.id);
+                const isAi = !!savedScore?.aiSuggested;
+                const sug = aiSuggestions[item.id];
+                return (
                 <tr key={item.id} className="border-t border-border">
-                  <td className="px-4 py-3 font-medium">{item.title}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <div className="flex items-center gap-2">
+                      <span>{item.title}</span>
+                      <Popover
+                        open={openSuggestion === item.id}
+                        onOpenChange={(o) => setOpenSuggestion(o ? item.id : null)}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+                            disabled={loadingAi === item.id}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (sug) {
+                                setOpenSuggestion(item.id);
+                              } else {
+                                handleSuggestAi(item.id, item.title, item.description);
+                              }
+                            }}
+                          >
+                            {loadingAi === item.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-3.5 w-3.5" />
+                            )}
+                            Sugerir
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-96 p-4" align="start">
+                          {sug ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="h-4 w-4 text-primary" />
+                                <p className="text-sm font-semibold">Sugestão da IA</p>
+                              </div>
+                              <div className="space-y-2 text-xs">
+                                <div className="rounded-md border border-border bg-muted/30 p-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">Alcance</span>
+                                    <span className="font-mono font-bold">{sug.reach}</span>
+                                  </div>
+                                  <p className="mt-1 text-muted-foreground">{sug.justificativas?.reach}</p>
+                                </div>
+                                <div className="rounded-md border border-border bg-muted/30 p-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">Impacto</span>
+                                    <span className="font-mono font-bold">{sug.impact} → {mapAiImpact(Number(sug.impact))}x</span>
+                                  </div>
+                                  <p className="mt-1 text-muted-foreground">{sug.justificativas?.impact}</p>
+                                </div>
+                                <div className="rounded-md border border-border bg-muted/30 p-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">Confiança</span>
+                                    <span className="font-mono font-bold">{sug.confidence}% → {Math.round(mapAiConfidence(Number(sug.confidence)) * 100)}%</span>
+                                  </div>
+                                  <p className="mt-1 text-muted-foreground">{sug.justificativas?.confidence}</p>
+                                </div>
+                                <div className="rounded-md border border-border bg-muted/30 p-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium">Esforço</span>
+                                    <span className="font-mono font-bold">{sug.effort}</span>
+                                  </div>
+                                  <p className="mt-1 text-muted-foreground">{sug.justificativas?.effort}</p>
+                                </div>
+                              </div>
+                              <div className="flex justify-end gap-2 pt-1">
+                                <Button variant="outline" size="sm" onClick={() => setOpenSuggestion(null)}>Fechar</Button>
+                                <Button size="sm" className="gap-1" onClick={() => handleApplySuggestion(item.id)}>
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                  Aplicar sugestão
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Gerando sugestão...
+                            </div>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{item.type === 'task' ? 'Tarefa' : 'Iniciativa'}</td>
                   <td className="px-4 py-3 text-center">
                     <Input type="number" min={1} placeholder="Ex: 5" className="h-8 w-16 text-center mx-auto"
@@ -315,7 +404,17 @@ const RicePage = () => {
                       value={getValue(item.id, 'effort', item.e) ?? ''}
                       onChange={e => handleFieldChange(item.id, 'effort', e.target.value === '' ? '' : Number(e.target.value))} />
                   </td>
-                  <td className="px-4 py-3 text-center font-mono font-bold">{item.total.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-center font-mono font-bold">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <span>{item.total.toFixed(1)}</span>
+                      {isAi && (
+                        <Badge variant="secondary" className="gap-1 px-1.5 py-0 text-[10px] font-normal">
+                          <Sparkles className="h-2.5 w-2.5" />
+                          IA
+                        </Badge>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <Popover>
                       <PopoverTrigger asChild>
@@ -343,7 +442,9 @@ const RicePage = () => {
                     </Popover>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
+
             </tbody>
           </table>
         </div>
