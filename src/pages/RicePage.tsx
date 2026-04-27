@@ -35,9 +35,14 @@ const RicePage = () => {
   const { scores, setScore, getScore, deleteScore } = useRiceStore();
   const { tasks, updateTask, reorderTasks } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
+  const { objectives } = useOKRStore();
+  const { activeProduct } = useProduct();
   const { toast } = useToast();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
   const [sortConfig, setSortConfig] = usePersistedState<{ field: string; direction: 'asc' | 'desc' } | null>('rice_sort', null);
+  const [loadingAi, setLoadingAi] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
+  const [openSuggestion, setOpenSuggestion] = useState<string | null>(null);
 
   const handleSort = (field: string) => {
     const newConfig = sortConfig?.field === field
@@ -47,9 +52,72 @@ const RicePage = () => {
   };
 
   const allItems = [
-    ...tasks.filter(t => t.status !== 'done').map(t => ({ id: t.id, title: t.title, type: 'task' as const })),
-    ...initiatives.map(i => ({ id: i.id, title: i.title, type: 'initiative' as const })),
+    ...tasks.filter(t => t.status !== 'done').map(t => ({ id: t.id, title: t.title, description: t.description, type: 'task' as const })),
+    ...initiatives.map(i => ({ id: i.id, title: i.title, description: i.description, type: 'initiative' as const })),
   ];
+
+  const handleSuggestAi = async (itemId: string, title: string, description?: string) => {
+    if (!activeProduct) return;
+    setLoadingAi(itemId);
+    try {
+      const keyResults = objectives.flatMap(o => o.keyResults.map(k => ({
+        title: k.title,
+        current_value: k.currentValue,
+        target_value: k.targetValue,
+        unit: k.unit,
+      })));
+      const history = scores.slice(0, 10).map(s => {
+        const t = tasks.find(t => t.id === s.itemId) || initiatives.find(i => i.id === s.itemId);
+        return {
+          title: t?.title || s.itemId,
+          reach: s.reach,
+          impact: s.impact,
+          confidence: s.confidence,
+          effort: s.effort,
+          score: Number(calcRiceScore(s.reach, s.impact, s.confidence, s.effort).toFixed(2)),
+        };
+      });
+
+      const { data, error } = await supabase.functions.invoke('suggest-rice-scores', {
+        body: { title, description, keyResults, history },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setAiSuggestions(prev => ({ ...prev, [itemId]: data as AiSuggestion }));
+      setOpenSuggestion(itemId);
+    } catch (e) {
+      sonnerToast.error('Erro ao gerar sugestão da IA', {
+        description: e instanceof Error ? e.message : 'Tente novamente',
+      });
+    } finally {
+      setLoadingAi(null);
+    }
+  };
+
+  const handleApplySuggestion = async (itemId: string) => {
+    const sug = aiSuggestions[itemId];
+    if (!sug) return;
+    const item = allItems.find(i => i.id === itemId);
+    if (!item) return;
+    const mappedImpact = mapAiImpact(Number(sug.impact));
+    const mappedConfidence = mapAiConfidence(Number(sug.confidence));
+    await setScore(itemId, item.type, {
+      reach: Number(sug.reach) || 0,
+      impact: mappedImpact,
+      confidence: mappedConfidence,
+      effort: Number(sug.effort) || 1,
+      aiSuggested: true,
+    });
+    setPendingScores(prev => {
+      const { [itemId]: _, ...rest } = prev;
+      return rest;
+    });
+    setOpenSuggestion(null);
+    sonnerToast.success('Sugestão da IA aplicada ✨');
+  };
+
+
 
   const ranked = allItems.map(item => {
     const score = getScore(item.id);
