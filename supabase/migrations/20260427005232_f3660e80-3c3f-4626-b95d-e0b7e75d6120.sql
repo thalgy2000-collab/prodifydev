@@ -1,0 +1,1 @@
+ALTER TABLE public.rice_scores ADD COLUMN IF NOT EXISTS ai_suggested BOOLEAN NOT NULL DEFAULT false;

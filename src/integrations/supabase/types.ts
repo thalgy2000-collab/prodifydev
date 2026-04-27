@@ -854,6 +854,7 @@ export type Database = {
       }
       rice_scores: {
         Row: {
+          ai_suggested: boolean
           confidence: number
           created_at: string
           effort: number
@@ -866,6 +867,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_suggested?: boolean
           confidence?: number
           created_at?: string
           effort?: number
@@ -878,6 +880,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_suggested?: boolean
           confidence?: number
           created_at?: string
           effort?: number
