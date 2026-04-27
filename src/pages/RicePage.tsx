@@ -43,6 +43,7 @@ const RicePage = () => {
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
   const [openSuggestion, setOpenSuggestion] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = usePersistedState<'all' | 'task' | 'initiative'>('rice_type_filter', 'all');
 
   const handleSort = (field: string) => {
     const newConfig = sortConfig?.field === field
@@ -128,15 +129,17 @@ const RicePage = () => {
     return { ...item, r, i, c, e, total: calcRiceScore(r, i, c, e) };
   });
 
+  const filteredRanked = typeFilter === 'all' ? ranked : ranked.filter(r => r.type === typeFilter);
+
   const sortedItems = sortConfig
-    ? [...ranked].sort((a, b) => {
+    ? [...filteredRanked].sort((a, b) => {
         const valA = a[sortConfig.field as keyof typeof a];
         const valB = b[sortConfig.field as keyof typeof b];
         return sortConfig.direction === 'asc'
           ? Number(valA) - Number(valB)
           : Number(valB) - Number(valA);
       })
-    : ranked;
+    : filteredRanked;
 
 
 
@@ -242,7 +245,34 @@ const RicePage = () => {
         </div>
       </div>
 
-      {ranked.length === 0 ? (
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant={typeFilter === 'all' ? 'default' : 'outline'}
+          onClick={() => setTypeFilter('all')}
+        >
+          Todos
+          <Badge variant="secondary" className="ml-2">{ranked.length}</Badge>
+        </Button>
+        <Button
+          size="sm"
+          variant={typeFilter === 'task' ? 'default' : 'outline'}
+          onClick={() => setTypeFilter('task')}
+        >
+          Tarefas
+          <Badge variant="secondary" className="ml-2">{ranked.filter(r => r.type === 'task').length}</Badge>
+        </Button>
+        <Button
+          size="sm"
+          variant={typeFilter === 'initiative' ? 'default' : 'outline'}
+          onClick={() => setTypeFilter('initiative')}
+        >
+          Iniciativas
+          <Badge variant="secondary" className="ml-2">{ranked.filter(r => r.type === 'initiative').length}</Badge>
+        </Button>
+      </div>
+
+      {sortedItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
           <Calculator className="mb-3 h-10 w-10 text-muted-foreground/50" />
           <p className="font-medium text-muted-foreground">Nenhum item para priorizar</p>
