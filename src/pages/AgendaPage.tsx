@@ -3,6 +3,7 @@ import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useProduct } from '@/contexts/ProductContext';
+import { useGoogleCalendar, isGoogleEventId } from '@/hooks/useGoogleCalendar';
 import { ScheduleActivity, ACTIVITY_STATUS_CONFIG } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card';
 import {
   Plus, ChevronLeft, ChevronRight, Trash2, CheckCircle2, Circle,
-  Clock, CalendarDays, LayoutGrid, List, Pencil,
+  Clock, CalendarDays, LayoutGrid, List, Pencil, Link2, Unlink, RefreshCw,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, isToday, addDays,
