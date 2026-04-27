@@ -3,6 +3,7 @@ import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useProduct } from '@/contexts/ProductContext';
+import { useGoogleCalendar, isGoogleEventId } from '@/hooks/useGoogleCalendar';
 import { ScheduleActivity, ACTIVITY_STATUS_CONFIG } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,8 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card';
 import {
   Plus, ChevronLeft, ChevronRight, Trash2, CheckCircle2, Circle,
-  Clock, CalendarDays, LayoutGrid, List, Pencil,
+  Clock, CalendarDays, LayoutGrid, List, Pencil, Link2, Unlink, RefreshCw,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, isToday, addDays,
@@ -46,10 +48,17 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
 const AgendaPage = () => {
-  const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
+  const { activities: localActivities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
   const { tasks } = useBacklogStore();
   const { products } = useProduct();
+  const gcal = useGoogleCalendar();
+
+  // Merge local activities with read-only Google Calendar events
+  const activities = useMemo(
+    () => [...localActivities, ...gcal.events],
+    [localActivities, gcal.events]
+  );
 
   const getProductInfo = (productId?: string) => {
     if (!productId) return null;
@@ -90,6 +99,10 @@ const AgendaPage = () => {
   };
 
   const openEdit = (act: ScheduleActivity) => {
+    if (isGoogleEventId(act.id)) {
+      toast.info('Eventos do Google Calendar são somente leitura.');
+      return;
+    }
     setEditingActivity(act);
     setTitle(act.title);
     setDesc(act.description);
@@ -120,7 +133,16 @@ const AgendaPage = () => {
   };
 
   const toggleStatus = (act: ScheduleActivity) => {
+    if (isGoogleEventId(act.id)) return;
     updateActivity(act.id, { status: act.status === 'pending' ? 'done' : 'pending' });
+  };
+
+  const handleDelete = (id: string) => {
+    if (isGoogleEventId(id)) {
+      toast.info('Eventos do Google Calendar não podem ser removidos daqui.');
+      return;
+    }
+    deleteActivity(id);
   };
 
   // Calendar grid for month view
@@ -209,6 +231,31 @@ const AgendaPage = () => {
                 Criar
               </Button>
             </DialogTrigger>
+            {/* Google Calendar connect / disconnect */}
+            {!gcal.connected ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden md:inline-flex gap-1.5"
+                onClick={gcal.connect}
+                disabled={gcal.loading}
+              >
+                <Link2 className="h-4 w-4" />
+                Conectar Google
+              </Button>
+            ) : (
+              <div className="hidden md:inline-flex items-center gap-1">
+                <Badge variant="secondary" className="text-[10px] gap-1" title={gcal.email || ''}>
+                  <CalendarDays className="h-3 w-3" /> Google: {gcal.email || 'conectado'}
+                </Badge>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={gcal.refresh} title="Atualizar eventos">
+                  <RefreshCw className={cn("h-4 w-4", gcal.loading && "animate-spin")} />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={gcal.disconnect} title="Desconectar">
+                  <Unlink className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
             <DialogContent className="md:max-w-lg max-w-full w-full md:rounded-lg rounded-t-2xl md:bottom-auto md:top-[50%] md:translate-y-[-50%] bottom-0 top-auto translate-y-0 md:max-h-[85vh] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingActivity ? 'Editar Atividade' : 'Nova Atividade'}</DialogTitle>
@@ -352,7 +399,7 @@ const AgendaPage = () => {
                         )}
                       </div>
                       <button
-                        onClick={(e) => { e.stopPropagation(); deleteActivity(act.id); }}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(act.id); }}
                         className="shrink-0 opacity-60 hover:opacity-100"
                       >
                         <Trash2 className="h-3 w-3" />
@@ -400,7 +447,7 @@ const AgendaPage = () => {
               onCreateEvent={() => openCreate(format(selectedDate, 'yyyy-MM-dd'))}
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
-              onDeleteEvent={deleteActivity}
+              onDeleteEvent={handleDelete}
               getProductInfo={getProductInfo}
               isTaskActivity={isTaskActivity}
             />
