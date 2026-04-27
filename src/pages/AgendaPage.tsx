@@ -48,10 +48,17 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
 const AgendaPage = () => {
-  const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
+  const { activities: localActivities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
   const { tasks } = useBacklogStore();
   const { products } = useProduct();
+  const gcal = useGoogleCalendar();
+
+  // Merge local activities with read-only Google Calendar events
+  const activities = useMemo(
+    () => [...localActivities, ...gcal.events],
+    [localActivities, gcal.events]
+  );
 
   const getProductInfo = (productId?: string) => {
     if (!productId) return null;
