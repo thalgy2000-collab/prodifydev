@@ -238,7 +238,9 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     const patch: Partial<BacklogTask> = {
       title, description, priority,
       initiativeId: initiativeId !== 'none' ? initiativeId : undefined,
-      objectiveId: initiative?.objectiveId, keyResultId: initiative?.keyResultId, storyPoints,
+      objectiveId: objectiveId ?? initiative?.objectiveId,
+      keyResultId: keyResultId ?? initiative?.keyResultId,
+      storyPoints,
       assigneeId: assigneeId !== 'none' ? assigneeId : undefined,
       dueDate: dueDate || undefined,
       dueTime: dueTime || undefined,
