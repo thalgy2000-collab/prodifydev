@@ -160,10 +160,53 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setCompletionPercentage(task.completionPercentage ?? 0);
       setRoadmapImpact(task.roadmapImpact ?? 0);
       setSelectedSprintId('none');
+      setObjectiveId(task.objectiveId);
+      setKeyResultId(task.keyResultId);
+      setSuggestion(null);
       fetchByTask(task.id);
       loadRoadmapItemTask(task.id);
     }
   }, [task, fetchByTask, loadRoadmapItemTask]);
+
+  const handleSuggestOKR = async () => {
+    if (!title.trim()) { toast.error('Adicione um título à tarefa antes de sugerir.'); return; }
+    if (!objectives || objectives.length === 0) { toast.error('Cadastre OKRs neste produto antes de usar a sugestão.'); return; }
+    setSuggesting(true);
+    try {
+      const payload = {
+        title,
+        description: description || '',
+        objectives: objectives.map(o => ({
+          id: o.id, title: o.title, quarter: o.quarter,
+          keyResults: o.keyResults.map(k => ({ id: k.id, title: k.title, unit: k.unit })),
+        })),
+      };
+      const { data, error } = await supabase.functions.invoke('suggest-task-okr-link', { body: payload });
+      if (error) throw error;
+      if (!data || (!data.objective_id && !data.key_result_id)) {
+        toast.info('A IA não encontrou um OKR claramente relevante para esta tarefa.');
+        return;
+      }
+      setSuggestion(data);
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao sugerir OKR');
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  const applySuggestion = () => {
+    if (!suggestion) return;
+    setObjectiveId(suggestion.objective_id || undefined);
+    setKeyResultId(suggestion.key_result_id || undefined);
+    toast.success('Sugestão aplicada — clique em Salvar para confirmar.');
+    setSuggestion(null);
+  };
+
+  const suggestedObjective = suggestion?.objective_id ? objectives.find(o => o.id === suggestion.objective_id) : null;
+  const suggestedKR = suggestedObjective?.keyResults.find(k => k.id === suggestion?.key_result_id);
+  const currentObjective = objectiveId ? objectives.find(o => o.id === objectiveId) : null;
+  const currentKR = currentObjective?.keyResults.find(k => k.id === keyResultId);
 
   const taskCriteria = task ? getCriteriaForTask(task.id) : [];
 
