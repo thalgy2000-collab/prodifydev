@@ -123,16 +123,30 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
 
   return (
     <div className="space-y-3 pt-2 border-t border-border">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Label className="flex items-center gap-2 text-base">
           <ClipboardCheck className="h-4 w-4" />
           Critérios de Aceite
         </Label>
-        {progress && (
-          <span className="text-xs font-medium text-muted-foreground">
-            {progress.done}/{progress.total} concluídos
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {progress && (
+            <span className="text-xs font-medium text-muted-foreground">
+              {progress.done}/{progress.total} concluídos
+            </span>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={handleGenerateAI}
+            disabled={generating}
+            title="Gerar critérios com IA a partir do título e descrição"
+          >
+            {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {generating ? 'Gerando...' : 'Gerar com IA'}
+          </Button>
+        </div>
       </div>
 
       {progress && (
