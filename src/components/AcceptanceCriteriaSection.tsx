@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, Pencil, Check, X, ClipboardCheck } from 'lucide-react';
+import { Plus, Trash2, Pencil, Check, X, ClipboardCheck, Sparkles, Loader2 } from 'lucide-react';
 import CriterionSchedulePopover from '@/components/CriterionSchedulePopover';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -19,9 +21,11 @@ interface AcceptanceCriteriaSectionProps {
   addCriterion: (taskId: string, title: string) => Promise<void>;
   updateCriterion: (id: string, patch: any, taskId: string) => Promise<void>;
   deleteCriterion: (id: string, taskId: string) => Promise<void>;
+  taskTitle?: string;
+  taskDescription?: string;
 }
 
-const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion }: AcceptanceCriteriaSectionProps) => {
+const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion, taskTitle, taskDescription }: AcceptanceCriteriaSectionProps) => {
   const { user } = useAuth();
   const { activeProduct } = useProduct();
   const { addActivity } = useScheduleStore();
@@ -29,6 +33,30 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
   const [newCriterionTitle, setNewCriterionTitle] = useState('');
   const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
   const [editingCriterionTitle, setEditingCriterionTitle] = useState('');
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerateAI = async () => {
+    const title = (taskTitle || '').trim();
+    if (!title) { toast.error('Adicione um título à tarefa antes de gerar.'); return; }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-acceptance-criteria', {
+        body: { title, description: taskDescription || '' },
+      });
+      if (error) throw error;
+      const items: string[] = (data as any)?.criteria || [];
+      if (!items.length) { toast.error('A IA não retornou critérios. Tente novamente.'); return; }
+      for (const item of items) {
+        await addCriterion(taskId, item);
+      }
+      toast.success(`${items.length} critérios gerados pela IA`);
+    } catch (e: any) {
+      const msg = e?.message || 'Erro ao gerar critérios';
+      toast.error(msg);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const progress = criteria.length > 0
     ? { done: criteria.filter(c => c.completed).length, total: criteria.length }
@@ -95,16 +123,30 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
 
   return (
     <div className="space-y-3 pt-2 border-t border-border">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Label className="flex items-center gap-2 text-base">
           <ClipboardCheck className="h-4 w-4" />
           Critérios de Aceite
         </Label>
-        {progress && (
-          <span className="text-xs font-medium text-muted-foreground">
-            {progress.done}/{progress.total} concluídos
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {progress && (
+            <span className="text-xs font-medium text-muted-foreground">
+              {progress.done}/{progress.total} concluídos
+            </span>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={handleGenerateAI}
+            disabled={generating}
+            title="Gerar critérios com IA a partir do título e descrição"
+          >
+            {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {generating ? 'Gerando...' : 'Gerar com IA'}
+          </Button>
+        </div>
       </div>
 
       {progress && (
