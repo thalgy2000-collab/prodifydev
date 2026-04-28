@@ -469,6 +469,49 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
         </div>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={!!suggestion} onOpenChange={(o) => { if (!o) setSuggestion(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" /> Sugestão de vínculo com OKR
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3 pt-2 text-sm">
+              {suggestedObjective ? (
+                <div className="rounded-md border border-border p-3 space-y-1">
+                  <div><span className="text-muted-foreground">Objetivo:</span> <span className="font-medium text-foreground">{suggestedObjective.title}</span></div>
+                  {suggestedKR && <div><span className="text-muted-foreground">Key Result:</span> <span className="font-medium text-foreground">{suggestedKR.title}</span></div>}
+                </div>
+              ) : (
+                <div className="text-muted-foreground">A IA não encontrou um objetivo claramente relevante.</div>
+              )}
+              {suggestion?.rationale && (
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-1">Justificativa</div>
+                  <div className="text-foreground">{suggestion.rationale}</div>
+                </div>
+              )}
+              {typeof suggestion?.confidence === 'number' && (
+                <div className="text-xs text-muted-foreground">
+                  Confiança: <span className="font-medium text-foreground">{Math.round((suggestion.confidence || 0) * 100)}%</span>
+                </div>
+              )}
+              <div className="text-xs text-muted-foreground border-t border-border pt-2">
+                Nada será persistido até você clicar em <span className="font-medium text-foreground">Salvar</span> na tarefa.
+              </div>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="gap-1.5"><X className="h-3.5 w-3.5" /> Rejeitar</AlertDialogCancel>
+          <AlertDialogAction onClick={applySuggestion} disabled={!suggestion?.objective_id} className="gap-1.5">
+            <Check className="h-3.5 w-3.5" /> Aplicar sugestão
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
