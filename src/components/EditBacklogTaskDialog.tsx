@@ -293,6 +293,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     : null;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0"><DialogTitle>Editar Tarefa</DialogTitle></DialogHeader>
