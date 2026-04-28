@@ -578,6 +578,44 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <AlertDialog open={!!impactSuggestion} onOpenChange={(o) => { if (!o) setImpactSuggestion(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" /> Sugestão de impacto na iniciativa
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3 pt-2 text-sm">
+              <div className="rounded-md border border-border p-3 flex items-baseline gap-2">
+                <span className="text-3xl font-semibold text-foreground">{impactSuggestion?.impact ?? 0}%</span>
+                <span className="text-xs text-muted-foreground">de impacto estimado na conclusão da iniciativa</span>
+              </div>
+              {impactSuggestion?.rationale && (
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-1">Justificativa</div>
+                  <div className="text-foreground">{impactSuggestion.rationale}</div>
+                </div>
+              )}
+              {typeof impactSuggestion?.confidence === 'number' && (
+                <div className="text-xs text-muted-foreground">
+                  Confiança: <span className="font-medium text-foreground">{Math.round((impactSuggestion.confidence || 0) * 100)}%</span>
+                </div>
+              )}
+              <div className="text-xs text-muted-foreground border-t border-border pt-2">
+                Nada será persistido até você clicar em <span className="font-medium text-foreground">Salvar</span> na tarefa.
+              </div>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="gap-1.5"><X className="h-3.5 w-3.5" /> Rejeitar</AlertDialogCancel>
+          <AlertDialogAction onClick={applyImpactSuggestion} className="gap-1.5">
+            <Check className="h-3.5 w-3.5" /> Aplicar sugestão
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 };
