@@ -18,8 +18,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Sparkles, Loader2, Check, X, Target } from 'lucide-react';
 import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
+import { useOKRStore } from '@/hooks/useOKRStore';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface MemberOption {
   userId: string;
@@ -60,6 +62,20 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
+
+  // OKR linkage (managed locally; persisted only on Save)
+  const { objectives } = useOKRStore();
+  const [objectiveId, setObjectiveId] = useState<string | undefined>(undefined);
+  const [keyResultId, setKeyResultId] = useState<string | undefined>(undefined);
+
+  // AI suggestion review state
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestion, setSuggestion] = useState<null | {
+    objective_id: string | null;
+    key_result_id: string | null;
+    confidence: number;
+    rationale: string;
+  }>(null);
 
   const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
 
@@ -144,10 +160,53 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setCompletionPercentage(task.completionPercentage ?? 0);
       setRoadmapImpact(task.roadmapImpact ?? 0);
       setSelectedSprintId('none');
+      setObjectiveId(task.objectiveId);
+      setKeyResultId(task.keyResultId);
+      setSuggestion(null);
       fetchByTask(task.id);
       loadRoadmapItemTask(task.id);
     }
   }, [task, fetchByTask, loadRoadmapItemTask]);
+
+  const handleSuggestOKR = async () => {
+    if (!title.trim()) { toast.error('Adicione um título à tarefa antes de sugerir.'); return; }
+    if (!objectives || objectives.length === 0) { toast.error('Cadastre OKRs neste produto antes de usar a sugestão.'); return; }
+    setSuggesting(true);
+    try {
+      const payload = {
+        title,
+        description: description || '',
+        objectives: objectives.map(o => ({
+          id: o.id, title: o.title, quarter: o.quarter,
+          keyResults: o.keyResults.map(k => ({ id: k.id, title: k.title, unit: k.unit })),
+        })),
+      };
+      const { data, error } = await supabase.functions.invoke('suggest-task-okr-link', { body: payload });
+      if (error) throw error;
+      if (!data || (!data.objective_id && !data.key_result_id)) {
+        toast.info('A IA não encontrou um OKR claramente relevante para esta tarefa.');
+        return;
+      }
+      setSuggestion(data);
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao sugerir OKR');
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
+  const applySuggestion = () => {
+    if (!suggestion) return;
+    setObjectiveId(suggestion.objective_id || undefined);
+    setKeyResultId(suggestion.key_result_id || undefined);
+    toast.success('Sugestão aplicada — clique em Salvar para confirmar.');
+    setSuggestion(null);
+  };
+
+  const suggestedObjective = suggestion?.objective_id ? objectives.find(o => o.id === suggestion.objective_id) : null;
+  const suggestedKR = suggestedObjective?.keyResults.find(k => k.id === suggestion?.key_result_id);
+  const currentObjective = objectiveId ? objectives.find(o => o.id === objectiveId) : null;
+  const currentKR = currentObjective?.keyResults.find(k => k.id === keyResultId);
 
   const taskCriteria = task ? getCriteriaForTask(task.id) : [];
 
@@ -179,7 +238,9 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     const patch: Partial<BacklogTask> = {
       title, description, priority,
       initiativeId: initiativeId !== 'none' ? initiativeId : undefined,
-      objectiveId: initiative?.objectiveId, keyResultId: initiative?.keyResultId, storyPoints,
+      objectiveId: objectiveId ?? initiative?.objectiveId,
+      keyResultId: keyResultId ?? initiative?.keyResultId,
+      storyPoints,
       assigneeId: assigneeId !== 'none' ? assigneeId : undefined,
       dueDate: dueDate || undefined,
       dueTime: dueTime || undefined,
@@ -232,6 +293,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     : null;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0"><DialogTitle>Editar Tarefa</DialogTitle></DialogHeader>
@@ -264,6 +326,41 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* OKR Linkage with AI suggestion */}
+          <div className="space-y-2 rounded-md border border-border p-3">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="flex items-center gap-2 text-sm">
+                <Target className="h-4 w-4" />
+                Vínculo com OKR
+              </Label>
+              <div className="flex items-center gap-1">
+                {(objectiveId || keyResultId) && (
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setObjectiveId(undefined); setKeyResultId(undefined); }}>
+                    Remover
+                  </Button>
+                )}
+                <Button
+                  type="button" variant="outline" size="sm"
+                  className="h-7 gap-1.5 text-xs"
+                  onClick={handleSuggestOKR}
+                  disabled={suggesting}
+                  title="Sugerir Objetivo e KR mais relevantes via IA"
+                >
+                  {suggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                  {suggesting ? 'Analisando...' : 'Sugerir com IA'}
+                </Button>
+              </div>
+            </div>
+            {currentObjective ? (
+              <div className="space-y-1 text-xs">
+                <div><span className="text-muted-foreground">Objetivo:</span> <span className="font-medium">{currentObjective.title}</span></div>
+                {currentKR && <div><span className="text-muted-foreground">KR:</span> <span className="font-medium">{currentKR.title}</span></div>}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Nenhum OKR vinculado. Use "Sugerir com IA" para vincular automaticamente.</p>
+            )}
           </div>
 
           {/* Sprint Section */}
@@ -373,6 +470,49 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
         </div>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={!!suggestion} onOpenChange={(o) => { if (!o) setSuggestion(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" /> Sugestão de vínculo com OKR
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3 pt-2 text-sm">
+              {suggestedObjective ? (
+                <div className="rounded-md border border-border p-3 space-y-1">
+                  <div><span className="text-muted-foreground">Objetivo:</span> <span className="font-medium text-foreground">{suggestedObjective.title}</span></div>
+                  {suggestedKR && <div><span className="text-muted-foreground">Key Result:</span> <span className="font-medium text-foreground">{suggestedKR.title}</span></div>}
+                </div>
+              ) : (
+                <div className="text-muted-foreground">A IA não encontrou um objetivo claramente relevante.</div>
+              )}
+              {suggestion?.rationale && (
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-1">Justificativa</div>
+                  <div className="text-foreground">{suggestion.rationale}</div>
+                </div>
+              )}
+              {typeof suggestion?.confidence === 'number' && (
+                <div className="text-xs text-muted-foreground">
+                  Confiança: <span className="font-medium text-foreground">{Math.round((suggestion.confidence || 0) * 100)}%</span>
+                </div>
+              )}
+              <div className="text-xs text-muted-foreground border-t border-border pt-2">
+                Nada será persistido até você clicar em <span className="font-medium text-foreground">Salvar</span> na tarefa.
+              </div>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="gap-1.5"><X className="h-3.5 w-3.5" /> Rejeitar</AlertDialogCancel>
+          <AlertDialogAction onClick={applySuggestion} disabled={!suggestion?.objective_id} className="gap-1.5">
+            <Check className="h-3.5 w-3.5" /> Aplicar sugestão
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
