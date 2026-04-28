@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.suggest-task-okr-link]
 verify_jwt = false
+
+[functions.suggest-task-impact]
+verify_jwt = false

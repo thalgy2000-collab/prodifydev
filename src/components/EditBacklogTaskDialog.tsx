@@ -68,13 +68,21 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [objectiveId, setObjectiveId] = useState<string | undefined>(undefined);
   const [keyResultId, setKeyResultId] = useState<string | undefined>(undefined);
 
-  // AI suggestion review state
+  // AI suggestion review state (OKR link)
   const [suggesting, setSuggesting] = useState(false);
   const [suggestion, setSuggestion] = useState<null | {
     objective_id: string | null;
     key_result_id: string | null;
     confidence: number;
     rationale: string;
+  }>(null);
+
+  // AI suggestion review state (Roadmap impact)
+  const [suggestingImpact, setSuggestingImpact] = useState(false);
+  const [impactSuggestion, setImpactSuggestion] = useState<null | {
+    impact: number;
+    rationale: string;
+    confidence: number;
   }>(null);
 
   const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
@@ -163,6 +171,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setObjectiveId(task.objectiveId);
       setKeyResultId(task.keyResultId);
       setSuggestion(null);
+      setImpactSuggestion(null);
       fetchByTask(task.id);
       loadRoadmapItemTask(task.id);
     }
@@ -201,6 +210,51 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     setKeyResultId(suggestion.key_result_id || undefined);
     toast.success('Sugestão aplicada — clique em Salvar para confirmar.');
     setSuggestion(null);
+  };
+
+  const handleSuggestImpact = async () => {
+    if (!title.trim()) { toast.error('Adicione um título à tarefa antes de sugerir.'); return; }
+    if (initiativeId === 'none') { toast.error('Vincule esta tarefa a uma iniciativa do roadmap antes de estimar o impacto.'); return; }
+    const initiative = initiatives.find(i => i.id === initiativeId);
+    if (!initiative) { toast.error('Iniciativa não encontrada.'); return; }
+    setSuggestingImpact(true);
+    try {
+      // Fetch sibling tasks for calibration
+      const { data: siblingsRows } = await (supabase as any).from('roadmap_item_tasks')
+        .select('task_id')
+        .eq('roadmap_item_id', initiativeId);
+      const siblingIds = (siblingsRows || []).map((r: any) => r.task_id).filter((id: string) => id !== task?.id);
+      let siblings: any[] = [];
+      if (siblingIds.length > 0) {
+        const { data: tasksData } = await (supabase.from('backlog_tasks') as any)
+          .select('title, story_points, roadmap_impact')
+          .in('id', siblingIds);
+        siblings = tasksData || [];
+      }
+      const payload = {
+        task: { title, description: description || '', story_points: storyPoints },
+        initiative: { title: initiative.title, description: initiative.description || '' },
+        siblings,
+      };
+      const { data, error } = await supabase.functions.invoke('suggest-task-impact', { body: payload });
+      if (error) throw error;
+      if (!data || typeof data.impact !== 'number') {
+        toast.info('A IA não retornou uma estimativa válida.');
+        return;
+      }
+      setImpactSuggestion(data);
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao estimar impacto');
+    } finally {
+      setSuggestingImpact(false);
+    }
+  };
+
+  const applyImpactSuggestion = () => {
+    if (!impactSuggestion) return;
+    setRoadmapImpact(Math.max(0, Math.min(100, impactSuggestion.impact)));
+    toast.success('Impacto aplicado — clique em Salvar para confirmar.');
+    setImpactSuggestion(null);
   };
 
   const suggestedObjective = suggestion?.objective_id ? objectives.find(o => o.id === suggestion.objective_id) : null;
@@ -429,18 +483,30 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               </div>
             </div>
             <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-1.5">
-                <Label>Impacto na Iniciativa</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-xs">
-                      <p>% que essa tarefa representa no progresso da iniciativa vinculada no Roadmap</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label>Impacto na Iniciativa</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p>% que essa tarefa representa no progresso da iniciativa vinculada no Roadmap</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Button
+                  type="button" variant="ghost" size="sm"
+                  className="h-6 gap-1 text-xs px-1.5"
+                  onClick={handleSuggestImpact}
+                  disabled={suggestingImpact || initiativeId === 'none'}
+                  title={initiativeId === 'none' ? 'Vincule a uma iniciativa primeiro' : 'Estimar impacto via IA'}
+                >
+                  {suggestingImpact ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                  IA
+                </Button>
               </div>
               <div className="relative">
                 <Input
@@ -507,6 +573,44 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
         <AlertDialogFooter>
           <AlertDialogCancel className="gap-1.5"><X className="h-3.5 w-3.5" /> Rejeitar</AlertDialogCancel>
           <AlertDialogAction onClick={applySuggestion} disabled={!suggestion?.objective_id} className="gap-1.5">
+            <Check className="h-3.5 w-3.5" /> Aplicar sugestão
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog open={!!impactSuggestion} onOpenChange={(o) => { if (!o) setImpactSuggestion(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" /> Sugestão de impacto na iniciativa
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-3 pt-2 text-sm">
+              <div className="rounded-md border border-border p-3 flex items-baseline gap-2">
+                <span className="text-3xl font-semibold text-foreground">{impactSuggestion?.impact ?? 0}%</span>
+                <span className="text-xs text-muted-foreground">de impacto estimado na conclusão da iniciativa</span>
+              </div>
+              {impactSuggestion?.rationale && (
+                <div>
+                  <div className="text-xs font-medium text-muted-foreground mb-1">Justificativa</div>
+                  <div className="text-foreground">{impactSuggestion.rationale}</div>
+                </div>
+              )}
+              {typeof impactSuggestion?.confidence === 'number' && (
+                <div className="text-xs text-muted-foreground">
+                  Confiança: <span className="font-medium text-foreground">{Math.round((impactSuggestion.confidence || 0) * 100)}%</span>
+                </div>
+              )}
+              <div className="text-xs text-muted-foreground border-t border-border pt-2">
+                Nada será persistido até você clicar em <span className="font-medium text-foreground">Salvar</span> na tarefa.
+              </div>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="gap-1.5"><X className="h-3.5 w-3.5" /> Rejeitar</AlertDialogCancel>
+          <AlertDialogAction onClick={applyImpactSuggestion} className="gap-1.5">
             <Check className="h-3.5 w-3.5" /> Aplicar sugestão
           </AlertDialogAction>
         </AlertDialogFooter>
