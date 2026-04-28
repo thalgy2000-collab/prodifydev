@@ -18,8 +18,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Sparkles, Loader2, Check, X, Target } from 'lucide-react';
 import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
+import { useOKRStore } from '@/hooks/useOKRStore';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface MemberOption {
   userId: string;
@@ -60,6 +62,20 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
+
+  // OKR linkage (managed locally; persisted only on Save)
+  const { objectives } = useOKRStore();
+  const [objectiveId, setObjectiveId] = useState<string | undefined>(undefined);
+  const [keyResultId, setKeyResultId] = useState<string | undefined>(undefined);
+
+  // AI suggestion review state
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestion, setSuggestion] = useState<null | {
+    objective_id: string | null;
+    key_result_id: string | null;
+    confidence: number;
+    rationale: string;
+  }>(null);
 
   const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
 
