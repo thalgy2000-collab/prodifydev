@@ -327,6 +327,41 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             </Select>
           </div>
 
+          {/* OKR Linkage with AI suggestion */}
+          <div className="space-y-2 rounded-md border border-border p-3">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="flex items-center gap-2 text-sm">
+                <Target className="h-4 w-4" />
+                Vínculo com OKR
+              </Label>
+              <div className="flex items-center gap-1">
+                {(objectiveId || keyResultId) && (
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => { setObjectiveId(undefined); setKeyResultId(undefined); }}>
+                    Remover
+                  </Button>
+                )}
+                <Button
+                  type="button" variant="outline" size="sm"
+                  className="h-7 gap-1.5 text-xs"
+                  onClick={handleSuggestOKR}
+                  disabled={suggesting}
+                  title="Sugerir Objetivo e KR mais relevantes via IA"
+                >
+                  {suggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                  {suggesting ? 'Analisando...' : 'Sugerir com IA'}
+                </Button>
+              </div>
+            </div>
+            {currentObjective ? (
+              <div className="space-y-1 text-xs">
+                <div><span className="text-muted-foreground">Objetivo:</span> <span className="font-medium">{currentObjective.title}</span></div>
+                {currentKR && <div><span className="text-muted-foreground">KR:</span> <span className="font-medium">{currentKR.title}</span></div>}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">Nenhum OKR vinculado. Use "Sugerir com IA" para vincular automaticamente.</p>
+            )}
+          </div>
+
           {/* Sprint Section */}
           <div className="space-y-2">
             <Label>Sprint</Label>
