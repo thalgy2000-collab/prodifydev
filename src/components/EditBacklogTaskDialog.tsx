@@ -68,13 +68,21 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [objectiveId, setObjectiveId] = useState<string | undefined>(undefined);
   const [keyResultId, setKeyResultId] = useState<string | undefined>(undefined);
 
-  // AI suggestion review state
+  // AI suggestion review state (OKR link)
   const [suggesting, setSuggesting] = useState(false);
   const [suggestion, setSuggestion] = useState<null | {
     objective_id: string | null;
     key_result_id: string | null;
     confidence: number;
     rationale: string;
+  }>(null);
+
+  // AI suggestion review state (Roadmap impact)
+  const [suggestingImpact, setSuggestingImpact] = useState(false);
+  const [impactSuggestion, setImpactSuggestion] = useState<null | {
+    impact: number;
+    rationale: string;
+    confidence: number;
   }>(null);
 
   const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
