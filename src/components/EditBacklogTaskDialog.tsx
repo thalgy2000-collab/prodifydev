@@ -483,18 +483,30 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               </div>
             </div>
             <div className="flex-1 space-y-2">
-              <div className="flex items-center gap-1.5">
-                <Label>Impacto na Iniciativa</Label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-xs">
-                      <p>% que essa tarefa representa no progresso da iniciativa vinculada no Roadmap</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Label>Impacto na Iniciativa</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        <p>% que essa tarefa representa no progresso da iniciativa vinculada no Roadmap</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Button
+                  type="button" variant="ghost" size="sm"
+                  className="h-6 gap-1 text-xs px-1.5"
+                  onClick={handleSuggestImpact}
+                  disabled={suggestingImpact || initiativeId === 'none'}
+                  title={initiativeId === 'none' ? 'Vincule a uma iniciativa primeiro' : 'Estimar impacto via IA'}
+                >
+                  {suggestingImpact ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                  IA
+                </Button>
               </div>
               <div className="relative">
                 <Input
