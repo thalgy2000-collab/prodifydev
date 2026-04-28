@@ -171,6 +171,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setObjectiveId(task.objectiveId);
       setKeyResultId(task.keyResultId);
       setSuggestion(null);
+      setImpactSuggestion(null);
       fetchByTask(task.id);
       loadRoadmapItemTask(task.id);
     }
