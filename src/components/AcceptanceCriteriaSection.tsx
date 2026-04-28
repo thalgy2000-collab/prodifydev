@@ -21,9 +21,11 @@ interface AcceptanceCriteriaSectionProps {
   addCriterion: (taskId: string, title: string) => Promise<void>;
   updateCriterion: (id: string, patch: any, taskId: string) => Promise<void>;
   deleteCriterion: (id: string, taskId: string) => Promise<void>;
+  taskTitle?: string;
+  taskDescription?: string;
 }
 
-const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion }: AcceptanceCriteriaSectionProps) => {
+const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion, taskTitle, taskDescription }: AcceptanceCriteriaSectionProps) => {
   const { user } = useAuth();
   const { activeProduct } = useProduct();
   const { addActivity } = useScheduleStore();
@@ -31,6 +33,30 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
   const [newCriterionTitle, setNewCriterionTitle] = useState('');
   const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
   const [editingCriterionTitle, setEditingCriterionTitle] = useState('');
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerateAI = async () => {
+    const title = (taskTitle || '').trim();
+    if (!title) { toast.error('Adicione um título à tarefa antes de gerar.'); return; }
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-acceptance-criteria', {
+        body: { title, description: taskDescription || '' },
+      });
+      if (error) throw error;
+      const items: string[] = (data as any)?.criteria || [];
+      if (!items.length) { toast.error('A IA não retornou critérios. Tente novamente.'); return; }
+      for (const item of items) {
+        await addCriterion(taskId, item);
+      }
+      toast.success(`${items.length} critérios gerados pela IA`);
+    } catch (e: any) {
+      const msg = e?.message || 'Erro ao gerar critérios';
+      toast.error(msg);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const progress = criteria.length > 0
     ? { done: criteria.filter(c => c.completed).length, total: criteria.length }
