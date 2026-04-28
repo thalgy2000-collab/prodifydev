@@ -212,6 +212,51 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     setSuggestion(null);
   };
 
+  const handleSuggestImpact = async () => {
+    if (!title.trim()) { toast.error('Adicione um título à tarefa antes de sugerir.'); return; }
+    if (initiativeId === 'none') { toast.error('Vincule esta tarefa a uma iniciativa do roadmap antes de estimar o impacto.'); return; }
+    const initiative = initiatives.find(i => i.id === initiativeId);
+    if (!initiative) { toast.error('Iniciativa não encontrada.'); return; }
+    setSuggestingImpact(true);
+    try {
+      // Fetch sibling tasks for calibration
+      const { data: siblingsRows } = await (supabase as any).from('roadmap_item_tasks')
+        .select('task_id')
+        .eq('roadmap_item_id', initiativeId);
+      const siblingIds = (siblingsRows || []).map((r: any) => r.task_id).filter((id: string) => id !== task?.id);
+      let siblings: any[] = [];
+      if (siblingIds.length > 0) {
+        const { data: tasksData } = await (supabase.from('backlog_tasks') as any)
+          .select('title, story_points, roadmap_impact')
+          .in('id', siblingIds);
+        siblings = tasksData || [];
+      }
+      const payload = {
+        task: { title, description: description || '', story_points: storyPoints },
+        initiative: { title: initiative.title, description: initiative.description || '' },
+        siblings,
+      };
+      const { data, error } = await supabase.functions.invoke('suggest-task-impact', { body: payload });
+      if (error) throw error;
+      if (!data || typeof data.impact !== 'number') {
+        toast.info('A IA não retornou uma estimativa válida.');
+        return;
+      }
+      setImpactSuggestion(data);
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao estimar impacto');
+    } finally {
+      setSuggestingImpact(false);
+    }
+  };
+
+  const applyImpactSuggestion = () => {
+    if (!impactSuggestion) return;
+    setRoadmapImpact(Math.max(0, Math.min(100, impactSuggestion.impact)));
+    toast.success('Impacto aplicado — clique em Salvar para confirmar.');
+    setImpactSuggestion(null);
+  };
+
   const suggestedObjective = suggestion?.objective_id ? objectives.find(o => o.id === suggestion.objective_id) : null;
   const suggestedKR = suggestedObjective?.keyResults.find(k => k.id === suggestion?.key_result_id);
   const currentObjective = objectiveId ? objectives.find(o => o.id === objectiveId) : null;
