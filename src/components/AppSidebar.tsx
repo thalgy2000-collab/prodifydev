@@ -12,17 +12,19 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 
 type Item = { title: string; url: string; tourId?: string };
-type Group = { label: string; icon?: typeof Target; emoji?: string; items: Item[]; tourKey: string };
+type Group = { label: string; icon?: typeof Target; emoji?: string; items: Item[]; tourKey: string; slug: string };
 
 const groups: Group[] = [
   {
     label: 'Planejamento',
     icon: Target,
     tourKey: 'planejamento',
+    slug: 'planejamento',
     items: [
       { title: 'OKRs', url: '/okrs', tourId: 'okrs' },
       { title: 'Roadmap', url: '/roadmap', tourId: 'roadmap' },
       { title: 'Release Planning', url: '/releases' },
+      { title: 'PRD', url: '/prd' },
       { title: 'Agenda', url: '/produto-agenda' },
     ],
   },
@@ -30,23 +32,25 @@ const groups: Group[] = [
     label: 'Discovery',
     icon: Compass,
     tourKey: 'discovery',
+    slug: 'discovery',
     items: [
-      { title: 'PRD', url: '/prd' },
       { title: 'Oportunidades', url: '/oportunidades' },
-      { title: 'SWOT', url: '/swot' },
       { title: 'Concorrência', url: '/concorrencia' },
+      { title: 'SWOT', url: '/swot' },
     ],
   },
   {
     label: 'Priorização',
     icon: Calculator,
     tourKey: 'priorizacao',
+    slug: 'priorizacao',
     items: [{ title: 'RICE', url: '/rice' }],
   },
   {
     label: 'Delivery',
     icon: Rocket,
     tourKey: 'delivery',
+    slug: 'delivery',
     items: [
       { title: 'Backlog', url: '/backlog', tourId: 'backlog' },
       { title: 'Sprints', url: '/sprints', tourId: 'sprints' },
@@ -57,12 +61,14 @@ const groups: Group[] = [
     label: 'Análises',
     icon: BarChart3,
     tourKey: 'analises',
+    slug: 'analises',
     items: [{ title: 'Análises', url: '/analises' }],
   },
   {
     label: 'Membros',
     emoji: '👥',
     tourKey: 'membros',
+    slug: 'membros',
     items: [{ title: 'Membros', url: '/membros' }],
   },
 ];
@@ -88,7 +94,8 @@ export function AppSidebar() {
     } catch {}
   }, [expanded]);
 
-  const isGroupActive = (g: Group) => g.items.some(i => location.pathname === i.url);
+  const isGroupActive = (g: Group) =>
+    location.pathname === `/categoria/${g.slug}` || g.items.some(i => location.pathname === i.url);
   const isActive = (path: string) => location.pathname === path;
 
   const renderGroupIcon = (group: Group, active: boolean) => {
@@ -190,7 +197,7 @@ export function AppSidebar() {
               <HoverCard key={group.label} openDelay={80} closeDelay={120}>
                 <HoverCardTrigger asChild>
                   <button
-                    onClick={() => navigate(group.items[0].url)}
+                    onClick={() => navigate(`/categoria/${group.slug}`)}
                     data-tour={group.items.find(i => i.tourId)?.tourId}
                     data-tour-int={group.tourKey}
                     className={cn(
