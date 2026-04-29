@@ -532,7 +532,10 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             />
           )}
 
-          <Button onClick={handleSave} className="w-full">Salvar</Button>
+        </div>
+        <div className="shrink-0 border-t border-border/50 px-6 py-4 flex justify-end gap-2 bg-background">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={handleSave}>Salvar</Button>
         </div>
       </DialogContent>
     </Dialog>
