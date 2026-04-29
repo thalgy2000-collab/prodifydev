@@ -228,7 +228,7 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Upload className="h-4 w-4 mr-2" />
-          Importar via arquivo
+          Importar arquivo
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
