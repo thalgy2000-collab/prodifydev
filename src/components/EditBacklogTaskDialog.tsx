@@ -349,9 +349,9 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-2 shrink-0"><DialogTitle>Editar Tarefa</DialogTitle></DialogHeader>
-        <div className="space-y-4 pt-2 px-6 overflow-y-auto flex-1 min-h-0 pb-6">
+      <DialogContent className="sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] h-[95vh] sm:h-auto flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-3 shrink-0 border-b border-border/50"><DialogTitle>Editar Tarefa</DialogTitle></DialogHeader>
+        <div className="space-y-4 pt-4 px-6 overflow-y-auto flex-1 min-h-0 pb-4">
           <div className="space-y-2"><Label>Título</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2"><Label>Descrição</Label><Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
           <div className="flex gap-3">
@@ -532,7 +532,10 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             />
           )}
 
-          <Button onClick={handleSave} className="w-full">Salvar</Button>
+        </div>
+        <div className="shrink-0 border-t border-border/50 px-6 py-4 flex justify-end gap-2 bg-background">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={handleSave}>Salvar</Button>
         </div>
       </DialogContent>
     </Dialog>
