@@ -228,7 +228,7 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Upload className="h-4 w-4 mr-2" />
-          Importar via arquivo
+          Importar arquivo
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
@@ -266,22 +266,6 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
                 onChange={handleFile}
               />
             </div>
-
-            <div className="flex items-center gap-2">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">ou cole o texto</span>
-              <div className="h-px flex-1 bg-border" />
-            </div>
-
-            <Textarea
-              value={pastedText}
-              onChange={e => setPastedText(e.target.value)}
-              placeholder="Cole aqui o conteúdo dos seus objetivos para a IA estruturar..."
-              className="min-h-[120px] text-sm"
-            />
-            <Button onClick={handleSubmitText} disabled={!pastedText.trim()}>
-              Analisar texto
-            </Button>
           </div>
         )}
 

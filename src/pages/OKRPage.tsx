@@ -3,6 +3,7 @@ import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
 import ImportOKRDialog from '@/components/ImportOKRDialog';
+import GenerateOKRWithAIDialog from '@/components/GenerateOKRWithAIDialog';
 import { getCurrentQuarter, OKR_CATEGORIES } from '@/types/okr';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Input } from '@/components/ui/input';
@@ -53,7 +54,8 @@ const OKRPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">OKRs</h1>
           <p className="text-sm text-muted-foreground">Gerencie seus objetivos e resultados-chave</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span data-tour-feature="okr-generate-ai"><GenerateOKRWithAIDialog onImported={refetch} quarter={selectedQuarter} /></span>
           <span data-tour-feature="okr-import"><ImportOKRDialog onImported={refetch} quarter={selectedQuarter} /></span>
           <span data-tour-feature="okr-create"><CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} /></span>
         </div>
