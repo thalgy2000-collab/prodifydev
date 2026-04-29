@@ -222,7 +222,7 @@ export function AppSidebar() {
                     {group.label}
                   </p>
                   <div className="flex flex-col">
-                    {group.items.map(item => (
+                    {group.items.slice(0, 3).map(item => (
                       <button
                         key={item.url}
                         onClick={() => navigate(item.url)}
@@ -237,6 +237,15 @@ export function AppSidebar() {
                         {item.title}
                       </button>
                     ))}
+                  </div>
+                  <div className="mt-1 pt-1 border-t border-border/60">
+                    <button
+                      onClick={() => navigate(`/categoria/${group.slug}`)}
+                      className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm text-primary hover:text-primary/80 hover:underline transition-colors"
+                    >
+                      <span>Ver mais</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
                   </div>
                 </HoverCardContent>
               </HoverCard>
