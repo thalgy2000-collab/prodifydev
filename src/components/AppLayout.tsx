@@ -5,6 +5,7 @@ import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { OnboardingTour, TourStep } from '@/components/OnboardingTour';
 import { PendingInviteBanner } from '@/components/PendingInviteBanner';
 import { NotificationBell } from '@/components/NotificationBell';
+import { CategoryBreadcrumb } from '@/components/CategoryBreadcrumb';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
 import { useProduct } from '@/contexts/ProductContext';
@@ -123,6 +124,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </header>
           <PendingInviteBanner />
+          <CategoryBreadcrumb />
           <main className="flex-1 p-4 sm:p-6 max-w-5xl mx-auto w-full">
             {children}
           </main>
