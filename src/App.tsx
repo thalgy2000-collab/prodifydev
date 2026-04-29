@@ -39,6 +39,7 @@ import ProfilePage from "./pages/ProfilePage";
 import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
+import CategoryPage from "./pages/CategoryPage";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
     <AppLayout>
       <Routes>
         <Route path="/" element={<ProductOverviewPage />} />
+        <Route path="/categoria/:slug" element={<CategoryPage />} />
         <Route path="/okrs" element={<OKRPage />} />
         <Route path="/oportunidades" element={<OpportunityTreePage />} />
         <Route path="/swot" element={<SwotPage />} />
