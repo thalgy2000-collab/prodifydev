@@ -5,12 +5,40 @@ import { useOKRStore } from '@/hooks/useOKRStore';
 import CreateRoadmapDialog from '@/components/CreateRoadmapDialog';
 import EditRoadmapDialog from '@/components/EditRoadmapDialog';
 import { getCurrentQuarter, getQuarterMonths } from '@/types/okr';
-import { RoadmapItem } from '@/types/roadmap';
+import { RoadmapItem, parseDateOnly } from '@/types/roadmap';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Map, Trash2, Link2, Pencil } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { roadmapTourSteps } from '@/lib/featureTours';
+
+/** Returns [leftPct, widthPct] for an item bar within the selected quarter's 3-month grid. */
+const computeBarPosition = (item: RoadmapItem, quarter: string): { left: number; width: number } => {
+  const m = quarter.match(/Q(\d)\s+(\d{4})/);
+  if (!m) return { left: 0, width: 100 };
+  const q = parseInt(m[1]);
+  const year = parseInt(m[2]);
+  const qStart = new Date(year, (q - 1) * 3, 1);
+  const qEnd = new Date(year, (q - 1) * 3 + 3, 1); // exclusive
+  const totalMs = qEnd.getTime() - qStart.getTime();
+
+  const startD = parseDateOnly(item.startDate);
+  const endD = parseDateOnly(item.endDate);
+
+  if (startD && endD) {
+    const s = Math.max(startD.getTime(), qStart.getTime());
+    // include the end day fully
+    const endInclusive = new Date(endD.getFullYear(), endD.getMonth(), endD.getDate() + 1).getTime();
+    const e = Math.min(endInclusive, qEnd.getTime());
+    const left = Math.max(0, ((s - qStart.getTime()) / totalMs) * 100);
+    const width = Math.max(1, ((e - s) / totalMs) * 100);
+    return { left, width: Math.min(100 - left, width) };
+  }
+  // Fallback to month-based positioning
+  const left = (item.startMonth / 3) * 100;
+  const width = ((item.endMonth - item.startMonth + 1) / 3) * 100;
+  return { left, width };
+};
 
 const getProgressColor = (p: number) => {
   if (p >= 100) return 'hsl(var(--success))';
