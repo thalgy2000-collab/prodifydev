@@ -216,6 +216,13 @@ const AnalyticsPage = () => {
         </Card>
       </div>
 
+      <BurndownChart
+        sprints={sprints}
+        tasks={tasks}
+        selectedSprintId={burndownSprintId}
+        onSelectSprint={setBurndownSprintId}
+      />
+
       <Card>
         <CardHeader><CardTitle className="text-base">Tarefas por Status</CardTitle></CardHeader>
         <CardContent className="space-y-3">
