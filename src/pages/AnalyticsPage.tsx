@@ -15,6 +15,7 @@ import { analyticsTourSteps } from '@/lib/featureTours';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
+import { BurndownChart } from '@/components/BurndownChart';
 
 const QUARTER_OPTIONS = (() => {
   const year = new Date().getFullYear();
