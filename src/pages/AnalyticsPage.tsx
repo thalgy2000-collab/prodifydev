@@ -33,6 +33,7 @@ const AnalyticsPage = () => {
   const [sprintFilter, setSprintFilter] = usePersistedState<string>('analytics_sprint', 'all');
   const [assigneeFilter, setAssigneeFilter] = usePersistedState<string>('analytics_assignee', 'all');
   const [statusFilter, setStatusFilter] = usePersistedState<string>('analytics_status', 'all');
+  const [burndownSprintId, setBurndownSprintId] = usePersistedState<string>('analytics_burndown_sprint', 'auto');
 
   const [members, setMembers] = useState<{ userId: string; displayName: string }[]>([]);
 
