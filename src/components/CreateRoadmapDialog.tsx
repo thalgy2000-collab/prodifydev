@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -13,7 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Plus, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { RoadmapItem, RoadmapItemKR, ROADMAP_COLORS, getQuarterFromDate, formatDateOnly, parseDateOnly } from '@/types/roadmap';
+import { RoadmapItem, RoadmapItemKR, ROADMAP_COLORS, formatDateOnly, getQuarterLimits, formatQuarterRange, isDateInQuarter } from '@/types/roadmap';
 import { Objective, OKRCategory } from '@/types/okr';
 
 interface Props {
@@ -22,20 +22,59 @@ interface Props {
   onAdd: (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => void;
 }
 
+const buildQuarterOptions = (current: string): string[] => {
+  const m = current.match(/Q(\d)\s+(\d{4})/);
+  const year = m ? parseInt(m[2]) : new Date().getFullYear();
+  const years = [year - 1, year, year + 1];
+  const opts: string[] = [];
+  years.forEach(y => [1, 2, 3, 4].forEach(q => opts.push(`Q${q} ${y}`)));
+  return opts;
+};
+
 const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
   const [open, setOpen] = useState(false);
+  const [selectedQuarter, setSelectedQuarter] = useState<string>(quarter);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [progress, setProgress] = useState<number>(0);
-  const [category, setCategory] = useState<OKRCategory>('professional');
+  const [category] = useState<OKRCategory>('professional');
   const [objectiveId, setObjectiveId] = useState<string>('');
   const [linkedKRs, setLinkedKRs] = useState<RoadmapItemKR[]>([]);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [color, setColor] = useState(ROADMAP_COLORS[0]);
   const [error, setError] = useState<string | null>(null);
+  const [quarterChangedNotice, setQuarterChangedNotice] = useState(false);
 
-  const selectedObjective = objectives.find(o => o.id === objectiveId);
+  const quarterOptions = useMemo(() => buildQuarterOptions(quarter), [quarter]);
+  const limits = useMemo(() => getQuarterLimits(selectedQuarter), [selectedQuarter]);
+  const rangeLabel = useMemo(() => formatQuarterRange(selectedQuarter), [selectedQuarter]);
+
+  useEffect(() => {
+    if (open) {
+      setSelectedQuarter(quarter);
+      setQuarterChangedNotice(false);
+    }
+  }, [open, quarter]);
+
+  const quarterObjectives = objectives.filter(o => o.quarter === selectedQuarter);
+  const selectedObjective = quarterObjectives.find(o => o.id === objectiveId);
+
+  const handleQuarterChange = (q: string) => {
+    setSelectedQuarter(q);
+    if (startDate || endDate) {
+      setStartDate(undefined);
+      setEndDate(undefined);
+      setQuarterChangedNotice(true);
+    }
+    setObjectiveId('');
+    setLinkedKRs([]);
+    setError(null);
+  };
+
+  const startOutOfRange = !!(startDate && limits && !isDateInQuarter(startDate, selectedQuarter));
+  const endOutOfRange = !!(endDate && limits && !isDateInQuarter(endDate, selectedQuarter));
+  const datesInvalid = !startDate || !endDate || endDate <= startDate || startOutOfRange || endOutOfRange;
 
   const toggleKR = (krId: string) => {
     setLinkedKRs(prev => {
@@ -60,19 +99,22 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
       setError('A data de término deve ser após a data de início');
       return;
     }
+    if (startOutOfRange || endOutOfRange) {
+      setError(`As datas devem estar dentro do ${selectedQuarter} (${rangeLabel})`);
+      return;
+    }
     const status: RoadmapItem['status'] = progress >= 100 ? 'done' : progress > 0 ? 'in_progress' : 'planned';
-    const computedQuarter = getQuarterFromDate(startDate);
     const startMonth = startDate.getMonth() % 3;
     const endMonth = Math.max(startMonth, endDate.getMonth() % 3);
     onAdd({
-      title, description, quarter: computedQuarter, status, progress, category, color,
+      title, description, quarter: selectedQuarter, status, progress, category, color,
       objectiveId: objectiveId && objectiveId !== 'none' ? objectiveId : undefined,
       linkedKRs,
       startMonth, endMonth,
       startDate: formatDateOnly(startDate),
       endDate: formatDateOnly(endDate),
     });
-    setTitle(''); setDescription(''); setProgress(0); setCategory('professional');
+    setTitle(''); setDescription(''); setProgress(0);
     setObjectiveId(''); setLinkedKRs([]);
     setStartDate(undefined); setEndDate(undefined);
     setColor(ROADMAP_COLORS[0]); setOpen(false);
@@ -84,10 +126,21 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
         <Button className="gap-2"><Plus className="h-4 w-4" />Nova Iniciativa</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Nova Iniciativa{startDate ? ` — ${getQuarterFromDate(startDate)}` : quarter ? ` — ${quarter}` : ''}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Nova Iniciativa — {selectedQuarter}</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lançar MVP do produto" value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2"><Label>Descrição</Label><Textarea placeholder="Detalhes da iniciativa..." value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
+
+          <div className="space-y-2">
+            <Label>Quarter</Label>
+            <Select value={selectedQuarter} onValueChange={handleQuarterChange}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {quarterOptions.map(q => <SelectItem key={q} value={q}>{q}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Progresso</Label>
@@ -120,9 +173,20 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className={cn('p-3 pointer-events-auto')} />
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(d) => { setStartDate(d); setQuarterChangedNotice(false); if (d && endDate && endDate <= d) setEndDate(undefined); }}
+                    defaultMonth={startDate || limits?.start}
+                    disabled={limits ? { before: limits.start, after: limits.end } : undefined}
+                    initialFocus
+                    className={cn('p-3 pointer-events-auto')}
+                  />
                 </PopoverContent>
               </Popover>
+              {startOutOfRange && (
+                <p className="text-xs text-destructive">A data de início deve estar dentro do {selectedQuarter} ({rangeLabel})</p>
+              )}
             </div>
             <div className="flex-1 space-y-2">
               <Label>Data de término</Label>
@@ -134,13 +198,28 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus className={cn('p-3 pointer-events-auto')} />
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={(d) => { setEndDate(d); setQuarterChangedNotice(false); }}
+                    defaultMonth={endDate || startDate || limits?.start}
+                    disabled={limits ? { before: startDate || limits.start, after: limits.end } : undefined}
+                    initialFocus
+                    className={cn('p-3 pointer-events-auto')}
+                  />
                 </PopoverContent>
               </Popover>
+              {endOutOfRange && (
+                <p className="text-xs text-destructive">A data de término deve estar dentro do {selectedQuarter} ({rangeLabel})</p>
+              )}
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">📅 {selectedQuarter}: {rangeLabel}</p>
+          {quarterChangedNotice && (
+            <p className="text-xs text-amber-500">Quarter alterado. Por favor, redefina as datas.</p>
+          )}
           {error && <p className="text-xs text-destructive">{error}</p>}
-          {objectives.length > 0 && (
+          {quarterObjectives.length > 0 && (
             <>
               <div className="space-y-2">
                 <Label>Vincular a OKR</Label>
@@ -148,7 +227,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
                   <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Nenhum</SelectItem>
-                    {objectives.map(o => (<SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>))}
+                    {quarterObjectives.map(o => (<SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
@@ -191,7 +270,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
               )}
             </>
           )}
-          <Button onClick={handleSubmit} className="w-full">Criar Iniciativa</Button>
+          <Button onClick={handleSubmit} disabled={datesInvalid || !title.trim()} className="w-full">Criar Iniciativa</Button>
         </div>
       </DialogContent>
     </Dialog>

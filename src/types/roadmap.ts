@@ -47,6 +47,31 @@ export const parseDateOnly = (s?: string | null): Date | null => {
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
 };
 
+export const getQuarterLimits = (quarter: string): { start: Date; end: Date } | null => {
+  const m = quarter.match(/Q(\d)\s+(\d{4})/);
+  if (!m) return null;
+  const q = parseInt(m[1]);
+  const year = parseInt(m[2]);
+  const startMonth = (q - 1) * 3;
+  const start = new Date(year, startMonth, 1);
+  const end = new Date(year, startMonth + 3, 0); // last day of last month in quarter
+  return { start, end };
+};
+
+export const formatQuarterRange = (quarter: string): string => {
+  const limits = getQuarterLimits(quarter);
+  if (!limits) return '';
+  const fmt = (d: Date) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  return `${fmt(limits.start)} até ${fmt(limits.end)}`;
+};
+
+export const isDateInQuarter = (date: Date, quarter: string): boolean => {
+  const limits = getQuarterLimits(quarter);
+  if (!limits) return true;
+  const t = date.getTime();
+  return t >= limits.start.getTime() && t <= limits.end.getTime();
+};
+
 export const formatDateOnly = (d: Date): string => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
