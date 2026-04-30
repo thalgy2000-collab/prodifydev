@@ -15,6 +15,7 @@ import { analyticsTourSteps } from '@/lib/featureTours';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
+import { BurndownChart } from '@/components/BurndownChart';
 
 const QUARTER_OPTIONS = (() => {
   const year = new Date().getFullYear();
@@ -32,6 +33,7 @@ const AnalyticsPage = () => {
   const [sprintFilter, setSprintFilter] = usePersistedState<string>('analytics_sprint', 'all');
   const [assigneeFilter, setAssigneeFilter] = usePersistedState<string>('analytics_assignee', 'all');
   const [statusFilter, setStatusFilter] = usePersistedState<string>('analytics_status', 'all');
+  const [burndownSprintId, setBurndownSprintId] = usePersistedState<string>('analytics_burndown_sprint', 'auto');
 
   const [members, setMembers] = useState<{ userId: string; displayName: string }[]>([]);
 
@@ -213,6 +215,13 @@ const AnalyticsPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      <BurndownChart
+        sprints={sprints}
+        tasks={tasks}
+        selectedSprintId={burndownSprintId}
+        onSelectSprint={setBurndownSprintId}
+      />
 
       <Card>
         <CardHeader><CardTitle className="text-base">Tarefas por Status</CardTitle></CardHeader>
