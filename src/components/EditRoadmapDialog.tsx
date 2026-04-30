@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { RoadmapItem, RoadmapItemKR, ROADMAP_COLORS } from '@/types/roadmap';
-import { Objective, OKRCategory, getQuarterMonths } from '@/types/okr';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { RoadmapItem, RoadmapItemKR, ROADMAP_COLORS, getQuarterFromDate, formatDateOnly, parseDateOnly } from '@/types/roadmap';
+import { Objective, OKRCategory } from '@/types/okr';
 
 interface Props {
   item: RoadmapItem;
@@ -25,20 +31,23 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
   const [category, setCategory] = useState<OKRCategory>(item.category);
   const [objectiveId, setObjectiveId] = useState(item.objectiveId || '');
   const [linkedKRs, setLinkedKRs] = useState<RoadmapItemKR[]>(item.linkedKRs || []);
-  const [startMonth, setStartMonth] = useState(item.startMonth);
-  const [endMonth, setEndMonth] = useState(item.endMonth);
+  const [startDate, setStartDate] = useState<Date | undefined>(parseDateOnly(item.startDate) || undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(parseDateOnly(item.endDate) || undefined);
   const [color, setColor] = useState(item.color || ROADMAP_COLORS[0]);
+  const [error, setError] = useState<string | null>(null);
 
-  const months = getQuarterMonths(item.quarter);
-  const quarterObjectives = objectives.filter(o => o.quarter === item.quarter);
+  const currentQuarter = startDate ? getQuarterFromDate(startDate) : item.quarter;
+  const quarterObjectives = objectives.filter(o => o.quarter === currentQuarter);
   const selectedObjective = quarterObjectives.find(o => o.id === objectiveId);
 
   useEffect(() => {
     setTitle(item.title); setDescription(item.description); setProgress(item.progress ?? 0);
     setCategory(item.category); setObjectiveId(item.objectiveId || '');
     setLinkedKRs(item.linkedKRs || []);
-    setStartMonth(item.startMonth); setEndMonth(item.endMonth);
+    setStartDate(parseDateOnly(item.startDate) || undefined);
+    setEndDate(parseDateOnly(item.endDate) || undefined);
     setColor(item.color || ROADMAP_COLORS[0]);
+    setError(null);
   }, [item]);
 
   useEffect(() => {
@@ -63,13 +72,27 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
   };
 
   const handleSubmit = () => {
+    setError(null);
     if (!title.trim()) return;
+    if (!startDate || !endDate) {
+      setError('Datas de início e término são obrigatórias');
+      return;
+    }
+    if (endDate <= startDate) {
+      setError('A data de término deve ser após a data de início');
+      return;
+    }
     const status: RoadmapItem['status'] = progress >= 100 ? 'done' : progress > 0 ? 'in_progress' : 'planned';
+    const computedQuarter = getQuarterFromDate(startDate);
+    const startMonth = startDate.getMonth() % 3;
+    const endMonth = Math.max(startMonth, endDate.getMonth() % 3);
     onSave({
-      ...item, title, description, status, progress, category, color,
+      ...item, title, description, quarter: computedQuarter, status, progress, category, color,
       objectiveId: objectiveId && objectiveId !== 'none' ? objectiveId : undefined,
       linkedKRs,
-      startMonth, endMonth: Math.max(startMonth, endMonth),
+      startMonth, endMonth,
+      startDate: formatDateOnly(startDate),
+      endDate: formatDateOnly(endDate),
     });
     onOpenChange(false);
   };
@@ -103,9 +126,36 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
             </div>
           </div>
           <div className="flex gap-3">
-            <div className="flex-1 space-y-2"><Label>Mês início</Label><Select value={String(startMonth)} onValueChange={(v) => setStartMonth(Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{months.map((m, i) => (<SelectItem key={i} value={String(i)}>{m}</SelectItem>))}</SelectContent></Select></div>
-            <div className="flex-1 space-y-2"><Label>Mês fim</Label><Select value={String(endMonth)} onValueChange={(v) => setEndMonth(Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{months.map((m, i) => (<SelectItem key={i} value={String(i)}>{m}</SelectItem>))}</SelectContent></Select></div>
+            <div className="flex-1 space-y-2">
+              <Label>Data de início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !startDate && 'text-muted-foreground')}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, 'dd/MM/yyyy', { locale: ptBR }) : <span>dd/mm/aaaa</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className={cn('p-3 pointer-events-auto')} />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex-1 space-y-2">
+              <Label>Data de término</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !endDate && 'text-muted-foreground')}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, 'dd/MM/yyyy', { locale: ptBR }) : <span>dd/mm/aaaa</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus className={cn('p-3 pointer-events-auto')} />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
           {quarterObjectives.length > 0 && (
             <>
               <div className="space-y-2">

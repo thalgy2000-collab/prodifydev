@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,9 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { Plus } from 'lucide-react';
-import { RoadmapItem, RoadmapItemKR, ROADMAP_COLORS } from '@/types/roadmap';
-import { Objective, OKRCategory, getQuarterMonths } from '@/types/okr';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Plus, CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { RoadmapItem, RoadmapItemKR, ROADMAP_COLORS, getQuarterFromDate, formatDateOnly, parseDateOnly } from '@/types/roadmap';
+import { Objective, OKRCategory } from '@/types/okr';
 
 interface Props {
   quarter: string;
@@ -25,11 +30,11 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
   const [category, setCategory] = useState<OKRCategory>('professional');
   const [objectiveId, setObjectiveId] = useState<string>('');
   const [linkedKRs, setLinkedKRs] = useState<RoadmapItemKR[]>([]);
-  const [startMonth, setStartMonth] = useState(0);
-  const [endMonth, setEndMonth] = useState(0);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [color, setColor] = useState(ROADMAP_COLORS[0]);
+  const [error, setError] = useState<string | null>(null);
 
-  const months = getQuarterMonths(quarter);
   const selectedObjective = objectives.find(o => o.id === objectiveId);
 
   const toggleKR = (krId: string) => {
@@ -45,17 +50,32 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
   };
 
   const handleSubmit = () => {
+    setError(null);
     if (!title.trim()) return;
+    if (!startDate || !endDate) {
+      setError('Datas de início e término são obrigatórias');
+      return;
+    }
+    if (endDate <= startDate) {
+      setError('A data de término deve ser após a data de início');
+      return;
+    }
     const status: RoadmapItem['status'] = progress >= 100 ? 'done' : progress > 0 ? 'in_progress' : 'planned';
+    const computedQuarter = getQuarterFromDate(startDate);
+    const startMonth = startDate.getMonth() % 3;
+    const endMonth = Math.max(startMonth, endDate.getMonth() % 3);
     onAdd({
-      title, description, quarter, status, progress, category, color,
+      title, description, quarter: computedQuarter, status, progress, category, color,
       objectiveId: objectiveId && objectiveId !== 'none' ? objectiveId : undefined,
       linkedKRs,
-      startMonth, endMonth: Math.max(startMonth, endMonth),
+      startMonth, endMonth,
+      startDate: formatDateOnly(startDate),
+      endDate: formatDateOnly(endDate),
     });
     setTitle(''); setDescription(''); setProgress(0); setCategory('professional');
     setObjectiveId(''); setLinkedKRs([]);
-    setStartMonth(0); setEndMonth(0); setColor(ROADMAP_COLORS[0]); setOpen(false);
+    setStartDate(undefined); setEndDate(undefined);
+    setColor(ROADMAP_COLORS[0]); setOpen(false);
   };
 
   return (
@@ -64,7 +84,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
         <Button className="gap-2"><Plus className="h-4 w-4" />Nova Iniciativa</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Nova Iniciativa — {quarter}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Nova Iniciativa{startDate ? ` — ${getQuarterFromDate(startDate)}` : quarter ? ` — ${quarter}` : ''}</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lançar MVP do produto" value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2"><Label>Descrição</Label><Textarea placeholder="Detalhes da iniciativa..." value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
@@ -90,9 +110,36 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
             </div>
           </div>
           <div className="flex gap-3">
-            <div className="flex-1 space-y-2"><Label>Mês início</Label><Select value={String(startMonth)} onValueChange={(v) => setStartMonth(Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{months.map((m, i) => (<SelectItem key={i} value={String(i)}>{m}</SelectItem>))}</SelectContent></Select></div>
-            <div className="flex-1 space-y-2"><Label>Mês fim</Label><Select value={String(endMonth)} onValueChange={(v) => setEndMonth(Number(v))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{months.map((m, i) => (<SelectItem key={i} value={String(i)}>{m}</SelectItem>))}</SelectContent></Select></div>
+            <div className="flex-1 space-y-2">
+              <Label>Data de início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !startDate && 'text-muted-foreground')}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, 'dd/MM/yyyy', { locale: ptBR }) : <span>dd/mm/aaaa</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className={cn('p-3 pointer-events-auto')} />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="flex-1 space-y-2">
+              <Label>Data de término</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !endDate && 'text-muted-foreground')}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, 'dd/MM/yyyy', { locale: ptBR }) : <span>dd/mm/aaaa</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus className={cn('p-3 pointer-events-auto')} />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
+          {error && <p className="text-xs text-destructive">{error}</p>}
           {objectives.length > 0 && (
             <>
               <div className="space-y-2">

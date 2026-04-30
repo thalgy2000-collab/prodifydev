@@ -1016,6 +1016,7 @@ export type Database = {
           color: string
           created_at: string
           description: string
+          end_date: string | null
           end_month: number
           id: string
           key_result_id: string | null
@@ -1025,6 +1026,7 @@ export type Database = {
           progress: number | null
           progress_updated_at: string
           quarter: string
+          start_date: string | null
           start_month: number
           status: string
           title: string
@@ -1035,6 +1037,7 @@ export type Database = {
           color?: string
           created_at?: string
           description?: string
+          end_date?: string | null
           end_month?: number
           id?: string
           key_result_id?: string | null
@@ -1044,6 +1047,7 @@ export type Database = {
           progress?: number | null
           progress_updated_at?: string
           quarter: string
+          start_date?: string | null
           start_month?: number
           status?: string
           title: string
@@ -1054,6 +1058,7 @@ export type Database = {
           color?: string
           created_at?: string
           description?: string
+          end_date?: string | null
           end_month?: number
           id?: string
           key_result_id?: string | null
@@ -1063,6 +1068,7 @@ export type Database = {
           progress?: number | null
           progress_updated_at?: string
           quarter?: string
+          start_date?: string | null
           start_month?: number
           status?: string
           title?: string
