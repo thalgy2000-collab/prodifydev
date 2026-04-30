@@ -44,7 +44,9 @@ export const useRoadmapStore = () => {
       keyResultId: d.key_result_id ?? undefined,
       krContribution: d.kr_contribution ? Number(d.kr_contribution) : undefined,
       linkedKRs: krsByItemId[d.id] || [],
-      startMonth: d.start_month, endMonth: d.end_month, color: d.color || '#6366f1',
+      startMonth: d.start_month, endMonth: d.end_month,
+      startDate: d.start_date ?? null, endDate: d.end_date ?? null,
+      color: d.color || '#6366f1',
       createdAt: d.created_at,
     })));
   }, [user, activeProduct]);
@@ -76,7 +78,9 @@ export const useRoadmapStore = () => {
       user_id: user.id, product_id: activeProduct.id, title: data.title, description: data.description, quarter: data.quarter,
       status, progress, category: data.category, objective_id: data.objectiveId || null,
       key_result_id: null, kr_contribution: null,
-      start_month: data.startMonth, end_month: data.endMonth, color: data.color || '#6366f1',
+      start_month: data.startMonth, end_month: data.endMonth,
+      start_date: data.startDate || null, end_date: data.endDate || null,
+      color: data.color || '#6366f1',
     }).select('id').single();
 
     if (inserted && data.linkedKRs.length > 0) {
@@ -132,7 +136,9 @@ export const useRoadmapStore = () => {
       title: updated.title, description: updated.description, quarter: updated.quarter,
       status: newStatus, progress: newProgress, category: updated.category, objective_id: updated.objectiveId || null,
       key_result_id: null, kr_contribution: null,
-      start_month: updated.startMonth, end_month: updated.endMonth, color: updated.color || '#6366f1',
+      start_month: updated.startMonth, end_month: updated.endMonth,
+      start_date: updated.startDate || null, end_date: updated.endDate || null,
+      color: updated.color || '#6366f1',
     }).eq('id', updated.id);
 
     await saveLinkedKRs(updated.id, updated.linkedKRs);
