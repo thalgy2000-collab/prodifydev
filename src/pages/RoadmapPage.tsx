@@ -62,7 +62,14 @@ const RoadmapPage = () => {
   };
 
   // Sort by startMonth then endMonth
-  const sorted = [...filtered].sort((a, b) => a.startMonth - b.startMonth || a.endMonth - b.endMonth);
+  const sorted = [...filtered].sort((a, b) => {
+    const aS = parseDateOnly(a.startDate)?.getTime() ?? a.startMonth;
+    const bS = parseDateOnly(b.startDate)?.getTime() ?? b.startMonth;
+    if (aS !== bS) return aS - bS;
+    const aE = parseDateOnly(a.endDate)?.getTime() ?? a.endMonth;
+    const bE = parseDateOnly(b.endDate)?.getTime() ?? b.endMonth;
+    return aE - bE;
+  });
 
   const { TourElement } = useFeatureTour('roadmap', roadmapTourSteps);
 
@@ -109,6 +116,9 @@ const RoadmapPage = () => {
             {sorted.map((item) => {
               const progress = Math.max(0, Math.min(100, item.progress ?? 0));
               const progressColor = getProgressColor(progress);
+              const pos = computeBarPosition(item, selectedQuarter);
+              const startD = parseDateOnly(item.startDate);
+              const endD = parseDateOnly(item.endDate);
               return (
                 <div
                   key={item.id}
@@ -123,8 +133,8 @@ const RoadmapPage = () => {
                   <div
                     className="absolute top-0 bottom-0 flex items-center pointer-events-none"
                     style={{
-                      left: `${(item.startMonth / 3) * 100}%`,
-                      width: `${((item.endMonth - item.startMonth + 1) / 3) * 100}%`,
+                      left: `${pos.left}%`,
+                      width: `${pos.width}%`,
                     }}
                   >
                     <Tooltip>
@@ -174,7 +184,11 @@ const RoadmapPage = () => {
                       <TooltipContent side="top" className="max-w-xs">
                         <p className="font-semibold">{item.title}</p>
                         {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
-                        <p className="text-xs mt-1">{months[item.startMonth]} — {months[item.endMonth]} · {progress}%</p>
+                        <p className="text-xs mt-1">
+                          {startD && endD
+                            ? `${startD.toLocaleDateString('pt-BR')} — ${endD.toLocaleDateString('pt-BR')}`
+                            : `${months[item.startMonth]} — ${months[item.endMonth]}`} · {progress}%
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
