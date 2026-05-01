@@ -507,6 +507,39 @@ export type Database = {
           },
         ]
       }
+      okr_templates: {
+        Row: {
+          category: string
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          objectives: Json
+        }
+        Insert: {
+          category: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          objectives?: Json
+        }
+        Update: {
+          category?: string
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          objectives?: Json
+        }
+        Relationships: []
+      }
       opportunity_nodes: {
         Row: {
           created_at: string
