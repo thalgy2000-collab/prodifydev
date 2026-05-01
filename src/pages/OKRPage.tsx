@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
@@ -17,8 +17,11 @@ const OKRPage = () => {
   const [selectedQuarter, setSelectedQuarter] = usePersistedState('okr_quarter', getCurrentQuarter());
   const [searchText, setSearchText] = useState('');
   const [progressFilter, setProgressFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const dragSourceCategory = useRef<string | null>(null);
 
-  const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress, refetch } = useOKRStore();
+  const { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, reorderObjectives, getObjectivesByQuarter, getObjectiveProgress, refetch } = useOKRStore();
 
   const filtered = getObjectivesByQuarter(selectedQuarter);
 
