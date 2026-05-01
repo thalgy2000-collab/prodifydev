@@ -124,6 +124,21 @@ const OKRPage = () => {
               return acc;
             }, [] as { category: typeof OKR_CATEGORIES[number]; items: typeof filteredAndSearched }[]);
 
+            const dragEnabled = searchText.trim() === '' && progressFilter === 'all';
+
+            const handleDrop = (categoryValue: string, targetId: string, items: typeof filteredAndSearched) => {
+              if (!draggingId || draggingId === targetId) return;
+              if (dragSourceCategory.current !== categoryValue) return;
+              const ids = items.map(i => i.id);
+              const fromIdx = ids.indexOf(draggingId);
+              const toIdx = ids.indexOf(targetId);
+              if (fromIdx < 0 || toIdx < 0) return;
+              const next = [...ids];
+              next.splice(fromIdx, 1);
+              next.splice(toIdx, 0, draggingId);
+              reorderObjectives(next);
+            };
+
             return grouped.map(({ category, items }) => (
               <div key={category.value} className="space-y-4">
                 {items.map(obj => (
@@ -134,6 +149,33 @@ const OKRPage = () => {
                     onUpdateKR={updateKeyResult}
                     onDelete={deleteObjective}
                     onEdit={updateObjective}
+                    dragHandlers={dragEnabled ? {
+                      draggable: true,
+                      isDragging: draggingId === obj.id,
+                      isDragOver: dragOverId === obj.id && draggingId !== obj.id,
+                      onDragStart: (e) => {
+                        setDraggingId(obj.id);
+                        dragSourceCategory.current = category.value;
+                        e.dataTransfer.effectAllowed = 'move';
+                      },
+                      onDragOver: (e) => {
+                        if (dragSourceCategory.current === category.value && draggingId && draggingId !== obj.id) {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                          setDragOverId(obj.id);
+                        }
+                      },
+                      onDrop: (e) => {
+                        e.preventDefault();
+                        handleDrop(category.value, obj.id, items);
+                        setDragOverId(null);
+                      },
+                      onDragEnd: () => {
+                        setDraggingId(null);
+                        setDragOverId(null);
+                        dragSourceCategory.current = null;
+                      },
+                    } : undefined}
                   />
                 ))}
               </div>
