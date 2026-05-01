@@ -159,9 +159,24 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                 </DialogContent>
               </Dialog>
             )}
+
+            {!searchQuery && (
+              <Card
+                onClick={() => setTemplateOpen(true)}
+                className="cursor-pointer border-2 border-dashed transition-colors hover:bg-primary/5"
+                style={{ borderColor: 'hsl(var(--primary) / 0.5)' }}
+              >
+                <CardContent className="p-5 flex flex-col items-center justify-center h-full min-h-[140px] text-primary">
+                  <ClipboardList className="h-8 w-8 mb-2" />
+                  <span className="text-sm font-medium">Usar Template</span>
+                  <span className="text-xs text-muted-foreground mt-1 text-center">Produto + OKRs prontos</span>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </div>
+      <ProductTemplateDialog open={templateOpen} onOpenChange={setTemplateOpen} />
     </div>
   );
 };
