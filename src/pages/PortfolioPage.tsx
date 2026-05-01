@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Trash2, Users, Search, X } from 'lucide-react';
+import { Plus, Trash2, Users, Search, X, ClipboardList } from 'lucide-react';
 import { toast } from 'sonner';
+import ProductTemplateDialog from '@/components/ProductTemplateDialog';
 
 
 const EMOJIS = ['📦', '🚀', '💡', '🎯', '🛒', '📱', '🎨', '⚡', '🔧', '📊', '🌍', '💎'];
@@ -25,6 +26,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const [emoji, setEmoji] = useState('📦');
   const [color, setColor] = useState('#6366f1');
   const [localSearch, setLocalSearch] = useState('');
+  const [templateOpen, setTemplateOpen] = useState(false);
 
   const searchQuery = externalQuery ?? localSearch;
   const filteredProducts = products.filter(p =>
