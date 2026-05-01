@@ -13,12 +13,13 @@ export const useOKRStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user || !activeProduct) { setObjectives([]); setLoading(false); return; }
-    const { data: objs } = await (supabase.from('objectives') as any).select('*').eq('product_id', activeProduct.id);
+    const { data: objs } = await (supabase.from('objectives') as any).select('*').eq('product_id', activeProduct.id).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
     const { data: krs } = await (supabase.from('key_results') as any).select('*').eq('product_id', activeProduct.id);
     if (objs) {
       const mapped: Objective[] = objs.map(o => ({
         id: o.id, title: o.title, quarter: o.quarter,
         category: o.category as OKRCategory, createdAt: o.created_at,
+        sortOrder: o.sort_order ?? 0,
         keyResults: (krs || []).filter(k => k.objective_id === o.id).map(k => ({
           id: k.id, title: k.title, currentValue: Number(k.current_value),
           targetValue: Number(k.target_value), unit: k.unit,
