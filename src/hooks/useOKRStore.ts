@@ -13,12 +13,13 @@ export const useOKRStore = () => {
 
   const fetchAll = useCallback(async () => {
     if (!user || !activeProduct) { setObjectives([]); setLoading(false); return; }
-    const { data: objs } = await (supabase.from('objectives') as any).select('*').eq('product_id', activeProduct.id);
+    const { data: objs } = await (supabase.from('objectives') as any).select('*').eq('product_id', activeProduct.id).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
     const { data: krs } = await (supabase.from('key_results') as any).select('*').eq('product_id', activeProduct.id);
     if (objs) {
       const mapped: Objective[] = objs.map(o => ({
         id: o.id, title: o.title, quarter: o.quarter,
         category: o.category as OKRCategory, createdAt: o.created_at,
+        sortOrder: o.sort_order ?? 0,
         keyResults: (krs || []).filter(k => k.objective_id === o.id).map(k => ({
           id: k.id, title: k.title, currentValue: Number(k.current_value),
           targetValue: Number(k.target_value), unit: k.unit,
@@ -82,5 +83,22 @@ export const useOKRStore = () => {
     return Math.round(total / obj.keyResults.length);
   }, []);
 
-  return { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress, refetch: fetchAll };
+  const reorderObjectives = useCallback(async (orderedIds: string[]) => {
+    // Optimistic update
+    setObjectives(prev => {
+      const map = new Map(prev.map(o => [o.id, o]));
+      const updated = prev.map(o => {
+        const idx = orderedIds.indexOf(o.id);
+        return idx >= 0 ? { ...o, sortOrder: idx } : o;
+      });
+      // Sort respecting new sortOrder
+      return updated.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    });
+    // Persist
+    await Promise.all(orderedIds.map((id, idx) =>
+      (supabase.from('objectives') as any).update({ sort_order: idx }).eq('id', id)
+    ));
+  }, []);
+
+  return { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, reorderObjectives, getObjectivesByQuarter, getObjectiveProgress, refetch: fetchAll };
 };

@@ -476,6 +476,7 @@ export type Database = {
           id: string
           product_id: string | null
           quarter: string
+          sort_order: number
           title: string
           user_id: string
         }
@@ -485,6 +486,7 @@ export type Database = {
           id?: string
           product_id?: string | null
           quarter: string
+          sort_order?: number
           title: string
           user_id: string
         }
@@ -494,6 +496,7 @@ export type Database = {
           id?: string
           product_id?: string | null
           quarter?: string
+          sort_order?: number
           title?: string
           user_id?: string
         }

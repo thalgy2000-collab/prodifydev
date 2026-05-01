@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Objective, KeyResult, OKRCategory } from '@/types/okr';
-import { Trash2, Target, Pencil, TreePine } from 'lucide-react';
+import { Trash2, Target, Pencil, TreePine, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import EditOKRDialog from './EditOKRDialog';
@@ -12,17 +12,47 @@ interface Props {
   onUpdateKR: (objectiveId: string, krId: string, value: number) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, updates: { title?: string; category?: OKRCategory; keyResults?: Omit<KeyResult, 'id'>[] }) => void;
+  dragHandlers?: {
+    draggable?: boolean;
+    onDragStart?: (e: React.DragEvent) => void;
+    onDragOver?: (e: React.DragEvent) => void;
+    onDrop?: (e: React.DragEvent) => void;
+    onDragEnd?: (e: React.DragEvent) => void;
+    isDragging?: boolean;
+    isDragOver?: boolean;
+  };
 }
 
-const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) => {
+const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit, dragHandlers }: Props) => {
   const [editOpen, setEditOpen] = useState(false);
   const navigate = useNavigate();
   return (
     <>
-      <div data-tour-feature="okr-card" className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+      <div
+        data-tour-feature="okr-card"
+        draggable={dragHandlers?.draggable}
+        onDragStart={dragHandlers?.onDragStart}
+        onDragOver={dragHandlers?.onDragOver}
+        onDrop={dragHandlers?.onDrop}
+        onDragEnd={dragHandlers?.onDragEnd}
+        className={`group rounded-xl border bg-card p-5 shadow-sm transition-all hover:shadow-md ${
+          dragHandlers?.isDragging ? 'opacity-50' : ''
+        } ${dragHandlers?.isDragOver ? 'border-primary ring-2 ring-primary/30' : 'border-border'}`}
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
+            {dragHandlers?.draggable && (
+              <button
+                type="button"
+                aria-label="Arrastar para reordenar"
+                title="Arraste para reordenar"
+                className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors -ml-1"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <GripVertical className="h-5 w-5" />
+              </button>
+            )}
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15">
               <Target className="h-5 w-5 text-primary" />
             </div>

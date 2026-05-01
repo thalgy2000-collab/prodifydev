@@ -23,6 +23,7 @@ export interface Objective {
   category: OKRCategory;
   keyResults: KeyResult[];
   createdAt: string;
+  sortOrder?: number;
 }
 
 export type Quarter = {
