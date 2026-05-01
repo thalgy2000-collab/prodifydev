@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Objective, KeyResult, OKRCategory } from '@/types/okr';
-import { Trash2, Target, Pencil, TreePine } from 'lucide-react';
+import { Trash2, Target, Pencil, TreePine, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import EditOKRDialog from './EditOKRDialog';
@@ -12,9 +12,18 @@ interface Props {
   onUpdateKR: (objectiveId: string, krId: string, value: number) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, updates: { title?: string; category?: OKRCategory; keyResults?: Omit<KeyResult, 'id'>[] }) => void;
+  dragHandlers?: {
+    draggable?: boolean;
+    onDragStart?: (e: React.DragEvent) => void;
+    onDragOver?: (e: React.DragEvent) => void;
+    onDrop?: (e: React.DragEvent) => void;
+    onDragEnd?: (e: React.DragEvent) => void;
+    isDragging?: boolean;
+    isDragOver?: boolean;
+  };
 }
 
-const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit }: Props) => {
+const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit, dragHandlers }: Props) => {
   const [editOpen, setEditOpen] = useState(false);
   const navigate = useNavigate();
   return (
