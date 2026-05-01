@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Trash2, Users, Search, X } from 'lucide-react';
+import { Plus, Trash2, Users, Search, X, ClipboardList } from 'lucide-react';
 import { toast } from 'sonner';
+import ProductTemplateDialog from '@/components/ProductTemplateDialog';
 
 
 const EMOJIS = ['📦', '🚀', '💡', '🎯', '🛒', '📱', '🎨', '⚡', '🔧', '📊', '🌍', '💎'];
@@ -25,6 +26,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const [emoji, setEmoji] = useState('📦');
   const [color, setColor] = useState('#6366f1');
   const [localSearch, setLocalSearch] = useState('');
+  const [templateOpen, setTemplateOpen] = useState(false);
 
   const searchQuery = externalQuery ?? localSearch;
   const filteredProducts = products.filter(p =>
@@ -157,9 +159,24 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                 </DialogContent>
               </Dialog>
             )}
+
+            {!searchQuery && (
+              <Card
+                onClick={() => setTemplateOpen(true)}
+                className="cursor-pointer border-2 border-dashed transition-colors hover:bg-primary/5"
+                style={{ borderColor: 'hsl(var(--primary) / 0.5)' }}
+              >
+                <CardContent className="p-5 flex flex-col items-center justify-center h-full min-h-[140px] text-primary">
+                  <ClipboardList className="h-8 w-8 mb-2" />
+                  <span className="text-sm font-medium">Usar Template</span>
+                  <span className="text-xs text-muted-foreground mt-1 text-center">Produto + OKRs prontos</span>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </div>
+      <ProductTemplateDialog open={templateOpen} onOpenChange={setTemplateOpen} />
     </div>
   );
 };
