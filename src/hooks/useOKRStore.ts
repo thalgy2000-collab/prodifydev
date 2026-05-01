@@ -83,5 +83,22 @@ export const useOKRStore = () => {
     return Math.round(total / obj.keyResults.length);
   }, []);
 
-  return { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, getObjectivesByQuarter, getObjectiveProgress, refetch: fetchAll };
+  const reorderObjectives = useCallback(async (orderedIds: string[]) => {
+    // Optimistic update
+    setObjectives(prev => {
+      const map = new Map(prev.map(o => [o.id, o]));
+      const updated = prev.map(o => {
+        const idx = orderedIds.indexOf(o.id);
+        return idx >= 0 ? { ...o, sortOrder: idx } : o;
+      });
+      // Sort respecting new sortOrder
+      return updated.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    });
+    // Persist
+    await Promise.all(orderedIds.map((id, idx) =>
+      (supabase.from('objectives') as any).update({ sort_order: idx }).eq('id', id)
+    ));
+  }, []);
+
+  return { objectives, loading, addObjective, updateObjective, updateKeyResult, deleteObjective, reorderObjectives, getObjectivesByQuarter, getObjectiveProgress, refetch: fetchAll };
 };
