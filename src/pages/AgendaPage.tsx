@@ -827,8 +827,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
             .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
             .map(act => {
               const cat = getCategory(act, isTaskActivity(act.title));
-              const h = act.startTime ? parseInt(act.startTime.split(':')[0]) : 8;
-              const dense = (overlapByHour[h] || 1) > 3;
+              const dense = (overlapCounts[act.id] || 1) > 3;
               const prod = getProductInfo?.(act.productId);
               return (
                 <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
