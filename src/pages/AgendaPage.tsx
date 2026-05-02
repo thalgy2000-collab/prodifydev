@@ -691,17 +691,8 @@ interface WeekViewProps {
 }
 
 const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo }: WeekViewProps) => {
-  // Build per-day overlap counts by hour bucket
-  const overlapByDay = useMemo(() => {
-    const map: Record<string, Record<number, number>> = {};
-    for (const a of activities) {
-      const day = a.activityDate;
-      const h = a.startTime ? parseInt(a.startTime.split(':')[0]) : 8;
-      map[day] = map[day] || {};
-      map[day][h] = (map[day][h] || 0) + 1;
-    }
-    return map;
-  }, [activities]);
+  // Real interval-overlap counts per event (same day + overlapping time range)
+  const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
   return (
   <div className="h-full flex flex-col">
