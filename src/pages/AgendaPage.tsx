@@ -59,6 +59,39 @@ function getEventStyle(category: EventCategory): React.CSSProperties {
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
+// Convert "HH:MM" to minutes since midnight. Defaults: start=08:00, end=start+60.
+function getEventInterval(a: ScheduleActivity): { start: number; end: number } {
+  const start = a.startTime
+    ? parseInt(a.startTime.split(':')[0]) * 60 + parseInt(a.startTime.split(':')[1])
+    : 480;
+  const end = a.endTime
+    ? parseInt(a.endTime.split(':')[0]) * 60 + parseInt(a.endTime.split(':')[1])
+    : start + 60;
+  return { start, end: Math.max(end, start + 1) };
+}
+
+// For each activity id, count how many other activities (same date) overlap its
+// time interval (inclusive of itself). Two events overlap when start < other.end
+// AND end > other.start.
+function buildOverlapCounts(activities: ScheduleActivity[]): Record<string, number> {
+  const byDay: Record<string, ScheduleActivity[]> = {};
+  for (const a of activities) {
+    (byDay[a.activityDate] ||= []).push(a);
+  }
+  const counts: Record<string, number> = {};
+  for (const list of Object.values(byDay)) {
+    const intervals = list.map(a => ({ id: a.id, ...getEventInterval(a) }));
+    for (const ev of intervals) {
+      let n = 0;
+      for (const other of intervals) {
+        if (ev.start < other.end && ev.end > other.start) n++;
+      }
+      counts[ev.id] = n;
+    }
+  }
+  return counts;
+}
+
 const FILTER_OPTIONS: { key: FilterKey; label: string }[] = [
   { key: 'all', label: 'Todos' },
   { key: 'meeting', label: 'Reuniões' },
