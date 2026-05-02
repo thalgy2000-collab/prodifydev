@@ -790,15 +790,8 @@ interface DayViewProps {
 }
 
 const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity }: DayViewProps) => {
-  // Compute overlapping events per hour bucket
-  const overlapByHour = useMemo(() => {
-    const m: Record<number, number> = {};
-    for (const a of activities) {
-      const h = a.startTime ? parseInt(a.startTime.split(':')[0]) : 8;
-      m[h] = (m[h] || 0) + 1;
-    }
-    return m;
-  }, [activities]);
+  // Real interval-overlap counts per event (same date + overlapping time range)
+  const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
   return (
   <div className="h-full flex flex-col">
