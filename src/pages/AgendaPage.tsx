@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Plus, ChevronLeft, ChevronRight, Trash2, CheckCircle2, Circle,
   Clock, CalendarDays, LayoutGrid, List, Pencil, Link2, Unlink, RefreshCw,
@@ -26,26 +27,87 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 type ViewMode = 'month' | 'week' | 'day';
+type EventCategory = 'meeting' | 'task' | 'sprint' | 'release';
+type FilterKey = 'all' | EventCategory;
 
-const EVENT_COLORS = [
-  'bg-primary/80 text-primary-foreground',
-  'bg-blue-500/80 text-white',
-  'bg-green-500/80 text-white',
-  'bg-yellow-500/80 text-white',
-  'bg-purple-500/80 text-white',
-  'bg-pink-500/80 text-white',
-  'bg-orange-500/80 text-white',
-  'bg-teal-500/80 text-white',
-];
+// Category palette — saturated HSL color used at 12% bg + as left border
+const CATEGORY_COLORS: Record<EventCategory, { hsl: string; label: string }> = {
+  meeting: { hsl: '217 91% 60%', label: 'Reuniões' },   // blue
+  task:    { hsl: '262 83% 62%', label: 'Tarefas' },    // purple
+  sprint:  { hsl: '160 65% 45%', label: 'Sprints' },    // green
+  release: { hsl: '25 95% 55%',  label: 'Releases' },   // orange
+};
 
-function getEventColor(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  return EVENT_COLORS[Math.abs(hash) % EVENT_COLORS.length];
+function getCategory(act: ScheduleActivity, isTask: boolean): EventCategory {
+  const title = act.title.toLowerCase();
+  if (title.includes('release')) return 'release';
+  if (isTask) return 'task';
+  if (act.sprintId) return 'sprint';
+  return 'meeting';
+}
+
+function getEventStyle(category: EventCategory): React.CSSProperties {
+  const { hsl } = CATEGORY_COLORS[category];
+  return {
+    backgroundColor: `hsla(${hsl}, 0.12)`,
+    borderLeft: `4px solid hsl(${hsl})`,
+    borderRadius: '4px',
+    color: `hsl(${hsl})`,
+  };
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+
+const FILTER_OPTIONS: { key: FilterKey; label: string }[] = [
+  { key: 'all', label: 'Todos' },
+  { key: 'meeting', label: 'Reuniões' },
+  { key: 'task', label: 'Tarefas' },
+  { key: 'sprint', label: 'Sprints' },
+  { key: 'release', label: 'Releases' },
+];
+
+/* ─── Tooltip wrapper for events ─── */
+interface EventTooltipProps {
+  act: ScheduleActivity;
+  category: EventCategory;
+  productLabel?: string | null;
+  isTask: boolean;
+  children: React.ReactNode;
+}
+const EventTooltip = ({ act, category, productLabel, isTask, children }: EventTooltipProps) => (
+  <Tooltip delayDuration={200}>
+    <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <TooltipContent side="top" className="max-w-xs">
+      <div className="space-y-1">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="inline-block h-2 w-2 rounded-full"
+            style={{ backgroundColor: `hsl(${CATEGORY_COLORS[category].hsl})` }}
+          />
+          <p className="font-semibold text-xs">{act.title}</p>
+        </div>
+        <p className="text-[10px] text-muted-foreground capitalize">
+          {CATEGORY_COLORS[category].label.replace(/s$/, '')}
+          {isTask && ' • Tarefa'}
+          {productLabel && ` • ${productLabel}`}
+        </p>
+        {act.startTime && (
+          <p className="text-[10px] flex items-center gap-1">
+            <Clock className="h-2.5 w-2.5" />
+            {act.startTime}{act.endTime && ` – ${act.endTime}`}
+          </p>
+        )}
+        {act.description && (
+          <p className="text-[10px] text-muted-foreground whitespace-pre-wrap">{act.description}</p>
+        )}
+        {act.status === 'done' && (
+          <p className="text-[10px] text-green-500">✓ Concluído</p>
+        )}
+      </div>
+    </TooltipContent>
+  </Tooltip>
+);
 
 const AgendaPage = () => {
   const { activities: localActivities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
@@ -54,8 +116,7 @@ const AgendaPage = () => {
   const { products } = useProduct();
   const gcal = useGoogleCalendar();
 
-  // Merge local activities with read-only Google Calendar events
-  const activities = useMemo(
+  const allActivities = useMemo(
     () => [...localActivities, ...gcal.events],
     [localActivities, gcal.events]
   );
@@ -73,6 +134,13 @@ const AgendaPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [createOpen, setCreateOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<ScheduleActivity | null>(null);
+  const [filter, setFilter] = useState<FilterKey>('all');
+
+  // Apply category filter
+  const activities = useMemo(() => {
+    if (filter === 'all') return allActivities;
+    return allActivities.filter(a => getCategory(a, isTaskActivity(a.title)) === filter);
+  }, [allActivities, filter, taskTitles]);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -145,14 +213,12 @@ const AgendaPage = () => {
     deleteActivity(id);
   };
 
-  // Calendar grid for month view
   const monthDays = useMemo(() => {
     const start = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 });
     const end = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 });
     return eachDayOfInterval({ start, end });
   }, [currentDate]);
 
-  // Week days
   const weekDays = useMemo(() => {
     const start = startOfWeek(selectedDate, { weekStartsOn: 0 });
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
@@ -172,7 +238,6 @@ const AgendaPage = () => {
     setSelectedDate(new Date());
   };
 
-  // Mini calendar for sidebar
   const miniCalDays = useMemo(() => {
     const start = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 });
     const end = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 });
@@ -180,8 +245,9 @@ const AgendaPage = () => {
   }, [currentDate]);
 
   return (
+    <TooltipProvider>
     <div className="flex flex-col h-full min-h-0">
-      {/* Top bar - Google Calendar style */}
+      {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-3 border-b border-border bg-card shrink-0">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
@@ -202,7 +268,6 @@ const AgendaPage = () => {
           </h2>
         </div>
         <div className="flex items-center gap-2">
-          {/* View mode toggle - desktop only */}
           <div className="hidden md:flex border border-border rounded-lg overflow-hidden">
             {([
               { mode: 'month' as ViewMode, icon: LayoutGrid, label: 'Mês' },
@@ -231,7 +296,6 @@ const AgendaPage = () => {
                 Criar
               </Button>
             </DialogTrigger>
-            {/* Google Calendar connect / disconnect */}
             {!gcal.connected ? (
               <Button
                 variant="outline"
@@ -304,11 +368,38 @@ const AgendaPage = () => {
         </div>
       </div>
 
+      {/* Quick filters */}
+      <div className="flex items-center gap-1.5 px-3 sm:px-4 py-2 border-b border-border bg-card shrink-0 overflow-x-auto">
+        {FILTER_OPTIONS.map(opt => {
+          const active = filter === opt.key;
+          const color = opt.key !== 'all' ? CATEGORY_COLORS[opt.key].hsl : null;
+          return (
+            <button
+              key={opt.key}
+              onClick={() => setFilter(opt.key)}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border transition-colors shrink-0',
+                active
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background text-muted-foreground border-border hover:bg-muted'
+              )}
+            >
+              {color && (
+                <span
+                  className="inline-block h-2 w-2 rounded-full"
+                  style={{ backgroundColor: `hsl(${color})` }}
+                />
+              )}
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Content */}
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Sidebar - Mini calendar + Day detail (full width on mobile) */}
+        {/* Sidebar */}
         <aside className="flex flex-col w-full lg:w-64 lg:border-r border-border bg-card shrink-0 overflow-hidden h-full">
-          {/* Mini calendar */}
           <div className="p-3">
             <div className="grid grid-cols-7 gap-0">
               {WEEK_DAYS_SHORT.map(d => (
@@ -359,60 +450,54 @@ const AgendaPage = () => {
             {selectedDateActivities.length === 0 ? (
               <p className="text-xs text-muted-foreground">Nenhum evento neste dia</p>
             ) : (
-              <div className="space-y-2 overflow-y-auto flex-1 min-h-0 pr-1">
-                {selectedDateActivities.map(act => (
-                  <div
-                    key={act.id}
-                    className={cn('rounded-lg p-2.5 cursor-pointer transition-opacity', getEventColor(act.id), act.status === 'done' && 'opacity-50')}
-                    onClick={() => openEdit(act)}
-                  >
-                    <div className="flex items-start gap-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleStatus(act); }}
-                        className="mt-0.5 shrink-0"
+              <div className="space-y-1.5 overflow-y-auto flex-1 min-h-0 pr-1">
+                {selectedDateActivities.map(act => {
+                  const cat = getCategory(act, isTaskActivity(act.title));
+                  const prod = getProductInfo(act.productId);
+                  return (
+                    <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                      <div
+                        className={cn('p-2 cursor-pointer transition-opacity', act.status === 'done' && 'opacity-50')}
+                        style={getEventStyle(cat)}
+                        onClick={() => openEdit(act)}
                       >
-                        {act.status === 'done'
-                          ? <CheckCircle2 className="h-3.5 w-3.5" />
-                          : <Circle className="h-3.5 w-3.5" />}
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1">
-                          <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>
-                            {act.title}
-                          </p>
-                          {isTaskActivity(act.title) && (
-                            <Badge variant="secondary" className="text-[8px] px-1 py-0 h-4">
-                              Task
-                            </Badge>
-                          )}
+                        <div className="flex items-start gap-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); toggleStatus(act); }}
+                            className="mt-0.5 shrink-0 text-foreground/70"
+                          >
+                            {act.status === 'done'
+                              ? <CheckCircle2 className="h-3.5 w-3.5" />
+                              : <Circle className="h-3.5 w-3.5" />}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn('text-xs font-semibold text-foreground truncate', act.status === 'done' && 'line-through')}>
+                              {act.title}
+                            </p>
+                            {act.startTime && (
+                              <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <Clock className="h-2.5 w-2.5" />
+                                {act.startTime}{act.endTime && ` – ${act.endTime}`}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(act.id); }}
+                            className="shrink-0 opacity-60 hover:opacity-100 text-foreground/70"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
                         </div>
-                        {(() => { const prod = getProductInfo(act.productId); return prod ? (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] bg-background/30 rounded px-1 mt-0.5">
-                            {prod.emoji} {prod.name}
-                          </span>
-                        ) : null; })()}
-                        {act.startTime && (
-                          <p className="text-[10px] opacity-80 flex items-center gap-1 mt-0.5">
-                            <Clock className="h-2.5 w-2.5" />
-                            {act.startTime}{act.endTime && ` – ${act.endTime}`}
-                          </p>
-                        )}
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(act.id); }}
-                        className="shrink-0 opacity-60 hover:opacity-100"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                    </EventTooltip>
+                  );
+                })}
               </div>
             )}
           </div>
         </aside>
 
-        {/* Main calendar area - hidden on mobile */}
+        {/* Main calendar area */}
         <div className="hidden lg:flex flex-1 min-w-0 min-h-0 overflow-hidden flex-col">
           {viewMode === 'month' && (
             <MonthView
@@ -438,6 +523,7 @@ const AgendaPage = () => {
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
               isTaskActivity={isTaskActivity}
+              getProductInfo={getProductInfo}
             />
           )}
           {viewMode === 'day' && (
@@ -455,7 +541,6 @@ const AgendaPage = () => {
         </div>
       </div>
 
-      {/* Mobile FAB */}
       <button
         onClick={() => openCreate()}
         aria-label="Nova atividade"
@@ -464,6 +549,7 @@ const AgendaPage = () => {
         <Plus className="h-6 w-6" />
       </button>
     </div>
+    </TooltipProvider>
   );
 };
 
@@ -481,9 +567,8 @@ interface MonthViewProps {
   isTaskActivity: (title: string) => boolean;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, getProductInfo, isTaskActivity }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo }: MonthViewProps) => (
   <div className="h-full flex flex-col">
-    {/* Header row */}
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
       {WEEK_DAYS_SHORT.map(d => (
         <div key={d} className="py-2 text-center text-xs font-semibold text-muted-foreground uppercase">
@@ -491,7 +576,6 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
         </div>
       ))}
     </div>
-    {/* Day cells */}
     <div className="grid grid-cols-7 flex-1 auto-rows-fr">
       {days.map(day => {
         const dayStr = format(day, 'yyyy-MM-dd');
@@ -499,6 +583,8 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
         const inMonth = isSameMonth(day, currentDate);
         const selected = isSameDay(day, selectedDate);
         const today = isToday(day);
+        // Compact font when more than 3 events same day (proxy for "same time slot")
+        const dense = dayActs.length > 3;
 
         return (
           <div
@@ -525,22 +611,26 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
               </span>
             </div>
             <div className="space-y-0.5">
-              {dayActs.slice(0, 3).map(act => (
-                <button
-                  key={act.id}
-                  onClick={(e) => { e.stopPropagation(); onEditEvent(act); }}
-                  className={cn(
-                    'w-full text-left rounded px-1.5 py-0.5 text-[10px] font-medium truncate block',
-                    getEventColor(act.id),
-                    act.status === 'done' && 'opacity-50 line-through'
-                  )}
-                >
-                  {act.startTime && <span className="mr-1">{act.startTime}</span>}
-                  {act.title}
-                  {isTaskActivity(act.title) && <span className="ml-1 text-[8px] bg-background/50 px-0.5 rounded">T</span>}
-                  {getProductInfo && act.productId && getProductInfo(act.productId)?.emoji}
-                </button>
-              ))}
+              {dayActs.slice(0, 3).map(act => {
+                const cat = getCategory(act, isTaskActivity(act.title));
+                const prod = getProductInfo?.(act.productId);
+                return (
+                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onEditEvent(act); }}
+                      style={getEventStyle(cat)}
+                      className={cn(
+                        'w-full text-left px-1.5 py-0.5 font-medium truncate block text-foreground',
+                        dense ? 'text-[9px]' : 'text-xs',
+                        act.status === 'done' && 'opacity-50 line-through'
+                      )}
+                    >
+                      {act.startTime && <span className="mr-1 opacity-70">{act.startTime}</span>}
+                      {act.title}
+                    </button>
+                  </EventTooltip>
+                );
+              })}
               {dayActs.length > 3 && (
                 <p className="text-[10px] text-muted-foreground px-1.5">
                   +{dayActs.length - 3} mais
@@ -564,11 +654,24 @@ interface WeekViewProps {
   onEditEvent: (a: ScheduleActivity) => void;
   onToggleStatus: (a: ScheduleActivity) => void;
   isTaskActivity: (title: string) => boolean;
+  getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
 }
 
-const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, onToggleStatus, isTaskActivity }: WeekViewProps) => (
+const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo }: WeekViewProps) => {
+  // Build per-day overlap counts by hour bucket
+  const overlapByDay = useMemo(() => {
+    const map: Record<string, Record<number, number>> = {};
+    for (const a of activities) {
+      const day = a.activityDate;
+      const h = a.startTime ? parseInt(a.startTime.split(':')[0]) : 8;
+      map[day] = map[day] || {};
+      map[day][h] = (map[day][h] || 0) + 1;
+    }
+    return map;
+  }, [activities]);
+
+  return (
   <div className="h-full flex flex-col">
-    {/* Day headers */}
     <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-muted/30 sticky top-0 z-10">
       <div />
       {days.map(day => {
@@ -593,10 +696,8 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
         );
       })}
     </div>
-    {/* Time grid */}
     <div className="flex-1 overflow-auto">
       <div className="grid grid-cols-[60px_repeat(7,1fr)] min-h-[1440px]">
-        {/* Hour labels */}
         <div className="relative">
           {HOURS.map(h => (
             <div key={h} className="h-[60px] border-b border-border flex items-start justify-end pr-2 pt-0.5">
@@ -606,7 +707,6 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
             </div>
           ))}
         </div>
-        {/* Day columns */}
         {days.map(day => {
           const dayStr = format(day, 'yyyy-MM-dd');
           const dayActs = activities.filter(a => a.activityDate === dayStr);
@@ -615,33 +715,35 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
               {HOURS.map(h => (
                 <div key={h} className="h-[60px] border-b border-border" />
               ))}
-              {/* Events positioned */}
               {dayActs.map(act => {
                 const startMin = act.startTime ? parseInt(act.startTime.split(':')[0]) * 60 + parseInt(act.startTime.split(':')[1]) : 480;
                 const endMin = act.endTime ? parseInt(act.endTime.split(':')[0]) * 60 + parseInt(act.endTime.split(':')[1]) : startMin + 60;
                 const top = startMin;
                 const height = Math.max(endMin - startMin, 25);
+                const cat = getCategory(act, isTaskActivity(act.title));
+                const hourBucket = Math.floor(startMin / 60);
+                const overlapCount = overlapByDay[dayStr]?.[hourBucket] || 1;
+                const dense = overlapCount > 3;
+                const prod = getProductInfo?.(act.productId);
                 return (
-                  <button
-                    key={act.id}
-                    onClick={() => onEditEvent(act)}
-                    className={cn(
-                      'absolute left-0.5 right-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium overflow-hidden cursor-pointer',
-                      getEventColor(act.id),
-                      act.status === 'done' && 'opacity-50'
-                    )}
-                    style={{ top: `${top}px`, height: `${height}px` }}
-                  >
-                    <div className="flex items-center gap-1">
+                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                    <button
+                      onClick={() => onEditEvent(act)}
+                      style={{ top: `${top}px`, height: `${height}px`, ...getEventStyle(cat) }}
+                      className={cn(
+                        'absolute left-0.5 right-0.5 px-1.5 py-0.5 font-medium overflow-hidden cursor-pointer text-foreground text-left',
+                        dense ? 'text-[9px]' : 'text-xs',
+                        act.status === 'done' && 'opacity-50'
+                      )}
+                    >
                       <p className="truncate font-semibold">{act.title}</p>
-                      {isTaskActivity(act.title) && <span className="text-[8px] bg-background/50 px-0.5 rounded shrink-0">T</span>}
-                    </div>
-                    {height > 30 && act.startTime && (
-                      <p className="truncate opacity-80 text-[9px]">
-                        {act.startTime}{act.endTime && ` – ${act.endTime}`}
-                      </p>
-                    )}
-                  </button>
+                      {height > 30 && act.startTime && !dense && (
+                        <p className="truncate opacity-70 text-[9px]">
+                          {act.startTime}{act.endTime && ` – ${act.endTime}`}
+                        </p>
+                      )}
+                    </button>
+                  </EventTooltip>
                 );
               })}
             </div>
@@ -650,7 +752,8 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
       </div>
     </div>
   </div>
-);
+  );
+};
 
 /* ─── Day View ─── */
 interface DayViewProps {
@@ -664,7 +767,18 @@ interface DayViewProps {
   isTaskActivity: (title: string) => boolean;
 }
 
-const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity }: DayViewProps) => (
+const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity }: DayViewProps) => {
+  // Compute overlapping events per hour bucket
+  const overlapByHour = useMemo(() => {
+    const m: Record<number, number> = {};
+    for (const a of activities) {
+      const h = a.startTime ? parseInt(a.startTime.split(':')[0]) : 8;
+      m[h] = (m[h] || 0) + 1;
+    }
+    return m;
+  }, [activities]);
+
+  return (
   <div className="h-full flex flex-col">
     <div className="p-4 border-b border-border bg-muted/30">
       <div className="flex items-center justify-between">
@@ -693,68 +807,66 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
           </Button>
         </div>
       ) : (
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-2">
           {activities
             .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
-            .map(act => (
-              <Card
-                key={act.id}
-                className={cn(
-                  'p-4 cursor-pointer border-l-4 transition-all hover:shadow-md',
-                  act.status === 'done' ? 'opacity-60 border-l-muted-foreground' : 'border-l-primary'
-                )}
-                onClick={() => onEditEvent(act)}
-              >
-                <div className="flex items-start gap-3">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onToggleStatus(act); }}
-                    className="mt-0.5 shrink-0"
+            .map(act => {
+              const cat = getCategory(act, isTaskActivity(act.title));
+              const h = act.startTime ? parseInt(act.startTime.split(':')[0]) : 8;
+              const dense = (overlapByHour[h] || 1) > 3;
+              const prod = getProductInfo?.(act.productId);
+              return (
+                <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                  <div
+                    className={cn(
+                      'p-3 cursor-pointer transition-all hover:shadow-md',
+                      act.status === 'done' && 'opacity-60'
+                    )}
+                    style={getEventStyle(cat)}
+                    onClick={() => onEditEvent(act)}
                   >
-                    {act.status === 'done'
-                      ? <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      : <Circle className="h-5 w-5 text-muted-foreground" />}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className={cn('font-semibold text-foreground', act.status === 'done' && 'line-through text-muted-foreground')}>
-                        {act.title}
-                      </p>
-                      {isTaskActivity(act.title) && (
-                        <Badge variant="secondary" className="text-xs">
-                          Task
-                        </Badge>
-                      )}
-                      {getProductInfo && act.productId && (() => { const p = getProductInfo(act.productId); return p ? (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 gap-1">
-                          {p.emoji} {p.name}
-                        </Badge>
-                      ) : null; })()}
+                    <div className="flex items-start gap-3">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onToggleStatus(act); }}
+                        className="mt-0.5 shrink-0"
+                      >
+                        {act.status === 'done'
+                          ? <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          : <Circle className="h-5 w-5 text-muted-foreground" />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn(
+                          'font-semibold text-foreground',
+                          dense ? 'text-xs' : 'text-sm',
+                          act.status === 'done' && 'line-through text-muted-foreground'
+                        )}>
+                          {act.title}
+                        </p>
+                        {act.startTime && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                            <Clock className="h-3 w-3" />
+                            {act.startTime}{act.endTime && ` – ${act.endTime}`}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onEditEvent(act); }}>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDeleteEvent(act.id); }}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
-                    {act.startTime && (
-                      <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-                        <Clock className="h-3.5 w-3.5" />
-                        {act.startTime}{act.endTime && ` – ${act.endTime}`}
-                      </p>
-                    )}
-                    {act.description && (
-                      <p className="text-sm text-muted-foreground mt-1">{act.description}</p>
-                    )}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onEditEvent(act); }}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDeleteEvent(act.id); }}>
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </EventTooltip>
+              );
+            })}
         </div>
       )}
     </div>
   </div>
-);
+  );
+};
 
 export default AgendaPage;
