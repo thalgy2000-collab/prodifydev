@@ -745,9 +745,7 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                 const top = startMin;
                 const height = Math.max(endMin - startMin, 25);
                 const cat = getCategory(act, isTaskActivity(act.title));
-                const hourBucket = Math.floor(startMin / 60);
-                const overlapCount = overlapByDay[dayStr]?.[hourBucket] || 1;
-                const dense = overlapCount > 3;
+                const dense = (overlapCounts[act.id] || 1) > 3;
                 const prod = getProductInfo?.(act.productId);
                 return (
                   <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
