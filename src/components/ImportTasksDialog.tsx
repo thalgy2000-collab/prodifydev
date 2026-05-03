@@ -26,11 +26,12 @@ interface ImportedTask {
 interface Props {
   mode: Mode;
   onImported: () => void;
+  addTask: (data: any) => Promise<void> | void;
 }
 
 const ACCEPTED = '.pdf,.txt,.docx,.csv,.md';
 
-const ImportTasksDialog = ({ mode, onImported }: Props) => {
+const ImportTasksDialog = ({ mode, onImported, addTask }: Props) => {
   const { user, session } = useAuth();
   const { activeProduct } = useProduct();
 
@@ -154,29 +155,17 @@ const ImportTasksDialog = ({ mode, onImported }: Props) => {
     }
     setSaving(true);
     try {
-      // get next sort_order
-      const { data: maxRow } = await (supabase.from('backlog_tasks') as any)
-        .select('sort_order')
-        .eq('product_id', activeProduct.id)
-        .order('sort_order', { ascending: false, nullsFirst: false })
-        .limit(1)
-        .maybeSingle();
-      const baseSort = (maxRow?.sort_order ?? 0) + 1;
-
-      const rows = chosen.map((t, idx) => ({
-        title: t.title,
-        description: t.description,
-        priority: t.priority,
-        status: 'open',
-        category: 'professional',
-        product_id: activeProduct.id,
-        user_id: user.id,
-        sort_order: baseSort + idx,
-        completion_percentage: 0,
-        roadmap_impact: 0,
-      }));
-      const { error } = await (supabase.from('backlog_tasks') as any).insert(rows);
-      if (error) throw error;
+      for (const t of chosen) {
+        await addTask({
+          title: t.title,
+          description: t.description,
+          priority: t.priority,
+          status: 'open',
+          category: 'professional',
+          completionPercentage: 0,
+          roadmapImpact: 0,
+        });
+      }
 
       toast.success(`${chosen.length} tarefa(s) importada(s) com sucesso ✓`);
       onImported();
