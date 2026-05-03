@@ -384,7 +384,7 @@ const BacklogPage = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditTask(task)}><Pencil className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTask(task.id)}><Trash2 className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTaskWithUndo(task.id)}><Trash2 className="h-4 w-4" /></Button>
         </div>
       </div>
     );
