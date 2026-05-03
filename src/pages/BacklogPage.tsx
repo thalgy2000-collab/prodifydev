@@ -25,9 +25,57 @@ import { toast } from 'sonner';
 import type { DragEvent } from 'react';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { backlogTourSteps } from '@/lib/featureTours';
+import { useUndoStack } from '@/hooks/useUndoStack';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
+  const { push: pushUndo, undoLast } = useUndoStack(5);
+
+  // Ctrl+Z / Cmd+Z to undo last backlog action
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const ativo = document.activeElement as HTMLElement | null;
+      const tag = ativo?.tagName;
+      const emInput = tag === 'INPUT' || tag === 'TEXTAREA' || ativo?.isContentEditable;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !emInput) {
+        e.preventDefault();
+        undoLast();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undoLast]);
+
+  // Wrapped actions with undo support
+  const deleteTaskWithUndo = useCallback(async (taskId: string) => {
+    const snapshot = tasks.find(t => t.id === taskId);
+    if (!snapshot) return;
+    await deleteTask(taskId);
+    pushUndo({
+      description: `Tarefa excluída: ${snapshot.title}`,
+      undo: async () => {
+        const { initiativeId, objectiveId, keyResultId, sprintId, assigneeId, ...rest } = snapshot;
+        await addTask({
+          ...rest,
+          initiativeId, objectiveId, keyResultId, sprintId, assigneeId,
+        });
+      },
+    });
+    toast.success('Tarefa excluída', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  }, [tasks, deleteTask, addTask, pushUndo, undoLast]);
+
+  const assignToSprintWithUndo = useCallback(async (taskId: string, sprintId: string | undefined) => {
+    const before = tasks.find(t => t.id === taskId);
+    const previousSprintId = before?.sprintId;
+    await assignToSprint(taskId, sprintId);
+    pushUndo({
+      description: sprintId ? 'Tarefa movida para sprint' : 'Tarefa removida da sprint',
+      undo: async () => { await assignToSprint(taskId, previousSprintId); },
+    });
+  }, [tasks, assignToSprint, pushUndo]);
   const { items: initiatives, refresh: refreshInitiatives } = useRoadmapStore();
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
