@@ -7,6 +7,7 @@ import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
 import EditBacklogTaskDialog from '@/components/EditBacklogTaskDialog';
+import ImportTasksDialog from '@/components/ImportTasksDialog';
 import { BacklogTask, PRIORITY_CONFIG, TASK_STATUS_CONFIG, TaskPriority, TaskStatus } from '@/types/backlog';
 import { SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import { backlogTourSteps } from '@/lib/featureTours';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
+  const backlogStore = useBacklogStore();
   const { items: initiatives, refresh: refreshInitiatives } = useRoadmapStore();
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
