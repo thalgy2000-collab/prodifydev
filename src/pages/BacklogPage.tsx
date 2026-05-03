@@ -25,9 +25,57 @@ import { toast } from 'sonner';
 import type { DragEvent } from 'react';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { backlogTourSteps } from '@/lib/featureTours';
+import { useUndoStack } from '@/hooks/useUndoStack';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
+  const { push: pushUndo, undoLast } = useUndoStack(5);
+
+  // Ctrl+Z / Cmd+Z to undo last backlog action
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const ativo = document.activeElement as HTMLElement | null;
+      const tag = ativo?.tagName;
+      const emInput = tag === 'INPUT' || tag === 'TEXTAREA' || ativo?.isContentEditable;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !emInput) {
+        e.preventDefault();
+        undoLast();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undoLast]);
+
+  // Wrapped actions with undo support
+  const deleteTaskWithUndo = useCallback(async (taskId: string) => {
+    const snapshot = tasks.find(t => t.id === taskId);
+    if (!snapshot) return;
+    await deleteTask(taskId);
+    pushUndo({
+      description: `Tarefa excluída: ${snapshot.title}`,
+      undo: async () => {
+        const { initiativeId, objectiveId, keyResultId, sprintId, assigneeId, ...rest } = snapshot;
+        await addTask({
+          ...rest,
+          initiativeId, objectiveId, keyResultId, sprintId, assigneeId,
+        });
+      },
+    });
+    toast.success('Tarefa excluída', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  }, [tasks, deleteTask, addTask, pushUndo, undoLast]);
+
+  const assignToSprintWithUndo = useCallback(async (taskId: string, sprintId: string | undefined) => {
+    const before = tasks.find(t => t.id === taskId);
+    const previousSprintId = before?.sprintId;
+    await assignToSprint(taskId, sprintId);
+    pushUndo({
+      description: sprintId ? 'Tarefa movida para sprint' : 'Tarefa removida da sprint',
+      undo: async () => { await assignToSprint(taskId, previousSprintId); },
+    });
+  }, [tasks, assignToSprint, pushUndo]);
   const { items: initiatives, refresh: refreshInitiatives } = useRoadmapStore();
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
@@ -157,10 +205,11 @@ const BacklogPage = () => {
     setCollapsedSprints(prev => ({ ...prev, ...next }));
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newTitle.trim()) return;
     const init = initiatives.find(i => i.id === newInitiativeId);
-    addTask({
+    const titleSnapshot = newTitle;
+    await addTask({
       title: newTitle, description: newDesc, priority: newPriority, status: 'open',
       category: 'professional', initiativeId: newInitiativeId !== 'none' ? newInitiativeId : undefined,
       objectiveId: init?.objectiveId, keyResultId: init?.keyResultId, storyPoints: newStoryPoints,
@@ -169,6 +218,24 @@ const BacklogPage = () => {
       completionPercentage: newCompletion || 0,
       roadmapImpact: newRoadmapImpact || 0,
     });
+    // Find the newly created task (most recent matching title)
+    const { data: created } = await (supabase.from('backlog_tasks') as any)
+      .select('id')
+      .eq('product_id', activeProduct?.id)
+      .eq('title', titleSnapshot)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (created?.id) {
+      pushUndo({
+        description: `Tarefa criada: ${titleSnapshot}`,
+        undo: async () => { await deleteTask(created.id); },
+      });
+      toast.success('Tarefa criada', {
+        duration: 8000,
+        action: { label: '↩ Desfazer', onClick: () => undoLast() },
+      });
+    }
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
     setNewInitiativeId('none'); setNewStoryPoints(0); setNewAssigneeId('none');
     setNewCompletion(0); setNewRoadmapImpact(0);
@@ -274,8 +341,11 @@ const BacklogPage = () => {
                       key={s.id}
                       disabled={task.sprintId === s.id}
                       onClick={async () => {
-                        await assignToSprint(task.id, s.id);
-                        toast.success('Tarefa adicionada à Sprint!');
+                        await assignToSprintWithUndo(task.id, s.id);
+                        toast.success('Tarefa adicionada à Sprint!', {
+                          duration: 8000,
+                          action: { label: '↩ Desfazer', onClick: () => undoLast() },
+                        });
                         if (s.status !== 'active') {
                           toast('Esta sprint ainda não está ativa');
                         }
@@ -300,8 +370,11 @@ const BacklogPage = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={async () => {
-                      await assignToSprint(task.id, undefined);
-                      toast.success('Tarefa removida da Sprint');
+                      await assignToSprintWithUndo(task.id, undefined);
+                      toast.success('Tarefa removida da Sprint', {
+                        duration: 8000,
+                        action: { label: '↩ Desfazer', onClick: () => undoLast() },
+                      });
                     }}
                   >
                     Remover da sprint
@@ -311,7 +384,7 @@ const BacklogPage = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditTask(task)}><Pencil className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTask(task.id)}><Trash2 className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTaskWithUndo(task.id)}><Trash2 className="h-4 w-4" /></Button>
         </div>
       </div>
     );
