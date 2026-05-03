@@ -327,7 +327,9 @@ const BacklogPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">Backlog</h1>
           <p className="text-sm text-muted-foreground">Gerencie suas tarefas e prioridades</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <ImportTasksDialog mode="ai" onImported={() => {}} addTask={addTask} />
+          <ImportTasksDialog mode="file" onImported={() => {}} addTask={addTask} />
           <Dialog open={sprintOpen} onOpenChange={setSprintOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2"><Zap className="h-4 w-4" />Criar Sprint</Button>
