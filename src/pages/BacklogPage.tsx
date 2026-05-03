@@ -370,8 +370,11 @@ const BacklogPage = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={async () => {
-                      await assignToSprint(task.id, undefined);
-                      toast.success('Tarefa removida da Sprint');
+                      await assignToSprintWithUndo(task.id, undefined);
+                      toast.success('Tarefa removida da Sprint', {
+                        duration: 8000,
+                        action: { label: '↩ Desfazer', onClick: () => undoLast() },
+                      });
                     }}
                   >
                     Remover da sprint
