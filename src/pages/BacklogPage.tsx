@@ -28,7 +28,6 @@ import { backlogTourSteps } from '@/lib/featureTours';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
-  const backlogStore = useBacklogStore();
   const { items: initiatives, refresh: refreshInitiatives } = useRoadmapStore();
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
