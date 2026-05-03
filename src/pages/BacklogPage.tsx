@@ -341,8 +341,11 @@ const BacklogPage = () => {
                       key={s.id}
                       disabled={task.sprintId === s.id}
                       onClick={async () => {
-                        await assignToSprint(task.id, s.id);
-                        toast.success('Tarefa adicionada à Sprint!');
+                        await assignToSprintWithUndo(task.id, s.id);
+                        toast.success('Tarefa adicionada à Sprint!', {
+                          duration: 8000,
+                          action: { label: '↩ Desfazer', onClick: () => undoLast() },
+                        });
                         if (s.status !== 'active') {
                           toast('Esta sprint ainda não está ativa');
                         }
