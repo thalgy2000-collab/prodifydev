@@ -205,10 +205,11 @@ const BacklogPage = () => {
     setCollapsedSprints(prev => ({ ...prev, ...next }));
   };
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!newTitle.trim()) return;
     const init = initiatives.find(i => i.id === newInitiativeId);
-    addTask({
+    const titleSnapshot = newTitle;
+    await addTask({
       title: newTitle, description: newDesc, priority: newPriority, status: 'open',
       category: 'professional', initiativeId: newInitiativeId !== 'none' ? newInitiativeId : undefined,
       objectiveId: init?.objectiveId, keyResultId: init?.keyResultId, storyPoints: newStoryPoints,
@@ -217,6 +218,24 @@ const BacklogPage = () => {
       completionPercentage: newCompletion || 0,
       roadmapImpact: newRoadmapImpact || 0,
     });
+    // Find the newly created task (most recent matching title)
+    const { data: created } = await (supabase.from('backlog_tasks') as any)
+      .select('id')
+      .eq('product_id', activeProduct?.id)
+      .eq('title', titleSnapshot)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (created?.id) {
+      pushUndo({
+        description: `Tarefa criada: ${titleSnapshot}`,
+        undo: async () => { await deleteTask(created.id); },
+      });
+      toast.success('Tarefa criada', {
+        duration: 8000,
+        action: { label: '↩ Desfazer', onClick: () => undoLast() },
+      });
+    }
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
     setNewInitiativeId('none'); setNewStoryPoints(0); setNewAssigneeId('none');
     setNewCompletion(0); setNewRoadmapImpact(0);
