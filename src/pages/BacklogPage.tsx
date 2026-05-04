@@ -297,6 +297,7 @@ const BacklogPage = () => {
         return (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3);
       });
     const taskSprint = task.sprintId ? sprints.find(s => s.id === task.sprintId) : null;
+    const taskEpic = task.epicId ? epics.find(e => e.id === task.epicId) : null;
     return (
       <div
         data-tour-feature="backlog-card"
@@ -314,6 +315,16 @@ const BacklogPage = () => {
               <Badge variant="secondary" className="gap-1">
                 <Rocket className="h-3 w-3" />
                 {taskSprint.name}
+              </Badge>
+            )}
+            {taskEpic && (
+              <Badge
+                variant="secondary"
+                className="gap-1"
+                style={{ backgroundColor: `${taskEpic.color}22`, color: taskEpic.color, borderColor: `${taskEpic.color}55` }}
+              >
+                <Layers className="h-3 w-3" />
+                {taskEpic.name}
               </Badge>
             )}
             {task.storyPoints && <span className="font-mono text-xs text-muted-foreground">{task.storyPoints} pts</span>}
