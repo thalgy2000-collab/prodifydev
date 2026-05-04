@@ -252,7 +252,7 @@ const BacklogPage = () => {
     }
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
     setNewInitiativeId('none'); setNewStoryPoints(0); setNewAssigneeId('none');
-    setNewCompletion(0); setNewRoadmapImpact(0);
+    setNewCompletion(0); setNewRoadmapImpact(0); setNewEpicId('none');
     setNewDueDate(todayStr()); setCreateOpen(false);
   };
 
