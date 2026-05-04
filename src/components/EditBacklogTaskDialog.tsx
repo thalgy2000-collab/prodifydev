@@ -387,6 +387,24 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             </Select>
           </div>
 
+          <div className="space-y-2">
+            <Label>Épico</Label>
+            <Select value={epicId} onValueChange={setEpicId}>
+              <SelectTrigger><SelectValue placeholder="Sem épico" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem épico</SelectItem>
+                {epics.map(ep => (
+                  <SelectItem key={ep.id} value={ep.id}>
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: ep.color }} />
+                      {ep.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* OKR Linkage with AI suggestion */}
           <div className="space-y-2 rounded-md border border-border p-3">
             <div className="flex items-center justify-between gap-2">
