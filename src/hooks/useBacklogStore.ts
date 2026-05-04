@@ -71,6 +71,7 @@ export const useBacklogStore = () => {
     if (patch.dueEndTime !== undefined) dbPatch.due_end_time = patch.dueEndTime || null;
     if (patch.scheduleActivityId !== undefined) dbPatch.schedule_activity_id = patch.scheduleActivityId || null;
     if (patch.assigneeId !== undefined) dbPatch.assignee_id = patch.assigneeId || null;
+    if (patch.epicId !== undefined) dbPatch.epic_id = patch.epicId || null;
     if (patch.completionPercentage !== undefined) dbPatch.completion_percentage = patch.completionPercentage ?? 0;
     if (patch.roadmapImpact !== undefined) dbPatch.roadmap_impact = patch.roadmapImpact ?? 0;
     await (supabase.from('backlog_tasks') as any).update(dbPatch).eq('id', id);
