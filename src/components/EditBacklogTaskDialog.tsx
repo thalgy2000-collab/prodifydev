@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { HelpCircle, Sparkles, Loader2, Check, X, Target } from 'lucide-react';
 import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
 import { useOKRStore } from '@/hooks/useOKRStore';
+import { useEpicStore } from '@/hooks/useEpicStore';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface MemberOption {
@@ -62,6 +63,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
+  const { epics } = useEpicStore();
+  const [epicId, setEpicId] = useState<string>('none');
 
   // OKR linkage (managed locally; persisted only on Save)
   const { objectives } = useOKRStore();
@@ -170,6 +173,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setSelectedSprintId('none');
       setObjectiveId(task.objectiveId);
       setKeyResultId(task.keyResultId);
+      setEpicId(task.epicId || 'none');
       setSuggestion(null);
       setImpactSuggestion(null);
       fetchByTask(task.id);
@@ -301,6 +305,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       dueEndTime: dueEndTime || undefined,
       completionPercentage: Math.max(0, Math.min(100, completionPercentage || 0)),
       roadmapImpact: Math.max(0, Math.min(100, roadmapImpact || 0)),
+      epicId: epicId !== 'none' ? epicId : undefined,
     };
 
     // Handle schedule activity
@@ -375,6 +380,24 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
                         <AvatarFallback className="text-[10px]">{m.displayName.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       {m.displayName}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Épico</Label>
+            <Select value={epicId} onValueChange={setEpicId}>
+              <SelectTrigger><SelectValue placeholder="Sem épico" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem épico</SelectItem>
+                {epics.map(ep => (
+                  <SelectItem key={ep.id} value={ep.id}>
+                    <div className="flex items-center gap-2">
+                      <span className="h-3 w-3 rounded-full" style={{ backgroundColor: ep.color }} />
+                      {ep.name}
                     </div>
                   </SelectItem>
                 ))}

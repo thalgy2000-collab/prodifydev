@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle, ChevronDown, ChevronRight, Layers } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
@@ -26,6 +26,8 @@ import type { DragEvent } from 'react';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { backlogTourSteps } from '@/lib/featureTours';
 import { useUndoStack } from '@/hooks/useUndoStack';
+import { useEpicStore } from '@/hooks/useEpicStore';
+import EpicSidePanel from '@/components/EpicSidePanel';
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
@@ -80,6 +82,9 @@ const BacklogPage = () => {
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
   const { activeProduct } = useProduct();
+  const { epics } = useEpicStore();
+  const [epicPanelOpen, setEpicPanelOpen] = useState(false);
+  const [selectedEpicId, setSelectedEpicId] = usePersistedState<string | null>('backlog_epic_filter', null);
   const [membersMap, setMembersMap] = useState<Record<string, { name: string; avatar: string | null }>>({});
 
   const fetchMembersMap = useCallback(async () => {
@@ -119,6 +124,7 @@ const BacklogPage = () => {
   const [newAssigneeId, setNewAssigneeId] = useState('none');
   const [newCompletion, setNewCompletion] = useState<number>(0);
   const [newRoadmapImpact, setNewRoadmapImpact] = useState<number>(0);
+  const [newEpicId, setNewEpicId] = useState<string>('none');
   const todayStr = () => new Date().toISOString().slice(0, 10);
   const [newDueDate, setNewDueDate] = useState<string>(todayStr());
 
@@ -167,8 +173,15 @@ const BacklogPage = () => {
   }, [tasks, fetchByTasks]);
 
   const activeSprints = sprints.filter(s => s.status !== 'completed');
+  const matchesEpic = (t: BacklogTask) => {
+    if (selectedEpicId === null) return true;
+    if (selectedEpicId === '__none__') return !t.epicId;
+    return t.epicId === selectedEpicId;
+  };
   const unassigned = getUnassigned();
-  const filtered = unassigned.filter(t => filterStatus === 'all' || t.status === filterStatus);
+  const filtered = unassigned
+    .filter(t => filterStatus === 'all' || t.status === filterStatus)
+    .filter(matchesEpic);
 
   // Collapsed state per sprint, persisted in localStorage
   const getInitialCollapsed = (sprintId: string, status: SprintStatus) => {
@@ -217,6 +230,7 @@ const BacklogPage = () => {
       dueDate: newDueDate || undefined,
       completionPercentage: newCompletion || 0,
       roadmapImpact: newRoadmapImpact || 0,
+      epicId: newEpicId !== 'none' ? newEpicId : undefined,
     });
     // Find the newly created task (most recent matching title)
     const { data: created } = await (supabase.from('backlog_tasks') as any)
@@ -238,7 +252,7 @@ const BacklogPage = () => {
     }
     setNewTitle(''); setNewDesc(''); setNewPriority('medium');
     setNewInitiativeId('none'); setNewStoryPoints(0); setNewAssigneeId('none');
-    setNewCompletion(0); setNewRoadmapImpact(0);
+    setNewCompletion(0); setNewRoadmapImpact(0); setNewEpicId('none');
     setNewDueDate(todayStr()); setCreateOpen(false);
   };
 
@@ -283,6 +297,7 @@ const BacklogPage = () => {
         return (order[a.status as keyof typeof order] ?? 3) - (order[b.status as keyof typeof order] ?? 3);
       });
     const taskSprint = task.sprintId ? sprints.find(s => s.id === task.sprintId) : null;
+    const taskEpic = task.epicId ? epics.find(e => e.id === task.epicId) : null;
     return (
       <div
         data-tour-feature="backlog-card"
@@ -300,6 +315,16 @@ const BacklogPage = () => {
               <Badge variant="secondary" className="gap-1">
                 <Rocket className="h-3 w-3" />
                 {taskSprint.name}
+              </Badge>
+            )}
+            {taskEpic && (
+              <Badge
+                variant="secondary"
+                className="gap-1"
+                style={{ backgroundColor: `${taskEpic.color}22`, color: taskEpic.color, borderColor: `${taskEpic.color}55` }}
+              >
+                <Layers className="h-3 w-3" />
+                {taskEpic.name}
               </Badge>
             )}
             {task.storyPoints && <span className="font-mono text-xs text-muted-foreground">{task.storyPoints} pts</span>}
@@ -393,7 +418,7 @@ const BacklogPage = () => {
   const { TourElement } = useFeatureTour('backlog', backlogTourSteps);
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 transition-[margin] duration-200 ${epicPanelOpen ? 'mr-80' : ''}`}>
       {TourElement}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -401,6 +426,17 @@ const BacklogPage = () => {
           <p className="text-sm text-muted-foreground">Gerencie suas tarefas e prioridades</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button
+            variant={epicPanelOpen || selectedEpicId !== null ? 'default' : 'outline'}
+            className="gap-2"
+            onClick={() => setEpicPanelOpen(v => !v)}
+          >
+            <Layers className="h-4 w-4" />
+            Épicos
+            {selectedEpicId !== null && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>
+            )}
+          </Button>
           <ImportTasksDialog mode="ai" onImported={() => {}} addTask={addTask} />
           <ImportTasksDialog mode="file" onImported={() => {}} addTask={addTask} />
           <Dialog open={sprintOpen} onOpenChange={setSprintOpen}>
@@ -434,6 +470,23 @@ const BacklogPage = () => {
                 <div className="flex gap-3">
                   <div className="flex-1 space-y-2"><Label>Iniciativa</Label><Select value={newInitiativeId} onValueChange={setNewInitiativeId}><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhuma</SelectItem>{initiatives.map(i => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}</SelectContent></Select></div>
                   <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} placeholder="Ex: 3" value={newStoryPoints === 0 ? '' : newStoryPoints} onChange={e => setNewStoryPoints(e.target.value === '' ? 0 : Number(e.target.value))} /></div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Épico</Label>
+                  <Select value={newEpicId} onValueChange={setNewEpicId}>
+                    <SelectTrigger><SelectValue placeholder="Sem épico" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem épico</SelectItem>
+                      {epics.map(ep => (
+                        <SelectItem key={ep.id} value={ep.id}>
+                          <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: ep.color }} />
+                            {ep.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label>Responsável</Label>
@@ -629,6 +682,13 @@ const BacklogPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <EpicSidePanel
+        open={epicPanelOpen}
+        onClose={() => setEpicPanelOpen(false)}
+        selectedEpicId={selectedEpicId}
+        onSelectEpic={setSelectedEpicId}
+      />
     </div>
   );
 };

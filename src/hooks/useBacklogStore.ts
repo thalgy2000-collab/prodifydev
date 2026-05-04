@@ -27,6 +27,7 @@ export const useBacklogStore = () => {
         sprintId: d.sprint_id ?? undefined, returnedFromSprintId: d.returned_from_sprint_id ?? undefined,
         dueDate: d.due_date ?? undefined, dueTime: d.due_time ?? undefined, dueEndTime: d.due_end_time ?? undefined,
         scheduleActivityId: d.schedule_activity_id ?? undefined, assigneeId: d.assignee_id ?? undefined,
+        epicId: d.epic_id ?? undefined,
         completionPercentage: d.completion_percentage ?? 0,
         roadmapImpact: d.roadmap_impact ?? 0,
         sortOrder: d.sort_order ?? undefined,
@@ -45,6 +46,7 @@ export const useBacklogStore = () => {
       initiative_id: data.initiativeId || null, objective_id: data.objectiveId || null,
       key_result_id: data.keyResultId || null, story_points: data.storyPoints ?? null,
       sprint_id: data.sprintId || null, assignee_id: data.assigneeId || null,
+      epic_id: data.epicId || null,
       completion_percentage: data.completionPercentage ?? 0,
       roadmap_impact: data.roadmapImpact ?? 0,
     });
@@ -69,6 +71,7 @@ export const useBacklogStore = () => {
     if (patch.dueEndTime !== undefined) dbPatch.due_end_time = patch.dueEndTime || null;
     if (patch.scheduleActivityId !== undefined) dbPatch.schedule_activity_id = patch.scheduleActivityId || null;
     if (patch.assigneeId !== undefined) dbPatch.assignee_id = patch.assigneeId || null;
+    if (patch.epicId !== undefined) dbPatch.epic_id = patch.epicId || null;
     if (patch.completionPercentage !== undefined) dbPatch.completion_percentage = patch.completionPercentage ?? 0;
     if (patch.roadmapImpact !== undefined) dbPatch.roadmap_impact = patch.roadmapImpact ?? 0;
     await (supabase.from('backlog_tasks') as any).update(dbPatch).eq('id', id);
