@@ -418,7 +418,7 @@ const BacklogPage = () => {
   const { TourElement } = useFeatureTour('backlog', backlogTourSteps);
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 transition-[margin] duration-200 ${epicPanelOpen ? 'mr-80' : ''}`}>
       {TourElement}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -682,6 +682,13 @@ const BacklogPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <EpicSidePanel
+        open={epicPanelOpen}
+        onClose={() => setEpicPanelOpen(false)}
+        selectedEpicId={selectedEpicId}
+        onSelectEpic={setSelectedEpicId}
+      />
     </div>
   );
 };
