@@ -426,6 +426,17 @@ const BacklogPage = () => {
           <p className="text-sm text-muted-foreground">Gerencie suas tarefas e prioridades</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button
+            variant={epicPanelOpen || selectedEpicId !== null ? 'default' : 'outline'}
+            className="gap-2"
+            onClick={() => setEpicPanelOpen(v => !v)}
+          >
+            <Layers className="h-4 w-4" />
+            Épicos
+            {selectedEpicId !== null && (
+              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>
+            )}
+          </Button>
           <ImportTasksDialog mode="ai" onImported={() => {}} addTask={addTask} />
           <ImportTasksDialog mode="file" onImported={() => {}} addTask={addTask} />
           <Dialog open={sprintOpen} onOpenChange={setSprintOpen}>
