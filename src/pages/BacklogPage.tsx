@@ -124,6 +124,7 @@ const BacklogPage = () => {
   const [newAssigneeId, setNewAssigneeId] = useState('none');
   const [newCompletion, setNewCompletion] = useState<number>(0);
   const [newRoadmapImpact, setNewRoadmapImpact] = useState<number>(0);
+  const [newEpicId, setNewEpicId] = useState<string>('none');
   const todayStr = () => new Date().toISOString().slice(0, 10);
   const [newDueDate, setNewDueDate] = useState<string>(todayStr());
 
