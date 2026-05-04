@@ -230,6 +230,7 @@ const BacklogPage = () => {
       dueDate: newDueDate || undefined,
       completionPercentage: newCompletion || 0,
       roadmapImpact: newRoadmapImpact || 0,
+      epicId: newEpicId !== 'none' ? newEpicId : undefined,
     });
     // Find the newly created task (most recent matching title)
     const { data: created } = await (supabase.from('backlog_tasks') as any)
