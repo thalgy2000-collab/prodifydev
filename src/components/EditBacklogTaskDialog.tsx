@@ -21,6 +21,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { HelpCircle, Sparkles, Loader2, Check, X, Target } from 'lucide-react';
 import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
 import { useOKRStore } from '@/hooks/useOKRStore';
+import { useEpicStore } from '@/hooks/useEpicStore';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface MemberOption {
@@ -62,6 +63,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
+  const { epics } = useEpicStore();
+  const [epicId, setEpicId] = useState<string>('none');
 
   // OKR linkage (managed locally; persisted only on Save)
   const { objectives } = useOKRStore();
