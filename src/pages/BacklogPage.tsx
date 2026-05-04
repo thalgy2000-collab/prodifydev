@@ -472,6 +472,23 @@ const BacklogPage = () => {
                   <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} placeholder="Ex: 3" value={newStoryPoints === 0 ? '' : newStoryPoints} onChange={e => setNewStoryPoints(e.target.value === '' ? 0 : Number(e.target.value))} /></div>
                 </div>
                 <div className="space-y-2">
+                  <Label>Épico</Label>
+                  <Select value={newEpicId} onValueChange={setNewEpicId}>
+                    <SelectTrigger><SelectValue placeholder="Sem épico" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem épico</SelectItem>
+                      {epics.map(ep => (
+                        <SelectItem key={ep.id} value={ep.id}>
+                          <div className="flex items-center gap-2">
+                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: ep.color }} />
+                            {ep.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
                   <Label>Responsável</Label>
                   <Select value={newAssigneeId} onValueChange={setNewAssigneeId}>
                     <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
