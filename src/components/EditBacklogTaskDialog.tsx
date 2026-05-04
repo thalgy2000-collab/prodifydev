@@ -173,6 +173,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setSelectedSprintId('none');
       setObjectiveId(task.objectiveId);
       setKeyResultId(task.keyResultId);
+      setEpicId(task.epicId || 'none');
       setSuggestion(null);
       setImpactSuggestion(null);
       fetchByTask(task.id);
