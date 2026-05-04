@@ -27,6 +27,7 @@ export const useBacklogStore = () => {
         sprintId: d.sprint_id ?? undefined, returnedFromSprintId: d.returned_from_sprint_id ?? undefined,
         dueDate: d.due_date ?? undefined, dueTime: d.due_time ?? undefined, dueEndTime: d.due_end_time ?? undefined,
         scheduleActivityId: d.schedule_activity_id ?? undefined, assigneeId: d.assignee_id ?? undefined,
+        epicId: d.epic_id ?? undefined,
         completionPercentage: d.completion_percentage ?? 0,
         roadmapImpact: d.roadmap_impact ?? 0,
         sortOrder: d.sort_order ?? undefined,
