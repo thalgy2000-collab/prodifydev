@@ -173,8 +173,15 @@ const BacklogPage = () => {
   }, [tasks, fetchByTasks]);
 
   const activeSprints = sprints.filter(s => s.status !== 'completed');
+  const matchesEpic = (t: BacklogTask) => {
+    if (selectedEpicId === null) return true;
+    if (selectedEpicId === '__none__') return !t.epicId;
+    return t.epicId === selectedEpicId;
+  };
   const unassigned = getUnassigned();
-  const filtered = unassigned.filter(t => filterStatus === 'all' || t.status === filterStatus);
+  const filtered = unassigned
+    .filter(t => filterStatus === 'all' || t.status === filterStatus)
+    .filter(matchesEpic);
 
   // Collapsed state per sprint, persisted in localStorage
   const getInitialCollapsed = (sprintId: string, status: SprintStatus) => {
