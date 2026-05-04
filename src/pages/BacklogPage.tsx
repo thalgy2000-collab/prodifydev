@@ -82,6 +82,9 @@ const BacklogPage = () => {
   const { sprints, addSprint, updateSprint, deleteSprint } = useSprintStore();
   const { fetchByTasks, getProgress } = useAcceptanceCriteriaStore();
   const { activeProduct } = useProduct();
+  const { epics } = useEpicStore();
+  const [epicPanelOpen, setEpicPanelOpen] = useState(false);
+  const [selectedEpicId, setSelectedEpicId] = usePersistedState<string | null>('backlog_epic_filter', null);
   const [membersMap, setMembersMap] = useState<Record<string, { name: string; avatar: string | null }>>({});
 
   const fetchMembersMap = useCallback(async () => {
