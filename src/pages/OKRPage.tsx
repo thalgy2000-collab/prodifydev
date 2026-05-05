@@ -1,5 +1,11 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
+import { useUndoStack } from '@/hooks/useUndoStack';
 import { useOKRStore } from '@/hooks/useOKRStore';
+import { KeyResult, OKRCategory, Objective } from '@/types/okr';
 import OKRCard from '@/components/OKRCard';
 import CreateOKRDialog from '@/components/CreateOKRDialog';
 import ImportOKRDialog from '@/components/ImportOKRDialog';
