@@ -259,9 +259,9 @@ const OKRPage = () => {
                     key={obj.id}
                     objective={obj}
                     progress={getObjectiveProgress(obj)}
-                    onUpdateKR={updateKeyResult}
-                    onDelete={deleteObjective}
-                    onEdit={updateObjective}
+                    onUpdateKR={handleUpdateKR}
+                    onDelete={handleDeleteObjective}
+                    onEdit={handleUpdateObjective}
                     dragHandlers={dragEnabled ? {
                       draggable: true,
                       isDragging: draggingId === obj.id,
