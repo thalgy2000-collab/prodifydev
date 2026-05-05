@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
+import { useUndoStack } from '@/hooks/useUndoStack';
 import CreateRoadmapDialog from '@/components/CreateRoadmapDialog';
 import EditRoadmapDialog from '@/components/EditRoadmapDialog';
 import { getCurrentQuarter, getQuarterMonths } from '@/types/okr';
@@ -51,8 +53,9 @@ const RoadmapPage = () => {
   const [selectedQuarter, setSelectedQuarter] = usePersistedState('roadmap_filter', getCurrentQuarter());
   const months = getQuarterMonths(selectedQuarter);
 
-  const { items, addItem, updateItem, deleteItem, getByQuarter } = useRoadmapStore();
+  const { items, addItem, updateItem, deleteItem, getByQuarter, refresh } = useRoadmapStore();
   const { objectives } = useOKRStore();
+  const { push, undoLast } = useUndoStack(5);
 
   const [editItem, setEditItem] = useState<RoadmapItem | null>(null);
   const filtered = getByQuarter(selectedQuarter);
@@ -60,6 +63,68 @@ const RoadmapPage = () => {
   const handleQuarterChange = (val: string) => {
     setSelectedQuarter(val);
   };
+
+  // Ctrl+Z shortcut (ignored when typing in inputs)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null;
+      const inField = el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA' || el?.isContentEditable;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !inField) {
+        e.preventDefault();
+        undoLast();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undoLast]);
+
+  const handleAdd = useCallback(async (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => {
+    await addItem(data);
+    push({
+      description: `Iniciativa criada: ${data.title}`,
+      undo: async () => {
+        const target = [...items].reverse().find(i => i.title === data.title && i.quarter === data.quarter);
+        if (target) await deleteItem(target.id);
+      },
+    });
+    toast.success('Iniciativa criada', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  }, [addItem, items, deleteItem, push, undoLast]);
+
+  const handleUpdate = useCallback(async (updated: RoadmapItem) => {
+    const snapshot = items.find(i => i.id === updated.id);
+    await updateItem(updated);
+    if (snapshot) {
+      push({
+        description: `Iniciativa editada: ${snapshot.title}`,
+        undo: async () => { await updateItem(snapshot); },
+      });
+      toast.success('Iniciativa atualizada', {
+        duration: 8000,
+        action: { label: '↩ Desfazer', onClick: () => undoLast() },
+      });
+    }
+  }, [items, updateItem, push, undoLast]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    const snapshot = items.find(i => i.id === id);
+    if (!snapshot) return;
+    await deleteItem(id);
+    push({
+      description: `Iniciativa excluída: ${snapshot.title}`,
+      undo: async () => {
+        const { id: _omit, createdAt: _c, ...rest } = snapshot;
+        await addItem(rest);
+      },
+    });
+    toast.success('Iniciativa excluída', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  }, [items, deleteItem, addItem, push, undoLast]);
+
 
   // Sort by startMonth then endMonth
   const sorted = [...filtered].sort((a, b) => {
@@ -83,7 +148,7 @@ const RoadmapPage = () => {
             <h1 className="text-2xl font-bold tracking-tight">Roadmap</h1>
             <p className="text-sm text-muted-foreground">Cronograma visual das iniciativas</p>
           </div>
-          <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} onAdd={addItem} />
+          <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} onAdd={handleAdd} />
         </div>
 
         {/* Quarter & Year Navigation */}
@@ -173,7 +238,7 @@ const RoadmapPage = () => {
                               <Pencil className="h-3 w-3 text-white/90" />
                             </button>
                             <button
-                              onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}
+                              onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
                               className="rounded p-0.5 hover:bg-white/20 transition-colors"
                             >
                               <Trash2 className="h-3 w-3 text-white/90" />
@@ -204,7 +269,7 @@ const RoadmapPage = () => {
             objectives={objectives}
             open={!!editItem}
             onOpenChange={(open) => !open && setEditItem(null)}
-            onSave={updateItem}
+            onSave={handleUpdate}
           />
         )}
       </div>
