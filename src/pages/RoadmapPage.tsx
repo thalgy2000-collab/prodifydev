@@ -53,8 +53,9 @@ const RoadmapPage = () => {
   const [selectedQuarter, setSelectedQuarter] = usePersistedState('roadmap_filter', getCurrentQuarter());
   const months = getQuarterMonths(selectedQuarter);
 
-  const { items, addItem, updateItem, deleteItem, getByQuarter } = useRoadmapStore();
+  const { items, addItem, updateItem, deleteItem, getByQuarter, refresh } = useRoadmapStore();
   const { objectives } = useOKRStore();
+  const { push, undoLast } = useUndoStack(5);
 
   const [editItem, setEditItem] = useState<RoadmapItem | null>(null);
   const filtered = getByQuarter(selectedQuarter);
@@ -62,6 +63,72 @@ const RoadmapPage = () => {
   const handleQuarterChange = (val: string) => {
     setSelectedQuarter(val);
   };
+
+  // Ctrl+Z shortcut (ignored when typing in inputs)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const el = document.activeElement as HTMLElement | null;
+      const inField = el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA' || el?.isContentEditable;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !inField) {
+        e.preventDefault();
+        undoLast();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undoLast]);
+
+  const handleAdd = useCallback(async (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => {
+    await addItem(data);
+    await refresh();
+    // Find newly inserted item by title + quarter (latest)
+    push({
+      description: `Iniciativa criada: ${data.title}`,
+      undo: async () => {
+        // Re-fetch and delete the most recent matching item
+        const { items: latest } = { items } as { items: RoadmapItem[] };
+        const target = [...latest].reverse().find(i => i.title === data.title && i.quarter === data.quarter);
+        if (target) await deleteItem(target.id);
+      },
+    });
+    toast.success('Iniciativa criada', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  }, [addItem, refresh, items, deleteItem, push, undoLast]);
+
+  const handleUpdate = useCallback(async (updated: RoadmapItem) => {
+    const snapshot = items.find(i => i.id === updated.id);
+    await updateItem(updated);
+    if (snapshot) {
+      push({
+        description: `Iniciativa editada: ${snapshot.title}`,
+        undo: async () => { await updateItem(snapshot); },
+      });
+      toast.success('Iniciativa atualizada', {
+        duration: 8000,
+        action: { label: '↩ Desfazer', onClick: () => undoLast() },
+      });
+    }
+  }, [items, updateItem, push, undoLast]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    const snapshot = items.find(i => i.id === id);
+    if (!snapshot) return;
+    await deleteItem(id);
+    push({
+      description: `Iniciativa excluída: ${snapshot.title}`,
+      undo: async () => {
+        const { id: _omit, createdAt: _c, ...rest } = snapshot;
+        await addItem(rest);
+      },
+    });
+    toast.success('Iniciativa excluída', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  }, [items, deleteItem, addItem, push, undoLast]);
+
 
   // Sort by startMonth then endMonth
   const sorted = [...filtered].sort((a, b) => {
