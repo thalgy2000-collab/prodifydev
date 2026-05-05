@@ -152,7 +152,7 @@ const RoadmapPage = () => {
             <h1 className="text-2xl font-bold tracking-tight">Roadmap</h1>
             <p className="text-sm text-muted-foreground">Cronograma visual das iniciativas</p>
           </div>
-          <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} onAdd={addItem} />
+          <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} onAdd={handleAdd} />
         </div>
 
         {/* Quarter & Year Navigation */}
