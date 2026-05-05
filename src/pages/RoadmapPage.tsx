@@ -273,7 +273,7 @@ const RoadmapPage = () => {
             objectives={objectives}
             open={!!editItem}
             onOpenChange={(open) => !open && setEditItem(null)}
-            onSave={updateItem}
+            onSave={handleUpdate}
           />
         )}
       </div>
