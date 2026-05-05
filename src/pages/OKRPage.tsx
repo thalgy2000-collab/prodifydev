@@ -173,7 +173,7 @@ const OKRPage = () => {
         <div className="flex items-center gap-2 flex-wrap">
           <span data-tour-feature="okr-generate-ai"><GenerateOKRWithAIDialog onImported={refetch} quarter={selectedQuarter} /></span>
           <span data-tour-feature="okr-import"><ImportOKRDialog onImported={refetch} quarter={selectedQuarter} /></span>
-          <span data-tour-feature="okr-create"><CreateOKRDialog quarter={selectedQuarter} onAdd={addObjective} /></span>
+          <span data-tour-feature="okr-create"><CreateOKRDialog quarter={selectedQuarter} onAdd={handleAddObjective} /></span>
         </div>
       </div>
 
