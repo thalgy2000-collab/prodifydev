@@ -242,7 +242,7 @@ const RoadmapPage = () => {
                               <Pencil className="h-3 w-3 text-white/90" />
                             </button>
                             <button
-                              onClick={(e) => { e.stopPropagation(); deleteItem(item.id); }}
+                              onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
                               className="rounded p-0.5 hover:bg-white/20 transition-colors"
                             >
                               <Trash2 className="h-3 w-3 text-white/90" />
