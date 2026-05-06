@@ -763,7 +763,7 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                 const dense = (overlapCounts[act.id] || 1) > 3;
                 const prod = getProductInfo?.(act.productId);
                 return (
-                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                     <button
                       onClick={() => onEditEvent(act)}
                       style={{ top: `${top}px`, height: `${height}px`, ...getEventStyle(cat) }}
@@ -773,7 +773,7 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                         act.status === 'done' && 'opacity-50'
                       )}
                     >
-                      <p className="truncate font-semibold">{act.title}</p>
+                      <p className="truncate font-semibold">{getDisplayTitle(act)}</p>
                       {height > 30 && act.startTime && !dense && (
                         <p className="truncate opacity-70 text-[9px]">
                           {act.startTime}{act.endTime && ` – ${act.endTime}`}
