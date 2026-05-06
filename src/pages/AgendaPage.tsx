@@ -611,9 +611,10 @@ interface MonthViewProps {
   onToggleStatus: (a: ScheduleActivity) => void;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
   isTaskActivity: (title: string) => boolean;
+  getDisplayTitle: (act: ScheduleActivity) => string;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: MonthViewProps) => (
   <div className="h-full flex flex-col">
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
       {WEEK_DAYS_SHORT.map(d => (
