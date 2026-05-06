@@ -554,6 +554,7 @@ const AgendaPage = () => {
               onToggleStatus={toggleStatus}
               getProductInfo={getProductInfo}
               isTaskActivity={isTaskActivity}
+              getDisplayTitle={getDisplayTitle}
             />
           )}
           {viewMode === 'week' && (
@@ -567,6 +568,7 @@ const AgendaPage = () => {
               onToggleStatus={toggleStatus}
               isTaskActivity={isTaskActivity}
               getProductInfo={getProductInfo}
+              getDisplayTitle={getDisplayTitle}
             />
           )}
           {viewMode === 'day' && (
@@ -579,6 +581,7 @@ const AgendaPage = () => {
               onDeleteEvent={handleDelete}
               getProductInfo={getProductInfo}
               isTaskActivity={isTaskActivity}
+              getDisplayTitle={getDisplayTitle}
             />
           )}
         </div>
