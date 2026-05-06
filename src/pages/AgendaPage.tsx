@@ -4,6 +4,7 @@ import { useSprintStore } from '@/hooks/useSprintStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useProduct } from '@/contexts/ProductContext';
 import { useGoogleCalendar, isGoogleEventId } from '@/hooks/useGoogleCalendar';
+import { useParentTaskTitles } from '@/hooks/useParentTaskTitles';
 import { ScheduleActivity, ACTIVITY_STATUS_CONFIG } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
