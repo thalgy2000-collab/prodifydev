@@ -221,25 +221,34 @@ const HomePage = () => {
             <p className="text-sm text-muted-foreground">Nenhuma tarefa próxima na agenda.</p>
           ) : (
             <div className="space-y-2 sm:space-y-3">
-              {upcoming.map((a) => (
-                <button
-                  key={a.id}
-                  onClick={() => navigate('/agenda')}
-                  className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left gap-2"
-                >
-                  <span className="text-sm font-medium text-foreground truncate w-full sm:w-auto">
-                    {a.title}
-                  </span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant="outline" className="text-xs">
-                      {formatDate(a.activity_date)}{a.start_time ? ` · ${a.start_time.slice(0, 5)}` : ''}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {statusLabels[a.status] || a.status}
-              </Badge>
-                  </div>
-                </button>
-              ))}
+              {upcoming.map((a) => {
+                const urgency = getUrgency(a.activity_date);
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => navigate('/agenda')}
+                    className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left gap-2"
+                  >
+                    <span className="text-sm font-medium text-foreground truncate w-full sm:w-auto">
+                      {a.parentTaskTitle && (
+                        <span className="text-muted-foreground">{a.parentTaskTitle} › </span>
+                      )}
+                      {a.title}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                      {urgency && (
+                        <Badge className={`text-xs ${urgency.className}`}>{urgency.label}</Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {formatDate(a.activity_date)}{a.start_time ? ` · ${a.start_time.slice(0, 5)}` : ''}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {statusLabels[a.status] || a.status}
+                      </Badge>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </CardContent>
