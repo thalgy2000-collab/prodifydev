@@ -91,7 +91,33 @@ const HomePage = () => {
         setOkrProgress(0);
       }
 
-      setUpcoming((upcomingRes.data ?? []) as UpcomingActivity[]);
+      // Resolve parent task titles for activities created from acceptance criteria
+      const activityIds = (upcomingRes.data ?? []).map(a => a.id);
+      const parentMap: Record<string, string> = {};
+      if (activityIds.length > 0) {
+        const { data: criteria } = await supabase
+          .from('acceptance_criteria')
+          .select('schedule_activity_id, task_id')
+          .in('schedule_activity_id', activityIds);
+        const taskIds = Array.from(new Set((criteria ?? []).map(c => c.task_id).filter(Boolean)));
+        if (taskIds.length > 0) {
+          const { data: parentTasks } = await supabase
+            .from('backlog_tasks')
+            .select('id, title')
+            .in('id', taskIds);
+          const titleById = Object.fromEntries((parentTasks ?? []).map(t => [t.id, t.title]));
+          for (const c of criteria ?? []) {
+            if (c.schedule_activity_id && c.task_id && titleById[c.task_id]) {
+              parentMap[c.schedule_activity_id] = titleById[c.task_id];
+            }
+          }
+        }
+      }
+
+      setUpcoming(((upcomingRes.data ?? []) as UpcomingActivity[]).map(a => ({
+        ...a,
+        parentTaskTitle: parentMap[a.id] ?? null,
+      })));
       setLoading(false);
     };
 
