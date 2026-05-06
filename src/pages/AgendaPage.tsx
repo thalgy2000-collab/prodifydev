@@ -496,8 +496,9 @@ const AgendaPage = () => {
                 {selectedDateActivities.map(act => {
                   const cat = getCategory(act, isTaskActivity(act.title));
                   const prod = getProductInfo(act.productId);
+                  const dt = getDisplayTitle(act);
                   return (
-                    <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                    <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={dt}>
                       <div
                         className={cn('p-2 cursor-pointer transition-opacity', act.status === 'done' && 'opacity-50')}
                         style={getEventStyle(cat)}
@@ -514,7 +515,7 @@ const AgendaPage = () => {
                           </button>
                           <div className="flex-1 min-w-0">
                             <p className={cn('text-xs font-semibold text-foreground truncate', act.status === 'done' && 'line-through')}>
-                              {act.title}
+                              {dt}
                             </p>
                             {act.startTime && (
                               <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
