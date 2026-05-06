@@ -163,6 +163,13 @@ const AgendaPage = () => {
   const taskTitles = useMemo(() => new Set(tasks.filter(t => t.scheduleActivityId).map(t => `[${t.title}]`)), [tasks]);
   const isTaskActivity = (activityTitle: string) => taskTitles.has(activityTitle);
 
+  const localActivityIds = useMemo(() => localActivities.map(a => a.id), [localActivities]);
+  const parentTitles = useParentTaskTitles(localActivityIds);
+  const getDisplayTitle = (act: ScheduleActivity) => {
+    const parent = parentTitles[act.id];
+    return parent ? `${parent} › ${act.title}` : act.title;
+  };
+
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
