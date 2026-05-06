@@ -107,9 +107,10 @@ interface EventTooltipProps {
   category: EventCategory;
   productLabel?: string | null;
   isTask: boolean;
+  displayTitle?: string;
   children: React.ReactNode;
 }
-const EventTooltip = ({ act, category, productLabel, isTask, children }: EventTooltipProps) => (
+const EventTooltip = ({ act, category, productLabel, isTask, displayTitle, children }: EventTooltipProps) => (
   <Tooltip delayDuration={200}>
     <TooltipTrigger asChild>{children}</TooltipTrigger>
     <TooltipContent side="top" className="max-w-xs">
@@ -119,7 +120,7 @@ const EventTooltip = ({ act, category, productLabel, isTask, children }: EventTo
             className="inline-block h-2 w-2 rounded-full"
             style={{ backgroundColor: `hsl(${CATEGORY_COLORS[category].hsl})` }}
           />
-          <p className="font-semibold text-xs">{act.title}</p>
+          <p className="font-semibold text-xs">{displayTitle ?? act.title}</p>
         </div>
         <p className="text-[10px] text-muted-foreground capitalize">
           {CATEGORY_COLORS[category].label.replace(/s$/, '')}
