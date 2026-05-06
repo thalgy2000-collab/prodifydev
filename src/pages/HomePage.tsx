@@ -20,12 +20,26 @@ interface UpcomingActivity {
   activity_date: string;
   start_time: string | null;
   status: string;
+  parentTaskTitle?: string | null;
 }
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendente',
   in_progress: 'Em andamento',
   done: 'Concluída',
+};
+
+type Urgency = { label: string; className: string } | null;
+
+const getUrgency = (dateStr: string): Urgency => {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const diff = Math.round((date.getTime() - today.getTime()) / 86400000);
+  if (diff < 0) return { label: 'Atrasada', className: 'bg-destructive text-destructive-foreground border-transparent' };
+  if (diff === 0) return { label: 'Hoje', className: 'bg-yellow-500 text-white border-transparent' };
+  if (diff === 1) return { label: 'Amanhã', className: 'bg-blue-500 text-white border-transparent' };
+  return null;
 };
 
 const HomePage = () => {
