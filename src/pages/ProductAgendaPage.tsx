@@ -42,6 +42,10 @@ const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const ProductAgendaPage = () => {
   const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
+  const activityIds = useMemo(() => activities.map(a => a.id), [activities]);
+  const parentTitles = useParentTaskTitles(activityIds);
+  const getDisplayTitle = (act: ScheduleActivity) =>
+    parentTitles[act.id] ? `${parentTitles[act.id]} › ${act.title}` : act.title;
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
