@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
+import { useParentTaskTitles } from '@/hooks/useParentTaskTitles';
 import { ScheduleActivity } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +42,10 @@ const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const ProductAgendaPage = () => {
   const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
+  const activityIds = useMemo(() => activities.map(a => a.id), [activities]);
+  const parentTitles = useParentTaskTitles(activityIds);
+  const getDisplayTitle = (act: ScheduleActivity) =>
+    parentTitles[act.id] ? `${parentTitles[act.id]} › ${act.title}` : act.title;
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -261,7 +266,7 @@ const ProductAgendaPage = () => {
                         {act.status === 'done' ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
                       </button>
                       <div className="flex-1 min-w-0">
-                        <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>{act.title}</p>
+                        <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>{getDisplayTitle(act)}</p>
                         {act.startTime && (
                           <p className="text-[10px] opacity-80 flex items-center gap-1 mt-0.5">
                             <Clock className="h-2.5 w-2.5" />
@@ -330,7 +335,7 @@ const ProductAgendaPage = () => {
                           )}
                         >
                           {act.startTime && <span className="mr-1">{act.startTime}</span>}
-                          {act.title}
+                          {getDisplayTitle(act)}
                         </button>
                       ))}
                       {dayActs.length > 3 && (

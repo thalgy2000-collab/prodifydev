@@ -20,12 +20,26 @@ interface UpcomingActivity {
   activity_date: string;
   start_time: string | null;
   status: string;
+  parentTaskTitle?: string | null;
 }
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendente',
   in_progress: 'Em andamento',
   done: 'Concluída',
+};
+
+type Urgency = { label: string; className: string } | null;
+
+const getUrgency = (dateStr: string): Urgency => {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const diff = Math.round((date.getTime() - today.getTime()) / 86400000);
+  if (diff < 0) return { label: 'Atrasada', className: 'bg-destructive text-destructive-foreground border-transparent' };
+  if (diff === 0) return { label: 'Hoje', className: 'bg-yellow-500 text-white border-transparent' };
+  if (diff === 1) return { label: 'Amanhã', className: 'bg-blue-500 text-white border-transparent' };
+  return null;
 };
 
 const HomePage = () => {
@@ -77,7 +91,33 @@ const HomePage = () => {
         setOkrProgress(0);
       }
 
-      setUpcoming((upcomingRes.data ?? []) as UpcomingActivity[]);
+      // Resolve parent task titles for activities created from acceptance criteria
+      const activityIds = (upcomingRes.data ?? []).map(a => a.id);
+      const parentMap: Record<string, string> = {};
+      if (activityIds.length > 0) {
+        const { data: criteria } = await supabase
+          .from('acceptance_criteria')
+          .select('schedule_activity_id, task_id')
+          .in('schedule_activity_id', activityIds);
+        const taskIds = Array.from(new Set((criteria ?? []).map(c => c.task_id).filter(Boolean)));
+        if (taskIds.length > 0) {
+          const { data: parentTasks } = await supabase
+            .from('backlog_tasks')
+            .select('id, title')
+            .in('id', taskIds);
+          const titleById = Object.fromEntries((parentTasks ?? []).map(t => [t.id, t.title]));
+          for (const c of criteria ?? []) {
+            if (c.schedule_activity_id && c.task_id && titleById[c.task_id]) {
+              parentMap[c.schedule_activity_id] = titleById[c.task_id];
+            }
+          }
+        }
+      }
+
+      setUpcoming(((upcomingRes.data ?? []) as UpcomingActivity[]).map(a => ({
+        ...a,
+        parentTaskTitle: parentMap[a.id] ?? null,
+      })));
       setLoading(false);
     };
 
@@ -181,25 +221,34 @@ const HomePage = () => {
             <p className="text-sm text-muted-foreground">Nenhuma tarefa próxima na agenda.</p>
           ) : (
             <div className="space-y-2 sm:space-y-3">
-              {upcoming.map((a) => (
-                <button
-                  key={a.id}
-                  onClick={() => navigate('/agenda')}
-                  className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left gap-2"
-                >
-                  <span className="text-sm font-medium text-foreground truncate w-full sm:w-auto">
-                    {a.title}
-                  </span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant="outline" className="text-xs">
-                      {formatDate(a.activity_date)}{a.start_time ? ` · ${a.start_time.slice(0, 5)}` : ''}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {statusLabels[a.status] || a.status}
-              </Badge>
-                  </div>
-                </button>
-              ))}
+              {upcoming.map((a) => {
+                const urgency = getUrgency(a.activity_date);
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => navigate('/agenda')}
+                    className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left gap-2"
+                  >
+                    <span className="text-sm font-medium text-foreground truncate w-full sm:w-auto">
+                      {a.parentTaskTitle && (
+                        <span className="text-muted-foreground">{a.parentTaskTitle} › </span>
+                      )}
+                      {a.title}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                      {urgency && (
+                        <Badge className={`text-xs ${urgency.className}`}>{urgency.label}</Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {formatDate(a.activity_date)}{a.start_time ? ` · ${a.start_time.slice(0, 5)}` : ''}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {statusLabels[a.status] || a.status}
+                      </Badge>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </CardContent>

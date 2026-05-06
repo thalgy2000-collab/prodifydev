@@ -4,6 +4,7 @@ import { useSprintStore } from '@/hooks/useSprintStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useProduct } from '@/contexts/ProductContext';
 import { useGoogleCalendar, isGoogleEventId } from '@/hooks/useGoogleCalendar';
+import { useParentTaskTitles } from '@/hooks/useParentTaskTitles';
 import { ScheduleActivity, ACTIVITY_STATUS_CONFIG } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,9 +107,10 @@ interface EventTooltipProps {
   category: EventCategory;
   productLabel?: string | null;
   isTask: boolean;
+  displayTitle?: string;
   children: React.ReactNode;
 }
-const EventTooltip = ({ act, category, productLabel, isTask, children }: EventTooltipProps) => (
+const EventTooltip = ({ act, category, productLabel, isTask, displayTitle, children }: EventTooltipProps) => (
   <Tooltip delayDuration={200}>
     <TooltipTrigger asChild>{children}</TooltipTrigger>
     <TooltipContent side="top" className="max-w-xs">
@@ -118,7 +120,7 @@ const EventTooltip = ({ act, category, productLabel, isTask, children }: EventTo
             className="inline-block h-2 w-2 rounded-full"
             style={{ backgroundColor: `hsl(${CATEGORY_COLORS[category].hsl})` }}
           />
-          <p className="font-semibold text-xs">{act.title}</p>
+          <p className="font-semibold text-xs">{displayTitle ?? act.title}</p>
         </div>
         <p className="text-[10px] text-muted-foreground capitalize">
           {CATEGORY_COLORS[category].label.replace(/s$/, '')}
@@ -161,6 +163,13 @@ const AgendaPage = () => {
 
   const taskTitles = useMemo(() => new Set(tasks.filter(t => t.scheduleActivityId).map(t => `[${t.title}]`)), [tasks]);
   const isTaskActivity = (activityTitle: string) => taskTitles.has(activityTitle);
+
+  const localActivityIds = useMemo(() => localActivities.map(a => a.id), [localActivities]);
+  const parentTitles = useParentTaskTitles(localActivityIds);
+  const getDisplayTitle = (act: ScheduleActivity) => {
+    const parent = parentTitles[act.id];
+    return parent ? `${parent} › ${act.title}` : act.title;
+  };
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -487,8 +496,9 @@ const AgendaPage = () => {
                 {selectedDateActivities.map(act => {
                   const cat = getCategory(act, isTaskActivity(act.title));
                   const prod = getProductInfo(act.productId);
+                  const dt = getDisplayTitle(act);
                   return (
-                    <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                    <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={dt}>
                       <div
                         className={cn('p-2 cursor-pointer transition-opacity', act.status === 'done' && 'opacity-50')}
                         style={getEventStyle(cat)}
@@ -505,7 +515,7 @@ const AgendaPage = () => {
                           </button>
                           <div className="flex-1 min-w-0">
                             <p className={cn('text-xs font-semibold text-foreground truncate', act.status === 'done' && 'line-through')}>
-                              {act.title}
+                              {dt}
                             </p>
                             {act.startTime && (
                               <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -544,6 +554,7 @@ const AgendaPage = () => {
               onToggleStatus={toggleStatus}
               getProductInfo={getProductInfo}
               isTaskActivity={isTaskActivity}
+              getDisplayTitle={getDisplayTitle}
             />
           )}
           {viewMode === 'week' && (
@@ -557,6 +568,7 @@ const AgendaPage = () => {
               onToggleStatus={toggleStatus}
               isTaskActivity={isTaskActivity}
               getProductInfo={getProductInfo}
+              getDisplayTitle={getDisplayTitle}
             />
           )}
           {viewMode === 'day' && (
@@ -569,6 +581,7 @@ const AgendaPage = () => {
               onDeleteEvent={handleDelete}
               getProductInfo={getProductInfo}
               isTaskActivity={isTaskActivity}
+              getDisplayTitle={getDisplayTitle}
             />
           )}
         </div>
@@ -598,9 +611,10 @@ interface MonthViewProps {
   onToggleStatus: (a: ScheduleActivity) => void;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
   isTaskActivity: (title: string) => boolean;
+  getDisplayTitle: (act: ScheduleActivity) => string;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: MonthViewProps) => (
   <div className="h-full flex flex-col">
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
       {WEEK_DAYS_SHORT.map(d => (
@@ -648,7 +662,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                 const cat = getCategory(act, isTaskActivity(act.title));
                 const prod = getProductInfo?.(act.productId);
                 return (
-                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                     <button
                       onClick={(e) => { e.stopPropagation(); onEditEvent(act); }}
                       style={getEventStyle(cat)}
@@ -659,7 +673,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                       )}
                     >
                       {act.startTime && <span className="mr-1 opacity-70">{act.startTime}</span>}
-                      {act.title}
+                      {getDisplayTitle(act)}
                     </button>
                   </EventTooltip>
                 );
@@ -688,9 +702,10 @@ interface WeekViewProps {
   onToggleStatus: (a: ScheduleActivity) => void;
   isTaskActivity: (title: string) => boolean;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
+  getDisplayTitle: (act: ScheduleActivity) => string;
 }
 
-const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo }: WeekViewProps) => {
+const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: WeekViewProps) => {
   // Real interval-overlap counts per event (same day + overlapping time range)
   const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
@@ -748,7 +763,7 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                 const dense = (overlapCounts[act.id] || 1) > 3;
                 const prod = getProductInfo?.(act.productId);
                 return (
-                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                     <button
                       onClick={() => onEditEvent(act)}
                       style={{ top: `${top}px`, height: `${height}px`, ...getEventStyle(cat) }}
@@ -758,7 +773,7 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                         act.status === 'done' && 'opacity-50'
                       )}
                     >
-                      <p className="truncate font-semibold">{act.title}</p>
+                      <p className="truncate font-semibold">{getDisplayTitle(act)}</p>
                       {height > 30 && act.startTime && !dense && (
                         <p className="truncate opacity-70 text-[9px]">
                           {act.startTime}{act.endTime && ` – ${act.endTime}`}
@@ -787,9 +802,10 @@ interface DayViewProps {
   onDeleteEvent: (id: string) => void;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
   isTaskActivity: (title: string) => boolean;
+  getDisplayTitle: (act: ScheduleActivity) => string;
 }
 
-const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity }: DayViewProps) => {
+const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity, getDisplayTitle }: DayViewProps) => {
   // Real interval-overlap counts per event (same date + overlapping time range)
   const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
@@ -830,7 +846,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
               const dense = (overlapCounts[act.id] || 1) > 3;
               const prod = getProductInfo?.(act.productId);
               return (
-                <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                   <div
                     className={cn(
                       'p-3 cursor-pointer transition-all hover:shadow-md',
@@ -854,7 +870,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                           dense ? 'text-xs' : 'text-sm',
                           act.status === 'done' && 'line-through text-muted-foreground'
                         )}>
-                          {act.title}
+                          {getDisplayTitle(act)}
                         </p>
                         {act.startTime && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
