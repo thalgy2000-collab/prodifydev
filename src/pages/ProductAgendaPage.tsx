@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
+import { useParentTaskTitles } from '@/hooks/useParentTaskTitles';
 import { ScheduleActivity } from '@/types/schedule';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
