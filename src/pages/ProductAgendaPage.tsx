@@ -266,7 +266,7 @@ const ProductAgendaPage = () => {
                         {act.status === 'done' ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
                       </button>
                       <div className="flex-1 min-w-0">
-                        <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>{act.title}</p>
+                        <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>{getDisplayTitle(act)}</p>
                         {act.startTime && (
                           <p className="text-[10px] opacity-80 flex items-center gap-1 mt-0.5">
                             <Clock className="h-2.5 w-2.5" />
