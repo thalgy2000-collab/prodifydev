@@ -702,9 +702,10 @@ interface WeekViewProps {
   onToggleStatus: (a: ScheduleActivity) => void;
   isTaskActivity: (title: string) => boolean;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
+  getDisplayTitle: (act: ScheduleActivity) => string;
 }
 
-const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo }: WeekViewProps) => {
+const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: WeekViewProps) => {
   // Real interval-overlap counts per event (same day + overlapping time range)
   const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
