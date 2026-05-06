@@ -846,7 +846,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
               const dense = (overlapCounts[act.id] || 1) > 3;
               const prod = getProductInfo?.(act.productId);
               return (
-                <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                   <div
                     className={cn(
                       'p-3 cursor-pointer transition-all hover:shadow-md',
@@ -870,7 +870,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                           dense ? 'text-xs' : 'text-sm',
                           act.status === 'done' && 'line-through text-muted-foreground'
                         )}>
-                          {act.title}
+                          {getDisplayTitle(act)}
                         </p>
                         {act.startTime && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
