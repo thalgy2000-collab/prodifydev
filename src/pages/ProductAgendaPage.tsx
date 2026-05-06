@@ -335,7 +335,7 @@ const ProductAgendaPage = () => {
                           )}
                         >
                           {act.startTime && <span className="mr-1">{act.startTime}</span>}
-                          {act.title}
+                          {getDisplayTitle(act)}
                         </button>
                       ))}
                       {dayActs.length > 3 && (
