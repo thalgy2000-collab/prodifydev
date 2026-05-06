@@ -802,9 +802,10 @@ interface DayViewProps {
   onDeleteEvent: (id: string) => void;
   getProductInfo?: (productId?: string) => { emoji: string; name: string; color: string } | null;
   isTaskActivity: (title: string) => boolean;
+  getDisplayTitle: (act: ScheduleActivity) => string;
 }
 
-const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity }: DayViewProps) => {
+const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity, getDisplayTitle }: DayViewProps) => {
   // Real interval-overlap counts per event (same date + overlapping time range)
   const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
