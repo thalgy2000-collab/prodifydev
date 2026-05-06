@@ -662,7 +662,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                 const cat = getCategory(act, isTaskActivity(act.title));
                 const prod = getProductInfo?.(act.productId);
                 return (
-                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)}>
+                  <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                     <button
                       onClick={(e) => { e.stopPropagation(); onEditEvent(act); }}
                       style={getEventStyle(cat)}
@@ -673,7 +673,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                       )}
                     >
                       {act.startTime && <span className="mr-1 opacity-70">{act.startTime}</span>}
-                      {act.title}
+                      {getDisplayTitle(act)}
                     </button>
                   </EventTooltip>
                 );
