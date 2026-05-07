@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { lazy, Suspense, useState, useRef, useEffect, useCallback } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
@@ -6,7 +6,6 @@ import { useSprintStore } from '@/hooks/useSprintStore';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
-import EditBacklogTaskDialog from '@/components/EditBacklogTaskDialog';
 import ImportTasksDialog from '@/components/ImportTasksDialog';
 import { BacklogTask, PRIORITY_CONFIG, TASK_STATUS_CONFIG, TaskPriority, TaskStatus } from '@/types/backlog';
 import { SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
@@ -28,6 +27,8 @@ import { backlogTourSteps } from '@/lib/featureTours';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { useEpicStore } from '@/hooks/useEpicStore';
 import EpicSidePanel from '@/components/EpicSidePanel';
+
+const EditBacklogTaskDialog = lazy(() => import('@/components/EditBacklogTaskDialog'));
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
@@ -173,6 +174,9 @@ const BacklogPage = () => {
   }, [tasks, fetchByTasks]);
 
   const activeSprints = sprints.filter(s => s.status !== 'completed');
+  const getPriorityConfig = (priority: BacklogTask['priority']) => PRIORITY_CONFIG[priority] ?? PRIORITY_CONFIG.medium;
+  const getTaskStatusConfig = (status: BacklogTask['status']) => TASK_STATUS_CONFIG[status] ?? TASK_STATUS_CONFIG.open;
+  const getSprintStatusConfig = (status: SprintStatus) => SPRINT_STATUS_CONFIG[status] ?? SPRINT_STATUS_CONFIG.planning;
   const matchesEpic = (t: BacklogTask) => {
     if (selectedEpicId === null) return true;
     if (selectedEpicId === '__none__') return !t.epicId;
@@ -286,8 +290,8 @@ const BacklogPage = () => {
   };
 
   const TaskRow = ({ task, showDrag = true }: { task: BacklogTask; showDrag?: boolean }) => {
-    const pCfg = PRIORITY_CONFIG[task.priority];
-    const sCfg = TASK_STATUS_CONFIG[task.status];
+    const pCfg = getPriorityConfig(task.priority);
+    const sCfg = getTaskStatusConfig(task.status);
     const progress = getProgress(task.id);
     const assignee = task.assigneeId ? membersMap[task.assigneeId] : null;
     const sortedSprintsForMenu = [...sprints]
@@ -360,7 +364,7 @@ const BacklogPage = () => {
                 </div>
               ) : (
                 sortedSprintsForMenu.map(s => {
-                  const sCfg = SPRINT_STATUS_CONFIG[s.status];
+                  const sCfg = getSprintStatusConfig(s.status);
                   return (
                     <DropdownMenuItem
                       key={s.id}
@@ -558,7 +562,7 @@ const BacklogPage = () => {
       {activeSprints.map(sprint => {
         const sprintTasks = getBySprint(sprint.id);
         const totalPoints = sprintTasks.reduce((s, t) => s + (t.storyPoints || 0), 0);
-        const sCfg = SPRINT_STATUS_CONFIG[sprint.status];
+        const sCfg = getSprintStatusConfig(sprint.status);
         const isCollapsed = collapsedSprints[sprint.id] ?? (sprint.status !== 'active');
         return (
           <div
@@ -651,7 +655,11 @@ const BacklogPage = () => {
         )}
       </div>
 
-      <EditBacklogTaskDialog task={editTask} open={!!editTask} onOpenChange={async (o) => { if (!o) { setEditTask(null); await refreshInitiatives(); } }} onSave={updateTask} initiatives={initiatives} />
+      {editTask && (
+        <Suspense fallback={null}>
+          <EditBacklogTaskDialog task={editTask} open onOpenChange={async (o) => { if (!o) { setEditTask(null); await refreshInitiatives(); } }} onSave={updateTask} initiatives={initiatives} />
+        </Suspense>
+      )}
 
       <Dialog open={!!editSprintId} onOpenChange={(o) => { if (!o) setEditSprintId(null); }}>
         <DialogContent>
