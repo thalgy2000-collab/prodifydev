@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { lazy, Suspense, useState, useRef, useEffect, useCallback } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
@@ -6,7 +6,6 @@ import { useSprintStore } from '@/hooks/useSprintStore';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
 import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
-import EditBacklogTaskDialog from '@/components/EditBacklogTaskDialog';
 import ImportTasksDialog from '@/components/ImportTasksDialog';
 import { BacklogTask, PRIORITY_CONFIG, TASK_STATUS_CONFIG, TaskPriority, TaskStatus } from '@/types/backlog';
 import { SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
@@ -28,6 +27,8 @@ import { backlogTourSteps } from '@/lib/featureTours';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { useEpicStore } from '@/hooks/useEpicStore';
 import EpicSidePanel from '@/components/EpicSidePanel';
+
+const EditBacklogTaskDialog = lazy(() => import('@/components/EditBacklogTaskDialog'));
 
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
@@ -654,7 +655,11 @@ const BacklogPage = () => {
         )}
       </div>
 
-      <EditBacklogTaskDialog task={editTask} open={!!editTask} onOpenChange={async (o) => { if (!o) { setEditTask(null); await refreshInitiatives(); } }} onSave={updateTask} initiatives={initiatives} />
+      {editTask && (
+        <Suspense fallback={null}>
+          <EditBacklogTaskDialog task={editTask} open onOpenChange={async (o) => { if (!o) { setEditTask(null); await refreshInitiatives(); } }} onSave={updateTask} initiatives={initiatives} />
+        </Suspense>
+      )}
 
       <Dialog open={!!editSprintId} onOpenChange={(o) => { if (!o) setEditSprintId(null); }}>
         <DialogContent>
