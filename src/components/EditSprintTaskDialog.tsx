@@ -135,7 +135,7 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
               </div>
             </div>
           </div>
-          <DialogFooter className="flex-row justify-between sm:justify-between gap-2 pt-2">
+          <DialogFooter className="flex-row justify-between sm:justify-between gap-2 px-6 py-3 shrink-0 border-t border-border/50">
             <Button variant="destructive" size="sm" className="gap-2" onClick={() => setConfirmDeleteOpen(true)}>
               <Trash2 className="h-4 w-4" /> Excluir
             </Button>
