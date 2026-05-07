@@ -25,7 +25,6 @@ export const roadmapTourSteps: TourStep[] = [
 export const backlogTourSteps: TourStep[] = [
   { type: 'spotlight', selector: '[data-tour-feature="backlog-list"]', title: 'Lista de tarefas', description: 'Gerencie todas as tarefas do produto em um só lugar.' },
   { type: 'spotlight', selector: '[data-tour-feature="backlog-priority"]', title: 'Filtros de prioridade', description: 'Filtre por Alta, Média ou Baixa prioridade.' },
-  { type: 'spotlight', selector: '[data-tour-feature="backlog-rice"]', title: 'Repriorizar pelo RICE', description: 'Repriorize automaticamente baseado no score RICE.' },
   { type: 'spotlight', selector: '[data-tour-feature="backlog-card"]', title: 'Card de tarefa', description: 'Clique para editar, vincular à iniciativa e definir % de conclusão.' },
   { type: 'spotlight', selector: '[data-tour-feature="backlog-sprint-section"]', title: 'Sprints recolhíveis', description: 'Clique no cabeçalho da sprint para expandir ou recolher.' },
 ];
