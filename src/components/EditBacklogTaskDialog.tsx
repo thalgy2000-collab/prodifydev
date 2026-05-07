@@ -354,7 +354,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] h-[95vh] sm:h-auto flex flex-col p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-lg h-[95vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-3 shrink-0 border-b border-border/50"><DialogTitle>Editar Tarefa</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-4 px-6 overflow-y-auto flex-1 min-h-0 pb-4">
           <div className="space-y-2"><Label>Título</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
