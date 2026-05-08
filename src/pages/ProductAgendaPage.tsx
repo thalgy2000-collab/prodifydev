@@ -20,21 +20,22 @@ import {
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
-const EVENT_COLORS = [
-  'bg-primary/80 text-primary-foreground',
-  'bg-blue-500/80 text-white',
-  'bg-green-500/80 text-white',
-  'bg-yellow-500/80 text-white',
-  'bg-purple-500/80 text-white',
-  'bg-pink-500/80 text-white',
-  'bg-orange-500/80 text-white',
-  'bg-teal-500/80 text-white',
-];
+const EVENT_HUES = [217, 262, 160, 25, 340, 190, 45, 280];
 
-function getEventColor(id: string) {
+function getEventHue(id: string) {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  return EVENT_COLORS[Math.abs(hash) % EVENT_COLORS.length];
+  return EVENT_HUES[Math.abs(hash) % EVENT_HUES.length];
+}
+
+function getEventStyle(id: string): React.CSSProperties {
+  const h = getEventHue(id);
+  return {
+    backgroundColor: `hsla(${h}, 80%, 55%, 0.12)`,
+    borderLeft: `4px solid hsl(${h}, 80%, 55%)`,
+    borderRadius: '4px',
+    color: `hsl(${h}, 80%, 55%)`,
+  };
 }
 
 const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
@@ -258,7 +259,8 @@ const ProductAgendaPage = () => {
                 {selectedDateActivities.map(act => (
                   <div
                     key={act.id}
-                    className={cn('rounded-lg p-2.5 cursor-pointer transition-opacity', getEventColor(act.id), act.status === 'done' && 'opacity-50')}
+                    style={getEventStyle(act.id)}
+                    className={cn('p-2.5 cursor-pointer transition-opacity text-foreground', act.status === 'done' && 'opacity-50')}
                     onClick={() => openEdit(act)}
                   >
                     <div className="flex items-start gap-2">
@@ -328,9 +330,9 @@ const ProductAgendaPage = () => {
                         <button
                           key={act.id}
                           onClick={(e) => { e.stopPropagation(); openEdit(act); }}
+                          style={getEventStyle(act.id)}
                           className={cn(
-                            'w-full text-left rounded px-1.5 py-0.5 text-[10px] font-medium truncate block',
-                            getEventColor(act.id),
+                            'w-full text-left px-1.5 py-0.5 text-[10px] font-medium truncate block text-foreground',
                             act.status === 'done' && 'opacity-50 line-through'
                           )}
                         >
