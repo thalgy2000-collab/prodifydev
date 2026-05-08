@@ -259,7 +259,8 @@ const ProductAgendaPage = () => {
                 {selectedDateActivities.map(act => (
                   <div
                     key={act.id}
-                    className={cn('rounded-lg p-2.5 cursor-pointer transition-opacity', getEventColor(act.id), act.status === 'done' && 'opacity-50')}
+                    style={getEventStyle(act.id)}
+                    className={cn('p-2.5 cursor-pointer transition-opacity text-foreground', act.status === 'done' && 'opacity-50')}
                     onClick={() => openEdit(act)}
                   >
                     <div className="flex items-start gap-2">
