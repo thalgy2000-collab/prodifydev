@@ -330,9 +330,9 @@ const ProductAgendaPage = () => {
                         <button
                           key={act.id}
                           onClick={(e) => { e.stopPropagation(); openEdit(act); }}
+                          style={getEventStyle(act.id)}
                           className={cn(
-                            'w-full text-left rounded px-1.5 py-0.5 text-[10px] font-medium truncate block',
-                            getEventColor(act.id),
+                            'w-full text-left px-1.5 py-0.5 text-[10px] font-medium truncate block text-foreground',
                             act.status === 'done' && 'opacity-50 line-through'
                           )}
                         >
