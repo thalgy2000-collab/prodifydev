@@ -613,13 +613,17 @@ const BacklogPage = () => {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
-            <ListTodo className="mb-3 h-10 w-10 text-muted-foreground/50" />
-            <p className="font-medium text-muted-foreground">Nenhuma tarefa no backlog</p>
-          </div>
+          <>
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+              <ListTodo className="mb-3 h-10 w-10 text-muted-foreground/50" />
+              <p className="font-medium text-muted-foreground">Nenhuma tarefa no backlog</p>
+            </div>
+            <InlineCreate />
+          </>
         ) : (
           <div className="space-y-2">
             {filtered.map(task => <TaskRow key={task.id} task={task} />)}
+            <InlineCreate />
           </div>
         )}
       </div>
