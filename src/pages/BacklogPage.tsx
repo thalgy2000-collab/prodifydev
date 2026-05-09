@@ -568,12 +568,16 @@ const BacklogPage = () => {
             <div className={`grid transition-all duration-200 ease-in-out ${isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}>
               <div className="overflow-hidden">
                 {sprintTasks.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-                    Arraste tarefas do backlog para esta sprint
-                  </div>
+                  <>
+                    <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+                      Arraste tarefas do backlog para esta sprint
+                    </div>
+                    <InlineCreate sprintId={sprint.id} />
+                  </>
                 ) : (
                   <div className="space-y-2">
                     {sprintTasks.map(task => <TaskRow key={task.id} task={task} />)}
+                    <InlineCreate sprintId={sprint.id} />
                   </div>
                 )}
               </div>
