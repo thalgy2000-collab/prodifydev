@@ -419,6 +419,57 @@ const BacklogPage = () => {
     );
   };
 
+  const quickCreate = useCallback(async (title: string, sprintId?: string) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    await addTask({
+      title: trimmed, description: '', priority: 'medium', status: 'open',
+      category: 'professional', sprintId,
+      completionPercentage: 0, roadmapImpact: 0,
+    });
+    toast.success('Tarefa criada');
+  }, [addTask]);
+
+  const InlineCreate = ({ sprintId }: { sprintId?: string }) => {
+    const [active, setActive] = useState(false);
+    const [value, setValue] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
+    useEffect(() => { if (active) inputRef.current?.focus(); }, [active]);
+    const submit = async () => {
+      if (!value.trim()) { setActive(false); setValue(''); return; }
+      await quickCreate(value, sprintId);
+      setValue(''); setActive(false);
+    };
+    if (!active) {
+      return (
+        <button
+          type="button"
+          onClick={() => setActive(true)}
+          className="mt-2 flex w-full items-center gap-2 border-t border-border/40 px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted/30 hover:text-foreground transition-colors rounded-b-md cursor-pointer"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Criar
+        </button>
+      );
+    }
+    return (
+      <div className="mt-2 flex w-full items-center gap-2 border-t border-border/40 px-2 py-1.5">
+        <Input
+          ref={inputRef}
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') { e.preventDefault(); submit(); }
+            else if (e.key === 'Escape') { setActive(false); setValue(''); }
+          }}
+          onBlur={() => { setActive(false); setValue(''); }}
+          placeholder="Digite o título da tarefa..."
+          className="h-8 text-sm"
+        />
+      </div>
+    );
+  };
+
   const { TourElement } = useFeatureTour('backlog', backlogTourSteps);
 
   return (
