@@ -419,6 +419,57 @@ const BacklogPage = () => {
     );
   };
 
+  const quickCreate = useCallback(async (title: string, sprintId?: string) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    await addTask({
+      title: trimmed, description: '', priority: 'medium', status: 'open',
+      category: 'professional', sprintId,
+      completionPercentage: 0, roadmapImpact: 0,
+    });
+    toast.success('Tarefa criada');
+  }, [addTask]);
+
+  const InlineCreate = ({ sprintId }: { sprintId?: string }) => {
+    const [active, setActive] = useState(false);
+    const [value, setValue] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
+    useEffect(() => { if (active) inputRef.current?.focus(); }, [active]);
+    const submit = async () => {
+      if (!value.trim()) { setActive(false); setValue(''); return; }
+      await quickCreate(value, sprintId);
+      setValue(''); setActive(false);
+    };
+    if (!active) {
+      return (
+        <button
+          type="button"
+          onClick={() => setActive(true)}
+          className="mt-2 flex w-full items-center gap-2 border-t border-border/40 px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted/30 hover:text-foreground transition-colors rounded-b-md cursor-pointer"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Criar
+        </button>
+      );
+    }
+    return (
+      <div className="mt-2 flex w-full items-center gap-2 border-t border-border/40 px-2 py-1.5">
+        <Input
+          ref={inputRef}
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') { e.preventDefault(); submit(); }
+            else if (e.key === 'Escape') { setActive(false); setValue(''); }
+          }}
+          onBlur={() => { setActive(false); setValue(''); }}
+          placeholder="Digite o título da tarefa..."
+          className="h-8 text-sm"
+        />
+      </div>
+    );
+  };
+
   const { TourElement } = useFeatureTour('backlog', backlogTourSteps);
 
   return (
@@ -456,92 +507,6 @@ const BacklogPage = () => {
                   <div className="flex-1 space-y-2"><Label>Fim</Label><Input type="date" value={sprintEnd} onChange={e => setSprintEnd(e.target.value)} /></div>
                 </div>
                 <Button onClick={handleCreateSprint} className="w-full">Criar Sprint</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <Dialog open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (o) setNewDueDate(todayStr()); }}>
-            <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="h-4 w-4" />Nova Tarefa</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader><DialogTitle>Nova Tarefa</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Implementar login social" value={newTitle} onChange={e => setNewTitle(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Descrição</Label><Textarea placeholder="Detalhes..." value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={2} /></div>
-                <div className="flex gap-3">
-                  <div className="flex-1 space-y-2"><Label>Prioridade</Label><Select value={newPriority} onValueChange={v => setNewPriority(v as TaskPriority)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(PRIORITY_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent></Select></div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-1 space-y-2"><Label>Iniciativa</Label><Select value={newInitiativeId} onValueChange={setNewInitiativeId}><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhuma</SelectItem>{initiatives.map(i => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}</SelectContent></Select></div>
-                  <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} placeholder="Ex: 3" value={newStoryPoints === 0 ? '' : newStoryPoints} onChange={e => setNewStoryPoints(e.target.value === '' ? 0 : Number(e.target.value))} /></div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Épico</Label>
-                  <Select value={newEpicId} onValueChange={setNewEpicId}>
-                    <SelectTrigger><SelectValue placeholder="Sem épico" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem épico</SelectItem>
-                      {epics.map(ep => (
-                        <SelectItem key={ep.id} value={ep.id}>
-                          <div className="flex items-center gap-2">
-                            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: ep.color }} />
-                            {ep.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Responsável</Label>
-                  <Select value={newAssigneeId} onValueChange={setNewAssigneeId}>
-                    <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem responsável</SelectItem>
-                      {Object.entries(membersMap).map(([uid, m]) => (
-                        <SelectItem key={uid} value={uid}>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={m.avatar || undefined} />
-                              <AvatarFallback className="text-[10px]">{m.name.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            {m.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2"><Label>Data de entrega</Label><Input type="date" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} /></div>
-                <div className="flex gap-3">
-                  <div className="flex-1 space-y-2">
-                    <Label>% Conclusão</Label>
-                    <div className="relative">
-                      <Input type="number" min={0} max={100} placeholder="Ex: 50"
-                        value={newCompletion === 0 ? '' : newCompletion}
-                        onChange={e => setNewCompletion(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))} />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-1.5">
-                      <Label>Impacto na Iniciativa</Label>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild><HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" /></TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs"><p>% que essa tarefa representa no progresso da iniciativa vinculada no Roadmap</p></TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <div className="relative">
-                      <Input type="number" min={0} max={100} placeholder="Ex: 33"
-                        value={newRoadmapImpact === 0 ? '' : newRoadmapImpact}
-                        onChange={e => setNewRoadmapImpact(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))} />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
-                    </div>
-                  </div>
-                </div>
-                <Button onClick={handleCreate} className="w-full">Criar Tarefa</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -603,12 +568,16 @@ const BacklogPage = () => {
             <div className={`grid transition-all duration-200 ease-in-out ${isCollapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'}`}>
               <div className="overflow-hidden">
                 {sprintTasks.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-                    Arraste tarefas do backlog para esta sprint
-                  </div>
+                  <>
+                    <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+                      Arraste tarefas do backlog para esta sprint
+                    </div>
+                    <InlineCreate sprintId={sprint.id} />
+                  </>
                 ) : (
                   <div className="space-y-2">
                     {sprintTasks.map(task => <TaskRow key={task.id} task={task} />)}
+                    <InlineCreate sprintId={sprint.id} />
                   </div>
                 )}
               </div>
@@ -644,13 +613,17 @@ const BacklogPage = () => {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
-            <ListTodo className="mb-3 h-10 w-10 text-muted-foreground/50" />
-            <p className="font-medium text-muted-foreground">Nenhuma tarefa no backlog</p>
-          </div>
+          <>
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+              <ListTodo className="mb-3 h-10 w-10 text-muted-foreground/50" />
+              <p className="font-medium text-muted-foreground">Nenhuma tarefa no backlog</p>
+            </div>
+            <InlineCreate />
+          </>
         ) : (
           <div className="space-y-2">
             {filtered.map(task => <TaskRow key={task.id} task={task} />)}
+            <InlineCreate />
           </div>
         )}
       </div>
