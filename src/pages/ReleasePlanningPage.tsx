@@ -168,7 +168,7 @@ const ReleasePlanningPage = () => {
                         <SelectItem value="released">Lançado</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRelease(release.id)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteRelease(release)}>
                       <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
                   </div>
