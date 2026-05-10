@@ -202,8 +202,10 @@ const ProtectedRoutes = () => {
 
   return (
     <ProductProvider>
-      <PageViewTracker />
-      <AuthenticatedLayout />
+      <UndoProvider>
+        <PageViewTracker />
+        <AuthenticatedLayout />
+      </UndoProvider>
     </ProductProvider>
   );
 };
