@@ -5,6 +5,8 @@ import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import { useProduct } from '@/contexts/ProductContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUndo } from '@/contexts/UndoContext';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { calcRiceScore, IMPACT_OPTIONS, CONFIDENCE_OPTIONS, mapAiImpact, mapAiConfidence } from '@/types/rice';
