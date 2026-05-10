@@ -103,5 +103,5 @@ export const useBacklogStore = () => {
   const getBySprint = useCallback((sprintId: string) => tasks.filter(t => t.sprintId === sprintId), [tasks]);
   const getUnassigned = useCallback(() => tasks.filter(t => !t.sprintId), [tasks]);
 
-  return { tasks, addTask, updateTask, deleteTask, assignToSprint, reorderTasks, getByInitiative, getBySprint, getUnassigned };
+  return { tasks, addTask, updateTask, deleteTask, assignToSprint, reorderTasks, getByInitiative, getBySprint, getUnassigned, refresh: fetchAll };
 };
