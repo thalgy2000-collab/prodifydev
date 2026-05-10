@@ -245,8 +245,45 @@ const OpportunityTreePage = () => {
 
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
+    const target = nodes.find(n => n.id === deleteId);
+    if (!target) { setDeleteId(null); return; }
+    const descendants: OpportunityNode[] = [];
+    const collect = (parentId: string) => {
+      nodes.filter(n => n.parentId === parentId).forEach(child => {
+        descendants.push(child);
+        collect(child.id);
+      });
+    };
+    collect(deleteId);
+    const snap = { ...target };
+    const childrenSnap = descendants.map(d => ({ ...d }));
     await deleteNode(deleteId);
     setDeleteId(null);
+    push({
+      description: `Oportunidade excluída: ${snap.title}`,
+      undo: async () => {
+        if (!user || !activeProduct) return;
+        await (supabase.from('opportunity_nodes') as any).insert({
+          id: snap.id, user_id: user.id, product_id: activeProduct.id,
+          objective_id: snap.objectiveId, parent_id: snap.parentId,
+          type: snap.type, title: snap.title, description: snap.description,
+        });
+        if (childrenSnap.length) {
+          await (supabase.from('opportunity_nodes') as any).insert(
+            childrenSnap.map(c => ({
+              id: c.id, user_id: user.id, product_id: activeProduct.id,
+              objective_id: c.objectiveId, parent_id: c.parentId,
+              type: c.type, title: c.title, description: c.description,
+            }))
+          );
+        }
+        await refresh();
+      },
+    });
+    toast.success(`Oportunidade excluída: ${snap.title}`, {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
   };
 
   // Pinch-to-zoom (mobile)
