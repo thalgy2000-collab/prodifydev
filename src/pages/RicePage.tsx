@@ -32,7 +32,7 @@ interface AiSuggestion {
 }
 
 const RicePage = () => {
-  const { scores, setScore, getScore, deleteScore } = useRiceStore();
+  const { scores, setScore, getScore, deleteScore, refresh: refreshRice } = useRiceStore();
   const { tasks, updateTask, reorderTasks } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { objectives } = useOKRStore();
