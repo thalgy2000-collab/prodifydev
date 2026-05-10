@@ -375,7 +375,7 @@ const SprintsPage = () => {
               Encerrar
             </Button>
           )}
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteSprint(selectedSprint.id)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteSprint(selectedSprint)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
