@@ -5,6 +5,7 @@ import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { OnboardingTour, TourStep } from '@/components/OnboardingTour';
 import { PendingInviteBanner } from '@/components/PendingInviteBanner';
 import { NotificationBell } from '@/components/NotificationBell';
+import { UndoButton } from '@/components/UndoButton';
 import { CategoryBreadcrumb } from '@/components/CategoryBreadcrumb';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
