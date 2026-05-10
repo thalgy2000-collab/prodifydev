@@ -127,7 +127,7 @@ const SwotPage = () => {
                     <div key={item.id} className="group flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2">
                       <p className="flex-1 text-sm">{item.content}</p>
                       <button
-                        onClick={() => deleteItem(item.id)}
+                        onClick={() => handleDelete(item)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80 mt-0.5"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
