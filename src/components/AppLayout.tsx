@@ -109,6 +109,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               )}
             </div>
             <div className="flex items-center gap-2 ml-auto">
+              <UndoButton />
               <NotificationBell />
               <button
                 onClick={() => navigate('/perfil')}
