@@ -464,8 +464,27 @@ const RicePage = () => {
                             variant="destructive"
                             size="sm"
                             onClick={async () => {
+                              const snap = getScore(item.id);
                               await deleteScore(item.id);
-                              sonnerToast.success('Item removido do RICE ✓');
+                              if (snap && user && activeProduct) {
+                                push({
+                                  description: `Item removido do RICE: ${item.title ?? ''}`.trim(),
+                                  undo: async () => {
+                                    await (supabase.from('rice_scores') as any).insert({
+                                      user_id: user.id, product_id: activeProduct.id,
+                                      item_id: snap.itemId, item_type: snap.itemType,
+                                      reach: snap.reach, impact: snap.impact,
+                                      confidence: snap.confidence, effort: snap.effort,
+                                      ai_suggested: snap.aiSuggested ?? false,
+                                    });
+                                    await refreshRice();
+                                  },
+                                });
+                              }
+                              sonnerToast.success('Item removido do RICE ✓', {
+                                duration: 8000,
+                                action: { label: '↩ Desfazer', onClick: () => undoLast() },
+                              });
                               document.body.click();
                             }}
                           >
