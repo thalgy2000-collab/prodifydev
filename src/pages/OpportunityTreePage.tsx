@@ -15,6 +15,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Plus, Minus, TreePine, Trash2, Pencil, Maximize2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
+import { useUndo } from '@/contexts/UndoContext';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { opportunityTourSteps } from '@/lib/featureTours';
 
