@@ -21,10 +21,42 @@ const ROLE_LABELS: Record<string, string> = { owner: 'Dono', editor: 'Editor', v
 const MembersPage = () => {
   const { members, removeMember, updateMemberRole, userRole, activeProduct, invites, createInvite, cancelInvite } = useProduct();
   const { user } = useAuth();
+  const { push, undoLast } = useUndo();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('editor');
   const [inviting, setInviting] = useState(false);
+
+  const handleRemoveMember = async (member: typeof members[number]) => {
+    const snap = { ...member };
+    if (!activeProduct) return;
+    await removeMember(member.id);
+    push({
+      description: `Membro removido: ${snap.displayName || snap.email || 'Usuário'}`,
+      undo: async () => {
+        await (supabase.from('product_members') as any).insert({
+          id: snap.id, product_id: activeProduct.id, user_id: snap.userId, role: snap.role,
+        });
+      },
+    });
+    toast.success(`Membro removido: ${snap.displayName || snap.email || 'Usuário'}`, {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  };
+
+  const handleRoleChange = async (member: typeof members[number], newRole: string) => {
+    const previous = member.role;
+    await updateMemberRole(member.id, newRole);
+    push({
+      description: `Role alterada: ${member.displayName || member.email || 'Usuário'}`,
+      undo: async () => { await updateMemberRole(member.id, previous); },
+    });
+    toast.success('Role atualizada', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  };
 
   const isOwner = userRole === 'owner';
 
