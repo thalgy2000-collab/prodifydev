@@ -59,5 +59,5 @@ export const useRiceStore = () => {
     }
   }, [scores, fetchAll]);
 
-  return { scores, setScore, getScore, deleteScore };
+  return { scores, setScore, getScore, deleteScore, refresh: fetchAll };
 };
