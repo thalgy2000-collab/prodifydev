@@ -40,6 +40,8 @@ const RicePage = () => {
   const { objectives } = useOKRStore();
   const { activeProduct } = useProduct();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { push, undoLast } = useUndo();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
   const [sortConfig, setSortConfig] = usePersistedState<{ field: string; direction: 'asc' | 'desc' } | null>('rice_sort', null);
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
