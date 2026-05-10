@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
+import { useUndo } from '@/contexts/UndoContext';
 import { useSwotStore } from '@/hooks/useSwotStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import { SwotCategory, SWOT_CONFIG } from '@/types/swot';
@@ -14,6 +19,9 @@ const CATEGORIES: SwotCategory[] = ['strength', 'weakness', 'opportunity', 'thre
 const SwotPage = () => {
   const { addItem, deleteItem, getByObjective } = useSwotStore();
   const { objectives } = useOKRStore();
+  const { user } = useAuth();
+  const { activeProduct } = useProduct();
+  const { push, undoLast } = useUndo();
 
   const [scope, setScope] = useState<string>('global');
   const [newContent, setNewContent] = useState('');
@@ -26,6 +34,26 @@ const SwotPage = () => {
     if (!newContent.trim()) return;
     await addItem({ objectiveId, category: newCategory, content: newContent });
     setNewContent('');
+  };
+
+  const handleDelete = async (item: typeof filtered[number]) => {
+    const snap = { ...item };
+    await deleteItem(item.id);
+    push({
+      description: `Item SWOT excluído`,
+      undo: async () => {
+        if (!user || !activeProduct) return;
+        await (supabase.from('swot_analyses') as any).insert({
+          id: snap.id, user_id: user.id, product_id: activeProduct.id,
+          objective_id: snap.objectiveId, category: snap.category, content: snap.content,
+        });
+        await addItem({ objectiveId: snap.objectiveId, category: snap.category, content: snap.content });
+      },
+    });
+    toast.success('Item SWOT excluído', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
   };
 
   const { TourElement } = useFeatureTour('swot', swotTourSteps);
