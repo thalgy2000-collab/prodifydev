@@ -25,6 +25,10 @@ export interface BacklogTask {
   completionPercentage?: number;
   roadmapImpact?: number;
   sortOrder?: number;
+  externalId?: string;
+  externalUrl?: string;
+  externalStatus?: string;
+  syncProvider?: 'jira' | 'linear';
   createdAt: string;
 }
 

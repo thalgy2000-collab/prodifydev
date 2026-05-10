@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle, ChevronDown, ChevronRight, Layers } from 'lucide-react';
+import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle, ChevronDown, ChevronRight, Layers, ExternalLink } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
@@ -290,6 +290,21 @@ const BacklogPage = () => {
       });
     const taskSprint = task.sprintId ? sprints.find(s => s.id === task.sprintId) : null;
     const taskEpic = task.epicId ? epics.find(e => e.id === task.epicId) : null;
+
+    const handleSync = async () => {
+      // Abre um toast e chama a edge function
+      toast.info('Sincronizando com a ferramenta externa...');
+      try {
+        const { data, error } = await supabase.functions.invoke('sync-task', {
+          body: { taskId: task.id }
+        });
+        if (error) throw error;
+        toast.success('Tarefa sincronizada com sucesso!');
+      } catch (err: any) {
+        toast.error('Erro ao sincronizar: ' + err.message);
+      }
+    };
+
     return (
       <div
         data-tour-feature="backlog-card"
@@ -325,6 +340,31 @@ const BacklogPage = () => {
                 <ClipboardCheck className="h-3 w-3" />
                 {progress.done}/{progress.total} critérios
               </span>
+            )}
+            {task.externalId && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <a 
+                      href={task.externalUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 hover:opacity-80 transition-opacity"
+                    >
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800">
+                        {task.syncProvider === 'jira' ? 'Jira' : 'Linear'}: {task.externalId}
+                        <ExternalLink className="h-3 w-3 ml-1" />
+                      </Badge>
+                    </a>
+                  </TooltipTrigger>
+                  <TooltipContent>Sincronizado com {task.syncProvider === 'jira' ? 'Jira' : 'Linear'}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {task.externalStatus && (
+              <Badge variant="outline" className="text-xs">
+                {task.externalStatus}
+              </Badge>
             )}
           </div>
           {task.description && <p className="mt-1 text-sm text-muted-foreground truncate">{task.description}</p>}
@@ -400,6 +440,18 @@ const BacklogPage = () => {
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+          {!task.externalId && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20" onClick={handleSync}>
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Sincronizar com Jira/Linear</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditTask(task)}><Pencil className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteTaskWithUndo(task.id)}><Trash2 className="h-4 w-4" /></Button>
         </div>

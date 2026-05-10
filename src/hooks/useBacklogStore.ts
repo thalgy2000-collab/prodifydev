@@ -31,6 +31,10 @@ export const useBacklogStore = () => {
         completionPercentage: d.completion_percentage ?? 0,
         roadmapImpact: d.roadmap_impact ?? 0,
         sortOrder: d.sort_order ?? undefined,
+        externalId: d.external_id ?? undefined,
+        externalUrl: d.external_url ?? undefined,
+        externalStatus: d.external_status ?? undefined,
+        syncProvider: d.sync_provider ?? undefined,
         createdAt: d.created_at,
       })));
     }
@@ -74,6 +78,10 @@ export const useBacklogStore = () => {
     if (patch.epicId !== undefined) dbPatch.epic_id = patch.epicId || null;
     if (patch.completionPercentage !== undefined) dbPatch.completion_percentage = patch.completionPercentage ?? 0;
     if (patch.roadmapImpact !== undefined) dbPatch.roadmap_impact = patch.roadmapImpact ?? 0;
+    if (patch.externalId !== undefined) dbPatch.external_id = patch.externalId;
+    if (patch.externalUrl !== undefined) dbPatch.externalUrl = patch.externalUrl;
+    if (patch.externalStatus !== undefined) dbPatch.external_status = patch.externalStatus;
+    if (patch.syncProvider !== undefined) dbPatch.sync_provider = patch.syncProvider;
     await (supabase.from('backlog_tasks') as any).update(dbPatch).eq('id', id);
     trackEvent('task_updated', user?.id, { page: '/backlog', properties: { taskId: id, fields: Object.keys(dbPatch) } });
     await fetchAll();

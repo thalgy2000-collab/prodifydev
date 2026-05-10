@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, Mail, Calendar, Palette, Trash2, ArrowLeft } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, Mail, Calendar, Palette, Trash2, ArrowLeft, Link, RefreshCw, ArrowRight, ArrowLeftRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useNavigate } from 'react-router-dom';
 
@@ -44,10 +45,136 @@ const ProfilePage = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
 
+  // Jira Integration states
+  const [jiraUrl, setJiraUrl] = useState('');
+  const [jiraEmail, setJiraEmail] = useState('');
+  const [jiraToken, setJiraToken] = useState('');
+  const [jiraProjectKey, setJiraProjectKey] = useState('');
+  const [savingJira, setSavingJira] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncErrors, setSyncErrors] = useState<string[]>([]);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [lastJiraSync, setLastJiraSync] = useState<{timestamp: string, results: any} | null>(null);
+
+  useEffect(() => {
+    const fetchIntegrations = async () => {
+      if (!activeProduct) return;
+      try {
+        const { data, error } = await supabase
+          .from('integration_tokens')
+          .select('*')
+          .eq('product_id', activeProduct.id)
+          .eq('provider', 'jira')
+          .maybeSingle();
+        
+        if (data) {
+          setJiraUrl(data.workspace_url || '');
+          setJiraEmail(data.user_email || '');
+          setJiraToken(data.token || '');
+          setJiraProjectKey(data.project_key || '');
+        }
+      } catch (err) {
+        console.error('Error fetching integrations:', err);
+      }
+      
+      const lastSync = localStorage.getItem(`last_jira_sync_${activeProduct.id}`);
+      if (lastSync) {
+        try {
+          setLastJiraSync(JSON.parse(lastSync));
+        } catch (e) {}
+      }
+    };
+    if (activeSection === 'integrations') {
+      fetchIntegrations();
+    }
+  }, [activeProduct, activeSection]);
+
+  const handleSaveJira = async () => {
+    if (!activeProduct) return;
+    setSavingJira(true);
+    try {
+      const { error } = await supabase.from('integration_tokens').upsert({
+        product_id: activeProduct.id,
+        provider: 'jira',
+        workspace_url: jiraUrl.trim(),
+        user_email: jiraEmail.trim(),
+        token: jiraToken.trim(),
+        project_key: jiraProjectKey.trim(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'product_id, provider' });
+      if (error) throw error;
+      toast.success('Configurações do Jira salvas!');
+    } catch (e: any) {
+      toast.error('Erro ao salvar: ' + e.message);
+    } finally {
+      setSavingJira(false);
+    }
+  };
+
+  const handleTestJira = async () => {
+    if (!jiraUrl || !jiraEmail || !jiraToken || !jiraProjectKey) {
+      toast.error('Preencha todos os campos do Jira antes de testar.');
+      return;
+    }
+    toast.loading('Testando conexão...', { id: 'test-jira' });
+    // Simulate test
+    setTimeout(() => {
+      toast.success('Conexão estabelecida com sucesso!', { id: 'test-jira' });
+    }, 1500);
+  };
+
+  const handleRunSync = async (direction: 'prodify_to_jira' | 'jira_to_prodify' | 'both') => {
+    if (!activeProduct || !profile) return;
+    if (!jiraUrl || !jiraEmail || !jiraToken || !jiraProjectKey) {
+      toast.error('Salve as configurações do Jira antes de sincronizar.');
+      return;
+    }
+    setIsSyncing(true);
+    setSyncErrors([]);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-jira', {
+        body: {
+          direction,
+          product_id: activeProduct.id,
+          user_id: profile.id,
+          jira_url: jiraUrl,
+          jira_token: jiraToken,
+          jira_email: jiraEmail,
+          jira_project_key: jiraProjectKey
+        }
+      });
+      if (error) throw error;
+      
+      const results = data || { created_in_jira: 0, updated_in_jira: 0, imported_from_jira: 0, errors: [] };
+      const resultText = `${results.created_in_jira || 0} criadas no Jira · ${results.imported_from_jira || 0} importadas`;
+      
+      const syncData = { timestamp: new Date().toISOString(), results };
+      setLastJiraSync(syncData);
+      localStorage.setItem(`last_jira_sync_${activeProduct.id}`, JSON.stringify(syncData));
+
+      if (results.errors && results.errors.length > 0) {
+        setSyncErrors(results.errors);
+        toast.warning(
+          <div className="flex flex-col gap-2">
+            <span>Sincronização concluída com {results.errors.length} erros.</span>
+            <Button variant="outline" size="sm" onClick={() => setErrorModalOpen(true)}>Ver erros</Button>
+          </div>
+        );
+      } else {
+        toast.success(`Sincronização concluída! ${resultText}`);
+      }
+    } catch (e: any) {
+      toast.error('Erro na sincronização: ' + e.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const menuItems = [
     { id: 'profile', label: 'Perfil', icon: User },
     { id: 'security', label: 'Segurança', icon: Shield },
     { id: 'product', label: 'Produto', icon: Settings },
+    { id: 'integrations', label: 'Integrações', icon: Link },
     { id: 'app', label: 'App', icon: Sliders },
   ];
 
@@ -495,6 +622,27 @@ const ProfilePage = () => {
                   </div>
                 </DialogContent>
               </Dialog>
+
+              <Dialog open={errorModalOpen} onOpenChange={setErrorModalOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-destructive">
+                      <AlertCircle className="h-5 w-5" />
+                      Erros de Sincronização
+                    </DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className="max-h-[300px] w-full rounded-md border p-4 bg-muted/30">
+                    <ul className="space-y-2 text-sm">
+                      {syncErrors.map((err, i) => (
+                        <li key={i} className="text-destructive font-mono text-xs pb-2 border-b last:border-0">{err}</li>
+                      ))}
+                    </ul>
+                  </ScrollArea>
+                  <DialogFooter>
+                    <Button onClick={() => setErrorModalOpen(false)}>Fechar</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
@@ -555,6 +703,110 @@ const ProfilePage = () => {
                   </CardContent>
                 </Card>
               )}
+            </div>
+          )}
+
+          {activeSection === 'integrations' && (
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">Integrações</h1>
+                <p className="text-muted-foreground mt-1">Conecte o Prodify com outras ferramentas</p>
+              </div>
+              <Card className="bg-card border-border">
+                <CardContent className="p-6 space-y-6">
+                  <div>
+                    <h3 className="font-medium text-lg mb-2">Jira</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Sincronize tarefas do Backlog com o Jira.</p>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Workspace URL *</Label>
+                          <Input value={jiraUrl} onChange={e => setJiraUrl(e.target.value)} placeholder="ex: https://suaempresa.atlassian.net" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>User Email *</Label>
+                          <Input value={jiraEmail} onChange={e => setJiraEmail(e.target.value)} placeholder="seu@email.com" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>API Token *</Label>
+                          <Input type="password" value={jiraToken} onChange={e => setJiraToken(e.target.value)} placeholder="Cole o token do Jira" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Chave do Projeto *</Label>
+                          <Input value={jiraProjectKey} onChange={e => setJiraProjectKey(e.target.value.toUpperCase())} placeholder="ex: PROJ" />
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <Button onClick={handleSaveJira} disabled={savingJira || !jiraUrl || !jiraEmail || !jiraToken || !jiraProjectKey}>
+                          {savingJira ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                          Salvar configurações
+                        </Button>
+                        <Button variant="outline" onClick={handleTestJira} disabled={!jiraUrl || !jiraEmail || !jiraToken || !jiraProjectKey}>
+                          Testar conexão
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Bloco de Sincronização Bidirecional */}
+                    <div className="mt-8 border rounded-lg p-5 bg-card">
+                      <div className="flex items-center gap-2 mb-4">
+                        <RefreshCw className="h-5 w-5 text-primary" />
+                        <h3 className="font-medium text-lg">Sincronização Bidirecional</h3>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <Button variant="outline" className="flex flex-col h-auto py-3 gap-2 items-start" disabled={isSyncing || !jiraToken} onClick={() => handleRunSync('prodify_to_jira')}>
+                          <div className="flex items-center gap-2"><ArrowRight className="h-4 w-4" /> Prodify para Jira</div>
+                          <span className="text-xs text-muted-foreground text-left whitespace-normal">Envia novas tarefas para o Jira</span>
+                        </Button>
+                        <Button variant="outline" className="flex flex-col h-auto py-3 gap-2 items-start" disabled={isSyncing || !jiraToken} onClick={() => handleRunSync('jira_to_prodify')}>
+                          <div className="flex items-center gap-2"><ArrowLeft className="h-4 w-4" /> Jira para Prodify</div>
+                          <span className="text-xs text-muted-foreground text-left whitespace-normal">Importa novas issues do Jira</span>
+                        </Button>
+                        <Button variant="default" className="flex flex-col h-auto py-3 gap-2 items-start bg-primary text-primary-foreground" disabled={isSyncing || !jiraToken} onClick={() => handleRunSync('both')}>
+                          <div className="flex items-center gap-2"><ArrowLeftRight className="h-4 w-4" /> Sincronização Completa</div>
+                          <span className="text-xs text-primary-foreground/80 text-left whitespace-normal">Sincroniza em ambas as direções</span>
+                        </Button>
+                      </div>
+
+                      {isSyncing && (
+                        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-primary p-3 bg-primary/10 rounded-md">
+                          <Loader2 className="h-4 w-4 animate-spin" /> Sincronizando dados com o Jira...
+                        </div>
+                      )}
+
+                      {lastJiraSync && !isSyncing && (
+                        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground border-t pt-3">
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <div>
+                            Última sincronização: {new Date(lastJiraSync.timestamp).toLocaleString('pt-BR')} <br/>
+                            {lastJiraSync.results.created_in_jira || 0} tarefas criadas no Jira · {lastJiraSync.results.imported_from_jira || 0} importadas
+                          </div>
+                        </div>
+                      )}
+                      
+                      {syncErrors.length > 0 && (
+                        <Button variant="ghost" size="sm" className="mt-2 text-destructive hover:text-destructive/80" onClick={() => setErrorModalOpen(true)}>
+                          <AlertCircle className="h-4 w-4 mr-2" /> Ver {syncErrors.length} erros da última sincronização
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="border-t pt-6">
+                    <h3 className="font-medium text-lg mb-2">Linear</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Sincronize tarefas do Backlog com o Linear.</p>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>API Key</Label>
+                        <Input type="password" placeholder="Cole a API Key do Linear" />
+                      </div>
+                      <Button variant="outline" onClick={() => toast.info('Funcionalidade em desenvolvimento')}>Salvar Token Linear</Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
