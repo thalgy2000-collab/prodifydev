@@ -119,7 +119,7 @@ const MembersPage = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   {isOwner && member.role !== 'owner' ? (
-                    <Select value={member.role} onValueChange={v => updateMemberRole(member.id, v)}>
+                    <Select value={member.role} onValueChange={v => handleRoleChange(member, v)}>
                       <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="editor">Editor</SelectItem>
