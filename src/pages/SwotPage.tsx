@@ -47,7 +47,7 @@ const SwotPage = () => {
           id: snap.id, user_id: user.id, product_id: activeProduct.id,
           objective_id: snap.objectiveId, category: snap.category, content: snap.content,
         });
-        await addItem({ objectiveId: snap.objectiveId, category: snap.category, content: snap.content });
+        await refresh();
       },
     });
     toast.success('Item SWOT excluído', {
