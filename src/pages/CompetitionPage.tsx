@@ -123,6 +123,7 @@ const CompetitionPage = () => {
   const { activeProduct } = useProduct();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { push, undoLast } = useUndo();
 
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [criteria, setCriteria] = useState<Criterion[]>([]);
