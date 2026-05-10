@@ -13,13 +13,16 @@ import { Loader2, Save, User, Shield, Settings, Sliders, Camera, Lock, LogOut, M
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const ProfilePage = () => {
   const { profile, loading, initial, avatarColor, refetch } = useProfile();
   const { activeProduct, deleteProduct } = useProduct();
   const { isDark, toggle } = useTheme();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const from = searchParams.get('from');
+  const sectionQuery = searchParams.get('section');
 
   // ✅ TODOS os hooks ANTES de qualquer return condicional
   const [displayName, setDisplayName] = useState('');
@@ -55,6 +58,12 @@ const ProfilePage = () => {
   const [syncErrors, setSyncErrors] = useState<string[]>([]);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [lastJiraSync, setLastJiraSync] = useState<{timestamp: string, results: any} | null>(null);
+
+  useEffect(() => {
+    if (sectionQuery) {
+      setActiveSection(sectionQuery);
+    }
+  }, [sectionQuery]);
 
   useEffect(() => {
     const fetchIntegrations = async () => {
@@ -714,6 +723,11 @@ const ProfilePage = () => {
               </div>
               <Card className="bg-card border-border">
                 <CardContent className="p-6 space-y-6">
+                  {from === 'backlog' && (
+                    <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-md text-primary font-medium flex items-center gap-2">
+                      <span className="text-xl">💡</span> Configure sua integração com Jira ou Linear para sincronizar seu backlog automaticamente
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-medium text-lg mb-2">Jira</h3>
                     <p className="text-sm text-muted-foreground mb-4">Sincronize tarefas do Backlog com o Jira.</p>

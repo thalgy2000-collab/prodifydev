@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import type { DragEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { backlogTourSteps } from '@/lib/featureTours';
 import { useUndoStack } from '@/hooks/useUndoStack';
@@ -33,6 +34,7 @@ const EditBacklogTaskDialog = lazy(() => import('@/components/EditBacklogTaskDia
 const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
   const { push: pushUndo, undoLast } = useUndoStack(5);
+  const navigate = useNavigate();
 
   // Ctrl+Z is handled globally by UndoProvider
 
@@ -292,6 +294,28 @@ const BacklogPage = () => {
     const taskEpic = task.epicId ? epics.find(e => e.id === task.epicId) : null;
 
     const handleSync = async () => {
+      // 1. Verificar se há integração configurada
+      try {
+        let { data: integration, error } = await supabase
+          .from('integration_tokens')
+          .select('id, provider')
+          .eq('product_id', activeProduct?.id)
+          .maybeSingle();
+
+        if (!integration) {
+          toast.info('⚙️ Configure uma integração primeiro', {
+            duration: 2000,
+            description: 'Redirecionando para Integrações...'
+          });
+          setTimeout(() => {
+            navigate('/profile?section=integrations&from=backlog');
+          }, 1500);
+          return;
+        }
+      } catch (err) {
+        console.error('Erro ao verificar integração:', err);
+      }
+
       // Abre um toast e chama a edge function
       toast.info('Sincronizando com a ferramenta externa...');
       try {
