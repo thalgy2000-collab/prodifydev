@@ -162,8 +162,11 @@ const TreeNode = ({ node, getChildren, onAdd, onEdit, onDelete }: {
 };
 
 const OpportunityTreePage = () => {
-  const { nodes, addNode, updateNode, deleteNode, getNodesByObjective, getChildren } = useOpportunityTreeStore();
+  const { nodes, addNode, updateNode, deleteNode, getNodesByObjective, getChildren, refresh } = useOpportunityTreeStore();
   const { objectives } = useOKRStore();
+  const { user } = useAuth();
+  const { activeProduct } = useProduct();
+  const { push, undoLast } = useUndo();
 
   const [searchParams] = useSearchParams();
   const [selectedObjective, setSelectedObjective] = useState<string>('');
