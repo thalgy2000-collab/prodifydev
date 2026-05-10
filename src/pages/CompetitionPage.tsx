@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, X, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
+import { useUndo } from '@/contexts/UndoContext';
 import { cn } from '@/lib/utils';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { competitionTourSteps } from '@/lib/featureTours';
