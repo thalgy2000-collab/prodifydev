@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Target, BarChart3, Calculator, LogOut, Moon, Sun, Shield, ArrowLeft, Check, LayoutDashboard, Compass, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Target, BarChart3, Calculator, LogOut, Moon, Sun, Shield, ArrowLeft, Check, LayoutDashboard, Compass, Rocket, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 type Item = { title: string; url: string; tourId?: string };
 type Group = { label: string; icon?: typeof Target; emoji?: string; items: Item[]; tourKey: string; slug: string };
@@ -93,6 +94,23 @@ export function AppSidebar() {
       localStorage.setItem('sidebar_expanded', String(expanded));
     } catch {}
   }, [expanded]);
+
+  const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (!user || !activeProduct) return;
+      const { data } = await supabase
+        .from('product_members')
+        .select('role')
+        .eq('product_id', activeProduct.id)
+        .eq('user_id', user.id)
+        .single();
+      
+      setIsAdminOrOwner(data?.role === 'owner' || data?.role === 'admin');
+    };
+    fetchRole();
+  }, [user, activeProduct]);
 
   const isGroupActive = (g: Group) =>
     location.pathname === `/categoria/${g.slug}` || g.items.some(i => location.pathname === i.url);
@@ -251,6 +269,28 @@ export function AppSidebar() {
               </HoverCard>
             );
           })}
+          
+          {isAdminOrOwner && (
+            <>
+              <div className={cn('h-px bg-white/10 my-1', expanded ? 'mx-2' : 'mx-3')} />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <NavLink
+                    to="/configuracoes"
+                    className={cn(
+                      'h-10 rounded-lg flex items-center gap-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors',
+                      expanded ? 'w-full px-2' : 'w-10 justify-center'
+                    )}
+                    activeClassName="bg-primary/10 text-primary"
+                  >
+                    <Settings className="h-5 w-5 shrink-0" />
+                    {expanded && <span className="text-sm font-medium truncate">Configurações</span>}
+                  </NavLink>
+                </TooltipTrigger>
+                {!expanded && <TooltipContent side="right">Configurações do Produto</TooltipContent>}
+              </Tooltip>
+            </>
+          )}
         </nav>
 
         {/* Footer actions */}

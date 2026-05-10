@@ -308,7 +308,7 @@ const BacklogPage = () => {
             description: 'Redirecionando para Integrações...'
           });
           setTimeout(() => {
-            navigate('/perfil?section=integrations&from=backlog');
+            navigate('/configuracoes?tab=integracoes&from=backlog');
           }, 1500);
           return;
         }

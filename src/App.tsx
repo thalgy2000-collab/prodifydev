@@ -38,6 +38,7 @@ import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import InviteAcceptPage from "./pages/InviteAcceptPage";
 import ProfilePage from "./pages/ProfilePage";
+import ProductSettingsPage from "./pages/ProductSettingsPage";
 import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
@@ -97,6 +98,7 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/prd" element={<PrdPage />} />
         <Route path="/produto-agenda" element={<ProductAgendaPage />} />
         <Route path="/membros" element={<MembersPage />} />
+        <Route path="/configuracoes" element={<ProductSettingsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
