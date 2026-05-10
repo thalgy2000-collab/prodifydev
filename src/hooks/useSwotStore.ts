@@ -44,5 +44,5 @@ export const useSwotStore = () => {
   const getByObjective = useCallback((objectiveId: string | null) =>
     items.filter(i => i.objectiveId === objectiveId), [items]);
 
-  return { items, addItem, updateItem, deleteItem, getByObjective };
+  return { items, addItem, updateItem, deleteItem, getByObjective, refresh: fetchAll };
 };

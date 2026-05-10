@@ -5,6 +5,8 @@ import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import { useProduct } from '@/contexts/ProductContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUndo } from '@/contexts/UndoContext';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { calcRiceScore, IMPACT_OPTIONS, CONFIDENCE_OPTIONS, mapAiImpact, mapAiConfidence } from '@/types/rice';
@@ -32,12 +34,14 @@ interface AiSuggestion {
 }
 
 const RicePage = () => {
-  const { scores, setScore, getScore, deleteScore } = useRiceStore();
+  const { scores, setScore, getScore, deleteScore, refresh: refreshRice } = useRiceStore();
   const { tasks, updateTask, reorderTasks } = useBacklogStore();
   const { items: initiatives } = useRoadmapStore();
   const { objectives } = useOKRStore();
   const { activeProduct } = useProduct();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { push, undoLast } = useUndo();
   const [pendingScores, setPendingScores] = useState<Record<string, any>>({});
   const [sortConfig, setSortConfig] = usePersistedState<{ field: string; direction: 'asc' | 'desc' } | null>('rice_sort', null);
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
@@ -460,8 +464,27 @@ const RicePage = () => {
                             variant="destructive"
                             size="sm"
                             onClick={async () => {
+                              const snap = getScore(item.id);
                               await deleteScore(item.id);
-                              sonnerToast.success('Item removido do RICE ✓');
+                              if (snap && user && activeProduct) {
+                                push({
+                                  description: `Item removido do RICE: ${item.title ?? ''}`.trim(),
+                                  undo: async () => {
+                                    await (supabase.from('rice_scores') as any).insert({
+                                      user_id: user.id, product_id: activeProduct.id,
+                                      item_id: snap.itemId, item_type: snap.itemType,
+                                      reach: snap.reach, impact: snap.impact,
+                                      confidence: snap.confidence, effort: snap.effort,
+                                      ai_suggested: snap.aiSuggested ?? false,
+                                    });
+                                    await refreshRice();
+                                  },
+                                });
+                              }
+                              sonnerToast.success('Item removido do RICE ✓', {
+                                duration: 8000,
+                                action: { label: '↩ Desfazer', onClick: () => undoLast() },
+                              });
                               document.body.click();
                             }}
                           >

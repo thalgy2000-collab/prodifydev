@@ -61,5 +61,5 @@ export const useSprintStore = () => {
 
   const getActiveSprint = useCallback(() => sprints.find(s => s.status === 'active'), [sprints]);
 
-  return { sprints, addSprint, updateSprint, deleteSprint, getActiveSprint };
+  return { sprints, addSprint, updateSprint, deleteSprint, getActiveSprint, refresh: fetchAll };
 };

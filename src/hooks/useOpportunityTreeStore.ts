@@ -55,5 +55,5 @@ export const useOpportunityTreeStore = () => {
   const getNodesByObjective = useCallback((objectiveId: string) => nodes.filter(n => n.objectiveId === objectiveId), [nodes]);
   const getChildren = useCallback((parentId: string) => nodes.filter(n => n.parentId === parentId), [nodes]);
 
-  return { nodes, addNode, updateNode, deleteNode, getNodesByObjective, getChildren };
+  return { nodes, addNode, updateNode, deleteNode, getNodesByObjective, getChildren, refresh: fetchAll };
 };

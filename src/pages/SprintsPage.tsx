@@ -16,6 +16,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
+import { useUndo } from '@/contexts/UndoContext';
+import { useAuth } from '@/contexts/AuthContext';
 import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { sprintsTourSteps } from '@/lib/featureTours';
@@ -47,10 +49,33 @@ const PRIORITY_ICONS: Record<string, { icon: typeof ArrowUp; color: string }> = 
 };
 
 const SprintsPage = () => {
-  const { sprints, addSprint, updateSprint, deleteSprint, getActiveSprint } = useSprintStore();
+  const { sprints, addSprint, updateSprint, deleteSprint, getActiveSprint, refresh: refreshSprints } = useSprintStore();
   const { tasks, updateTask, addTask, deleteTask } = useBacklogStore();
   const { fetchByTasks, getProgress, allCompleted } = useAcceptanceCriteriaStore();
   const { activeProduct } = useProduct();
+  const { user } = useAuth();
+  const { push, undoLast } = useUndo();
+
+  const handleDeleteSprint = async (sprint: typeof sprints[number]) => {
+    const snap = { ...sprint };
+    await deleteSprint(sprint.id);
+    push({
+      description: `Sprint excluída: ${snap.name}`,
+      undo: async () => {
+        if (!user || !activeProduct) return;
+        await (supabase.from('sprints') as any).insert({
+          id: snap.id, user_id: user.id, product_id: activeProduct.id,
+          name: snap.name, goal: snap.goal, start_date: snap.startDate,
+          end_date: snap.endDate, status: snap.status,
+        });
+        await refreshSprints();
+      },
+    });
+    toast.success(`Sprint excluída: ${snap.name}`, {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  };
 
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState('');
@@ -350,7 +375,7 @@ const SprintsPage = () => {
               Encerrar
             </Button>
           )}
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => deleteSprint(selectedSprint.id)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteSprint(selectedSprint)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

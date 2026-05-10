@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
+import { useUndo } from '@/contexts/UndoContext';
 import { useReleaseStore } from '@/hooks/useReleaseStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { Release, RELEASE_STATUS_LABELS } from '@/types/release';
@@ -19,8 +24,11 @@ const statusColors: Record<Release['status'], string> = {
 };
 
 const ReleasePlanningPage = () => {
-  const { releases, addRelease, updateRelease, deleteRelease, addItemToRelease, removeItemFromRelease, getItemsForRelease } = useReleaseStore();
+  const { releases, addRelease, updateRelease, deleteRelease, addItemToRelease, removeItemFromRelease, getItemsForRelease, refresh } = useReleaseStore();
   const { items: roadmapItems } = useRoadmapStore();
+  const { user } = useAuth();
+  const { activeProduct } = useProduct();
+  const { push, undoLast } = useUndo();
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -35,6 +43,32 @@ const ReleasePlanningPage = () => {
     await addRelease({ name: name.trim(), version: version.trim(), plannedDate, status });
     setName(''); setVersion('v1.0'); setPlannedDate(''); setStatus('planned');
     setOpen(false);
+  };
+
+  const handleDeleteRelease = async (release: typeof releases[number]) => {
+    const snap = { ...release };
+    const items = getItemsForRelease(release.id);
+    await deleteRelease(release.id);
+    push({
+      description: `Release excluída: ${snap.name}`,
+      undo: async () => {
+        if (!user || !activeProduct) return;
+        await (supabase.from('releases') as any).insert({
+          id: snap.id, user_id: user.id, product_id: activeProduct.id,
+          name: snap.name, version: snap.version, planned_date: snap.plannedDate, status: snap.status,
+        });
+        if (items.length) {
+          await (supabase.from('release_items') as any).insert(
+            items.map(it => ({ release_id: snap.id, roadmap_item_id: it.roadmapItemId }))
+          );
+        }
+        await refresh();
+      },
+    });
+    toast.success(`Release excluída: ${snap.name}`, {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
   };
 
   const { TourElement } = useFeatureTour('releases', releasesTourSteps);
@@ -134,7 +168,7 @@ const ReleasePlanningPage = () => {
                         <SelectItem value="released">Lançado</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteRelease(release.id)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteRelease(release)}>
                       <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
                     </Button>
                   </div>

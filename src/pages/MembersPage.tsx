@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useProduct } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUndo } from '@/contexts/UndoContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,10 +21,42 @@ const ROLE_LABELS: Record<string, string> = { owner: 'Dono', editor: 'Editor', v
 const MembersPage = () => {
   const { members, removeMember, updateMemberRole, userRole, activeProduct, invites, createInvite, cancelInvite } = useProduct();
   const { user } = useAuth();
+  const { push, undoLast } = useUndo();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('editor');
   const [inviting, setInviting] = useState(false);
+
+  const handleRemoveMember = async (member: typeof members[number]) => {
+    const snap = { ...member };
+    if (!activeProduct) return;
+    await removeMember(member.id);
+    push({
+      description: `Membro removido: ${snap.displayName || snap.email || 'Usuário'}`,
+      undo: async () => {
+        await (supabase.from('product_members') as any).insert({
+          id: snap.id, product_id: activeProduct.id, user_id: snap.userId, role: snap.role,
+        });
+      },
+    });
+    toast.success(`Membro removido: ${snap.displayName || snap.email || 'Usuário'}`, {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  };
+
+  const handleRoleChange = async (member: typeof members[number], newRole: string) => {
+    const previous = member.role;
+    await updateMemberRole(member.id, newRole);
+    push({
+      description: `Role alterada: ${member.displayName || member.email || 'Usuário'}`,
+      undo: async () => { await updateMemberRole(member.id, previous); },
+    });
+    toast.success('Role atualizada', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
+  };
 
   const isOwner = userRole === 'owner';
 
@@ -85,7 +119,7 @@ const MembersPage = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   {isOwner && member.role !== 'owner' ? (
-                    <Select value={member.role} onValueChange={v => updateMemberRole(member.id, v)}>
+                    <Select value={member.role} onValueChange={v => handleRoleChange(member, v)}>
                       <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="editor">Editor</SelectItem>
@@ -99,7 +133,7 @@ const MembersPage = () => {
                   )}
                   {isOwner && member.userId !== user?.id && (
                     <Button variant="ghost" size="icon" className="h-7 w-7"
-                      onClick={() => { removeMember(member.id); toast.success('Membro removido'); }}>
+                      onClick={() => handleRemoveMember(member)}>
                       <Trash2 className="h-3.5 w-3.5 text-destructive" />
                     </Button>
                   )}

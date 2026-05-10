@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
+import { useUndo } from '@/contexts/UndoContext';
 import { useSwotStore } from '@/hooks/useSwotStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import { SwotCategory, SWOT_CONFIG } from '@/types/swot';
@@ -12,8 +17,11 @@ import { swotTourSteps } from '@/lib/featureTours';
 const CATEGORIES: SwotCategory[] = ['strength', 'weakness', 'opportunity', 'threat'];
 
 const SwotPage = () => {
-  const { addItem, deleteItem, getByObjective } = useSwotStore();
+  const { addItem, deleteItem, getByObjective, refresh } = useSwotStore();
   const { objectives } = useOKRStore();
+  const { user } = useAuth();
+  const { activeProduct } = useProduct();
+  const { push, undoLast } = useUndo();
 
   const [scope, setScope] = useState<string>('global');
   const [newContent, setNewContent] = useState('');
@@ -26,6 +34,26 @@ const SwotPage = () => {
     if (!newContent.trim()) return;
     await addItem({ objectiveId, category: newCategory, content: newContent });
     setNewContent('');
+  };
+
+  const handleDelete = async (item: typeof filtered[number]) => {
+    const snap = { ...item };
+    await deleteItem(item.id);
+    push({
+      description: `Item SWOT excluído`,
+      undo: async () => {
+        if (!user || !activeProduct) return;
+        await (supabase.from('swot_analyses') as any).insert({
+          id: snap.id, user_id: user.id, product_id: activeProduct.id,
+          objective_id: snap.objectiveId, category: snap.category, content: snap.content,
+        });
+        await refresh();
+      },
+    });
+    toast.success('Item SWOT excluído', {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
   };
 
   const { TourElement } = useFeatureTour('swot', swotTourSteps);
@@ -99,7 +127,7 @@ const SwotPage = () => {
                     <div key={item.id} className="group flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2">
                       <p className="flex-1 text-sm">{item.content}</p>
                       <button
-                        onClick={() => deleteItem(item.id)}
+                        onClick={() => handleDelete(item)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80 mt-0.5"
                       >
                         <Trash2 className="h-3.5 w-3.5" />

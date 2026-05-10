@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, X, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
+import { useUndo } from '@/contexts/UndoContext';
 import { cn } from '@/lib/utils';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { competitionTourSteps } from '@/lib/featureTours';
@@ -121,6 +123,7 @@ const CompetitionPage = () => {
   const { activeProduct } = useProduct();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { push, undoLast } = useUndo();
 
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [criteria, setCriteria] = useState<Criterion[]>([]);
@@ -221,10 +224,30 @@ const CompetitionPage = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Excluir este concorrente?')) return;
+    const snap = competitors.find(c => c.id === id);
+    const scoresSnap = scores.filter(s => s.competitor_id === id).map(s => ({ ...s }));
     const { error } = await supabase.from('competitive_analysis').delete().eq('id', id);
     if (error) return toast({ title: 'Erro ao excluir', description: error.message, variant: 'destructive' });
-    toast({ title: 'Excluído' });
     fetchAll();
+    if (snap) {
+      push({
+        description: `Concorrente excluído: ${snap.competitor_name}`,
+        undo: async () => {
+          const { error: insErr } = await supabase.from('competitive_analysis').insert({ ...snap });
+          if (insErr) throw insErr;
+          if (scoresSnap.length) {
+            await supabase.from('competitive_scores').insert(
+              scoresSnap.map(s => ({ id: s.id, competitor_id: snap.id, criteria_id: s.criteria_id, score: s.score }))
+            );
+          }
+          fetchAll();
+        },
+      });
+      sonnerToast.success(`Concorrente excluído: ${snap.competitor_name}`, {
+        duration: 8000,
+        action: { label: '↩ Desfazer', onClick: () => undoLast() },
+      });
+    }
   };
 
   const addCriterion = async () => {

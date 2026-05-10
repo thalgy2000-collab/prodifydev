@@ -15,6 +15,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Plus, Minus, TreePine, Trash2, Pencil, Maximize2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useProduct } from '@/contexts/ProductContext';
+import { useUndo } from '@/contexts/UndoContext';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { opportunityTourSteps } from '@/lib/featureTours';
 
@@ -157,8 +162,11 @@ const TreeNode = ({ node, getChildren, onAdd, onEdit, onDelete }: {
 };
 
 const OpportunityTreePage = () => {
-  const { nodes, addNode, updateNode, deleteNode, getNodesByObjective, getChildren } = useOpportunityTreeStore();
+  const { nodes, addNode, updateNode, deleteNode, getNodesByObjective, getChildren, refresh } = useOpportunityTreeStore();
   const { objectives } = useOKRStore();
+  const { user } = useAuth();
+  const { activeProduct } = useProduct();
+  const { push, undoLast } = useUndo();
 
   const [searchParams] = useSearchParams();
   const [selectedObjective, setSelectedObjective] = useState<string>('');
@@ -237,8 +245,45 @@ const OpportunityTreePage = () => {
 
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
+    const target = nodes.find(n => n.id === deleteId);
+    if (!target) { setDeleteId(null); return; }
+    const descendants: OpportunityNode[] = [];
+    const collect = (parentId: string) => {
+      nodes.filter(n => n.parentId === parentId).forEach(child => {
+        descendants.push(child);
+        collect(child.id);
+      });
+    };
+    collect(deleteId);
+    const snap = { ...target };
+    const childrenSnap = descendants.map(d => ({ ...d }));
     await deleteNode(deleteId);
     setDeleteId(null);
+    push({
+      description: `Oportunidade excluída: ${snap.title}`,
+      undo: async () => {
+        if (!user || !activeProduct) return;
+        await (supabase.from('opportunity_nodes') as any).insert({
+          id: snap.id, user_id: user.id, product_id: activeProduct.id,
+          objective_id: snap.objectiveId, parent_id: snap.parentId,
+          type: snap.type, title: snap.title, description: snap.description,
+        });
+        if (childrenSnap.length) {
+          await (supabase.from('opportunity_nodes') as any).insert(
+            childrenSnap.map(c => ({
+              id: c.id, user_id: user.id, product_id: activeProduct.id,
+              objective_id: c.objectiveId, parent_id: c.parentId,
+              type: c.type, title: c.title, description: c.description,
+            }))
+          );
+        }
+        await refresh();
+      },
+    });
+    toast.success(`Oportunidade excluída: ${snap.title}`, {
+      duration: 8000,
+      action: { label: '↩ Desfazer', onClick: () => undoLast() },
+    });
   };
 
   // Pinch-to-zoom (mobile)

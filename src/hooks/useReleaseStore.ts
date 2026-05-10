@@ -73,5 +73,5 @@ export const useReleaseStore = () => {
     return releaseItems.filter(i => i.releaseId === releaseId);
   }, [releaseItems]);
 
-  return { releases, releaseItems, addRelease, updateRelease, deleteRelease, addItemToRelease, removeItemFromRelease, getItemsForRelease };
+  return { releases, releaseItems, addRelease, updateRelease, deleteRelease, addItemToRelease, removeItemFromRelease, getItemsForRelease, refresh: fetchAll };
 };

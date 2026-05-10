@@ -64,19 +64,7 @@ const RoadmapPage = () => {
     setSelectedQuarter(val);
   };
 
-  // Ctrl+Z shortcut (ignored when typing in inputs)
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const el = document.activeElement as HTMLElement | null;
-      const inField = el?.tagName === 'INPUT' || el?.tagName === 'TEXTAREA' || el?.isContentEditable;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !inField) {
-        e.preventDefault();
-        undoLast();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [undoLast]);
+  // Ctrl+Z is handled globally by UndoProvider
 
   const handleAdd = useCallback(async (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => {
     await addItem(data);

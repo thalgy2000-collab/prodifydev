@@ -34,20 +34,8 @@ const BacklogPage = () => {
   const { tasks, addTask, updateTask, deleteTask, assignToSprint, getBySprint, getUnassigned } = useBacklogStore();
   const { push: pushUndo, undoLast } = useUndoStack(5);
 
-  // Ctrl+Z / Cmd+Z to undo last backlog action
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const ativo = document.activeElement as HTMLElement | null;
-      const tag = ativo?.tagName;
-      const emInput = tag === 'INPUT' || tag === 'TEXTAREA' || ativo?.isContentEditable;
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && !emInput) {
-        e.preventDefault();
-        undoLast();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [undoLast]);
+  // Ctrl+Z is handled globally by UndoProvider
+
 
   // Wrapped actions with undo support
   const deleteTaskWithUndo = useCallback(async (taskId: string) => {
