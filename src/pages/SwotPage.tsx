@@ -17,7 +17,7 @@ import { swotTourSteps } from '@/lib/featureTours';
 const CATEGORIES: SwotCategory[] = ['strength', 'weakness', 'opportunity', 'threat'];
 
 const SwotPage = () => {
-  const { addItem, deleteItem, getByObjective } = useSwotStore();
+  const { addItem, deleteItem, getByObjective, refresh } = useSwotStore();
   const { objectives } = useOKRStore();
   const { user } = useAuth();
   const { activeProduct } = useProduct();
