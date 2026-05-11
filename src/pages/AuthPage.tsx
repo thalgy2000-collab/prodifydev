@@ -160,8 +160,20 @@ const AuthPage = () => {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10">
-        <div className="w-full max-w-[420px] space-y-8 opacity-0 animate-fade-slide-up">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 relative">
+        <div className="absolute top-6 right-6 sm:top-10 sm:right-10 flex items-center gap-3">
+          <span className="text-sm text-[#8892a4] hidden sm:inline">
+            {isLogin ? 'Ainda não tem conta?' : 'Já possui conta?'}
+          </span>
+          <button 
+            onClick={toggleMode} 
+            className="text-sm font-medium text-white border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] px-4 py-2 rounded-xl transition-all duration-200"
+          >
+            {isLogin ? 'Criar conta' : 'Fazer login'}
+          </button>
+        </div>
+
+        <div className="w-full max-w-[420px] space-y-8 opacity-0 animate-fade-slide-up mt-10 sm:mt-0">
           {/* Logo */}
           <div className="flex flex-col items-center gap-2">
             <img src={prodifyLogo} alt="Prodify" className="h-14 w-14 rounded-full object-cover" />
@@ -339,13 +351,6 @@ const AuthPage = () => {
             </div>
           </div>
 
-          {/* Switch mode */}
-          <p className="text-center text-sm text-[#8892a4]">
-            {isLogin ? 'Não tem conta?' : 'Já tem conta?'}{' '}
-            <button onClick={toggleMode} className="text-[#4F8EF7] hover:text-[#6ba3ff] font-medium transition-colors">
-              {isLogin ? 'Cadastre-se' : 'Fazer login'}
-            </button>
-          </p>
         </div>
       </div>
 
