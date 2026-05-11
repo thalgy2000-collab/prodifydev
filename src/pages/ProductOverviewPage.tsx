@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Target, TrendingUp, ListTodo, Map } from 'lucide-react';
+import ProductHealthScore from '@/components/ProductHealthScore';
 
 const ProductOverviewPage = () => {
   const { activeProduct } = useProduct();
