@@ -160,30 +160,34 @@ const AuthPage = () => {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 relative">
-        <div className="absolute top-6 right-6 sm:top-10 sm:right-10 flex items-center gap-3">
-          <span className="text-sm text-[#8892a4] hidden sm:inline">
-            {isLogin ? 'Ainda não tem conta?' : 'Já possui conta?'}
-          </span>
-          <button 
-            onClick={toggleMode} 
-            className="text-sm font-medium text-white border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] px-4 py-2 rounded-xl transition-all duration-200"
-          >
-            {isLogin ? 'Criar conta' : 'Fazer login'}
-          </button>
-        </div>
+      <div className="flex-1 flex flex-col p-6 sm:p-10 relative overflow-y-auto">
+        {/* Centered Form Area */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="w-full max-w-[420px] opacity-0 animate-fade-slide-up pb-10 flex flex-col items-center">
+            
+            {/* Logo */}
+            <div className="flex flex-row items-center gap-3 mb-6 mt-8 sm:mt-0">
+              <img src={prodifyLogo} alt="Prodify" className="h-16 w-16 rounded-full object-cover shadow-[0_0_20px_rgba(79,142,247,0.3)]" />
+              <span className="text-white text-3xl font-bold tracking-tight" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                Prodify
+              </span>
+            </div>
 
-        <div className="w-full max-w-[420px] space-y-8 opacity-0 animate-fade-slide-up mt-10 sm:mt-0">
-          {/* Logo */}
-          <div className="flex flex-col items-center gap-2">
-            <img src={prodifyLogo} alt="Prodify" className="h-14 w-14 rounded-full object-cover" />
-            <span className="text-white text-xl font-semibold tracking-tight" style={{ fontFamily: 'Outfit, sans-serif' }}>
-              Prodify
-            </span>
-          </div>
+            {/* Switch Mode CTA */}
+            <div className="flex flex-row items-center gap-3 mb-8 text-center">
+              <span className="text-sm text-[#8892a4]">
+                {isLogin ? 'Ainda não tem uma conta?' : 'Já possui uma conta?'}
+              </span>
+              <button 
+                onClick={toggleMode} 
+                className="text-sm font-medium text-white border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] px-6 py-2.5 rounded-xl transition-all duration-200"
+              >
+                {isLogin ? 'Criar conta' : 'Fazer login'}
+              </button>
+            </div>
 
-          {/* Glassmorphism card */}
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl p-8 shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
+            {/* Glassmorphism card */}
+            <div className="w-full rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl p-8 shadow-[0_8px_40px_rgba(0,0,0,0.4)]">
             <div className="space-y-1 mb-8">
               <h2 className="text-2xl font-semibold text-white" style={{ fontFamily: 'Outfit, sans-serif' }}>
                 {isLogin ? 'Bem-vindo de volta' : 'Crie sua conta'}
@@ -350,7 +354,7 @@ const AuthPage = () => {
               </button>
             </div>
           </div>
-
+        </div>
         </div>
       </div>
 
