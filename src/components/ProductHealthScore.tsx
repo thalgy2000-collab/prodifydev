@@ -109,7 +109,7 @@ const ProductHealthScore = ({ productId }: Props) => {
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Indicador combinado de OKRs (40%), Sprints (30%) e Tarefas (30%).
+              Indicador combinado de OKRs (40%), Roadmap (30%) e Tarefas (30%).
             </p>
           </div>
 
