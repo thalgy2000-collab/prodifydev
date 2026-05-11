@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Save, Settings, Link, Trash2, ArrowLeft, RefreshCw, AlertCircle, Share2, AlertTriangle } from 'lucide-react';
+import { Loader2, Save, Settings, Link as LinkIcon, Trash2, ArrowLeft, RefreshCw, AlertCircle, Share2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -38,6 +38,7 @@ const ProductSettingsPage = () => {
   const [syncErrors, setSyncErrors] = useState<string[]>([]);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [lastJiraSync, setLastJiraSync] = useState<{timestamp: string, results: any} | null>(null);
+  const [isJiraActive, setIsJiraActive] = useState(false);
 
   useEffect(() => {
     if (tabQuery) {
@@ -56,20 +57,22 @@ const ProductSettingsPage = () => {
 
   useEffect(() => {
     const fetchIntegrations = async () => {
-      if (!activeProduct) return;
+      if (!activeProduct || !profile) return;
       try {
         const { data, error } = await supabase
           .from('integration_tokens')
-          .select('*')
+          .select('workspace_url, project_key, config, is_active')
           .eq('product_id', activeProduct.id)
+          .eq('user_id', profile.id)
           .eq('provider', 'jira')
           .maybeSingle();
         
         if (data) {
           setJiraUrl(data.workspace_url || '');
-          setJiraEmail(data.user_email || '');
-          setJiraToken(data.token || '');
           setJiraProjectKey(data.project_key || '');
+          setJiraEmail((data.config as any)?.email || '');
+          setJiraToken('');
+          setIsJiraActive(data.is_active || false);
         }
       } catch (err) {
         console.error('Error fetching integrations:', err);
@@ -85,7 +88,7 @@ const ProductSettingsPage = () => {
     if (activeSection === 'integrations') {
       fetchIntegrations();
     }
-  }, [activeProduct, activeSection]);
+  }, [activeProduct, activeSection, profile]);
 
   const handleSaveProduct = async () => {
     if (!activeProduct) return;
@@ -122,20 +125,25 @@ const ProductSettingsPage = () => {
   };
 
   const handleSaveJira = async () => {
-    if (!activeProduct) return;
+    if (!activeProduct || !profile) return;
     setSavingJira(true);
     try {
-      const { error } = await supabase.from('integration_tokens').upsert({
-        product_id: activeProduct.id,
-        provider: 'jira',
-        workspace_url: jiraUrl.trim(),
-        user_email: jiraEmail.trim(),
-        token: jiraToken.trim(),
-        project_key: jiraProjectKey.trim(),
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'product_id, provider' });
+      const { data, error } = await supabase.functions.invoke('sync-task', {
+        body: {
+          action: 'save',
+          provider: 'jira',
+          product_id: activeProduct.id,
+          user_id: profile.id,
+          jira_url: jiraUrl.trim(),
+          jira_email: jiraEmail.trim(),
+          jira_token: jiraToken.trim(),
+          jira_project_key: jiraProjectKey.trim()
+        }
+      });
       if (error) throw error;
       toast.success('Configurações do Jira salvas!');
+      setIsJiraActive(true);
+      setJiraToken('');
     } catch (e: any) {
       toast.error('Erro ao salvar: ' + e.message);
     } finally {
@@ -144,14 +152,51 @@ const ProductSettingsPage = () => {
   };
 
   const handleTestJira = async () => {
-    if (!jiraUrl || !jiraEmail || !jiraToken || !jiraProjectKey) {
+    if (!activeProduct || !profile) return;
+    if (!jiraUrl || !jiraEmail || (!jiraToken && !isJiraActive) || !jiraProjectKey) {
       toast.error('Preencha todos os campos do Jira antes de testar.');
       return;
     }
     toast.loading('Testando conexão...', { id: 'test-jira' });
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-task', {
+        body: {
+          action: 'test',
+          provider: 'jira',
+          product_id: activeProduct.id,
+          user_id: profile.id,
+          jira_url: jiraUrl.trim(),
+          jira_email: jiraEmail.trim(),
+          jira_token: jiraToken.trim() || undefined,
+          jira_project_key: jiraProjectKey.trim()
+        }
+      });
+      if (error) throw error;
       toast.success('Conexão estabelecida com sucesso!', { id: 'test-jira' });
-    }, 1500);
+    } catch (e: any) {
+      toast.error('Erro ao testar conexão: ' + e.message, { id: 'test-jira' });
+    }
+  };
+
+  const handleDisconnectJira = async () => {
+    if (!activeProduct || !profile) return;
+    try {
+      const { error } = await supabase
+        .from('integration_tokens')
+        .update({ is_active: false })
+        .eq('product_id', activeProduct.id)
+        .eq('user_id', profile.id)
+        .eq('provider', 'jira');
+      if (error) throw error;
+      setIsJiraActive(false);
+      setJiraUrl('');
+      setJiraEmail('');
+      setJiraToken('');
+      setJiraProjectKey('');
+      toast.success('Integração desconectada com sucesso.');
+    } catch (e: any) {
+      toast.error('Erro ao desconectar: ' + e.message);
+    }
   };
 
   const handleRunSync = async (direction: 'prodify_to_jira' | 'jira_to_prodify' | 'both') => {
@@ -203,7 +248,7 @@ const ProductSettingsPage = () => {
 
   const menuItems = [
     { id: 'general', label: 'Geral', icon: Settings },
-    { id: 'integrations', label: 'Integrações', icon: Link },
+    { id: 'integrations', label: 'Integrações', icon: LinkIcon },
     { id: 'share', label: 'Compartilhar', icon: Share2 },
     { id: 'danger', label: 'Perigo', icon: AlertTriangle },
   ];
@@ -307,7 +352,15 @@ const ProductSettingsPage = () => {
                     </div>
                   )}
                   <div>
-                    <h3 className="font-medium text-lg mb-2">Jira</h3>
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-lg">Jira</h3>
+                      {isJiraActive && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-green-500/10 text-green-600 dark:text-green-400 rounded-full border border-green-500/20">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Integração ativa
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground mb-4">Sincronize tarefas do Backlog com o Jira.</p>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -322,8 +375,8 @@ const ProductSettingsPage = () => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>API Token *</Label>
-                          <Input type="password" value={jiraToken} onChange={e => setJiraToken(e.target.value)} placeholder="Cole o token do Jira" />
+                          <Label>API Token {isJiraActive ? '' : '*'}</Label>
+                          <Input type="password" value={jiraToken} onChange={e => setJiraToken(e.target.value)} placeholder={isJiraActive ? "••••••••• (já configurado)" : "Cole o token do Jira"} />
                         </div>
                         <div className="space-y-2">
                           <Label>Chave do Projeto *</Label>
@@ -334,11 +387,16 @@ const ProductSettingsPage = () => {
                       <div className="flex gap-2 pt-2">
                         <Button onClick={handleSaveJira} disabled={savingJira} className="flex-1">
                           {savingJira ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                          Salvar configurações
+                          {isJiraActive ? 'Atualizar configurações' : 'Salvar configurações'}
                         </Button>
                         <Button variant="outline" onClick={handleTestJira}>
                           Testar Conexão
                         </Button>
+                        {isJiraActive && (
+                          <Button variant="destructive" onClick={handleDisconnectJira}>
+                            Desconectar
+                          </Button>
+                        )}
                       </div>
 
                       {/* Bloco de Sincronização Bidirecional */}
