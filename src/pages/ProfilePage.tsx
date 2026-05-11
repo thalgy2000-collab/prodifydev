@@ -60,12 +60,6 @@ const ProfilePage = () => {
     { id: 'app', label: 'App', icon: Sliders },
   ];
 
-  const menuItems = [
-    { id: 'profile', label: 'Perfil', icon: User },
-    { id: 'security', label: 'Segurança', icon: Shield },
-    { id: 'app', label: 'App', icon: Sliders },
-  ];
-
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.displayName || '');
