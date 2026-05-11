@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Target, TrendingUp, ListTodo, Map } from 'lucide-react';
+import ProductHealthScore from '@/components/ProductHealthScore';
 
 const ProductOverviewPage = () => {
   const { activeProduct } = useProduct();
@@ -74,6 +75,8 @@ const ProductOverviewPage = () => {
           <p className="text-sm text-muted-foreground mt-1">{activeProduct.description}</p>
         )}
       </div>
+
+      <ProductHealthScore productId={activeProduct.id} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(c => (

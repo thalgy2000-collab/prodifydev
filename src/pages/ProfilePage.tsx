@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2, Save, User, Shield, Sliders, Camera, Lock, LogOut, Mail, Trash2, ArrowLeft } from 'lucide-react';
+import { Loader2, Save, User, Shield, Sliders, Camera, Lock, LogOut, Mail, Trash2, ArrowLeft, Palette } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -472,26 +472,6 @@ const ProfilePage = () => {
                 </DialogContent>
               </Dialog>
 
-              <Dialog open={errorModalOpen} onOpenChange={setErrorModalOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-destructive">
-                      <AlertCircle className="h-5 w-5" />
-                      Erros de Sincronização
-                    </DialogTitle>
-                  </DialogHeader>
-                  <ScrollArea className="max-h-[300px] w-full rounded-md border p-4 bg-muted/30">
-                    <ul className="space-y-2 text-sm">
-                      {syncErrors.map((err, i) => (
-                        <li key={i} className="text-destructive font-mono text-xs pb-2 border-b last:border-0">{err}</li>
-                      ))}
-                    </ul>
-                  </ScrollArea>
-                  <DialogFooter>
-                    <Button onClick={() => setErrorModalOpen(false)}>Fechar</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
             </div>
           )}
 

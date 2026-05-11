@@ -76,6 +76,9 @@ export type Database = {
           due_end_time: string | null
           due_time: string | null
           epic_id: string | null
+          external_id: string | null
+          external_status: string | null
+          external_url: string | null
           id: string
           initiative_id: string | null
           key_result_id: string | null
@@ -89,6 +92,7 @@ export type Database = {
           sprint_id: string | null
           status: string
           story_points: number | null
+          sync_provider: string | null
           title: string
           user_id: string
         }
@@ -102,6 +106,9 @@ export type Database = {
           due_end_time?: string | null
           due_time?: string | null
           epic_id?: string | null
+          external_id?: string | null
+          external_status?: string | null
+          external_url?: string | null
           id?: string
           initiative_id?: string | null
           key_result_id?: string | null
@@ -115,6 +122,7 @@ export type Database = {
           sprint_id?: string | null
           status?: string
           story_points?: number | null
+          sync_provider?: string | null
           title: string
           user_id: string
         }
@@ -128,6 +136,9 @@ export type Database = {
           due_end_time?: string | null
           due_time?: string | null
           epic_id?: string | null
+          external_id?: string | null
+          external_status?: string | null
+          external_url?: string | null
           id?: string
           initiative_id?: string | null
           key_result_id?: string | null
@@ -141,6 +152,7 @@ export type Database = {
           sprint_id?: string | null
           status?: string
           story_points?: number | null
+          sync_provider?: string | null
           title?: string
           user_id?: string
         }
@@ -415,8 +427,62 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_tokens: {
+        Row: {
+          config: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          product_id: string
+          project_key: string | null
+          provider: string
+          token_encrypted: string
+          updated_at: string | null
+          user_id: string
+          workspace_url: string | null
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          product_id: string
+          project_key?: string | null
+          provider: string
+          token_encrypted: string
+          updated_at?: string | null
+          user_id: string
+          workspace_url?: string | null
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          product_id?: string
+          project_key?: string | null
+          provider?: string
+          token_encrypted?: string
+          updated_at?: string | null
+          user_id?: string
+          workspace_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_tokens_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       key_results: {
         Row: {
+          analytics_config: Json | null
+          analytics_metric: string | null
+          analytics_provider: string | null
+          auto_update: boolean | null
           created_at: string
           current_value: number
           id: string
@@ -428,6 +494,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          analytics_config?: Json | null
+          analytics_metric?: string | null
+          analytics_provider?: string | null
+          auto_update?: boolean | null
           created_at?: string
           current_value?: number
           id?: string
@@ -439,6 +509,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          analytics_config?: Json | null
+          analytics_metric?: string | null
+          analytics_provider?: string | null
+          auto_update?: boolean | null
           created_at?: string
           current_value?: number
           id?: string
@@ -782,8 +856,10 @@ export type Database = {
           description: string
           emoji: string
           id: string
+          is_public: boolean | null
           name: string
           owner_id: string
+          public_token: string | null
         }
         Insert: {
           color?: string
@@ -791,8 +867,10 @@ export type Database = {
           description?: string
           emoji?: string
           id?: string
+          is_public?: boolean | null
           name: string
           owner_id: string
+          public_token?: string | null
         }
         Update: {
           color?: string
@@ -800,8 +878,10 @@ export type Database = {
           description?: string
           emoji?: string
           id?: string
+          is_public?: boolean | null
           name?: string
           owner_id?: string
+          public_token?: string | null
         }
         Relationships: []
       }
