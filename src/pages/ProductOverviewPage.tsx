@@ -4,8 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Target, TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface MetricSummary {
   level: 'critical' | 'warning' | 'ok';
@@ -27,6 +28,30 @@ const ProductOverviewPage = () => {
   const { activeProduct } = useProduct();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [upcomingActivities, setUpcomingActivities] = useState<any[]>([]);
+  const [selectedQuarter, setSelectedQuarter] = useState<string>('all');
+  const [availableQuarters, setAvailableQuarters] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!activeProduct) return;
+    const fetchQuarters = async () => {
+      const [objRes, rmRes] = await Promise.all([
+        supabase.from('objectives').select('quarter').eq('product_id', activeProduct.id),
+        supabase.from('roadmap_items').select('quarter').eq('product_id', activeProduct.id),
+      ]);
+      const qs = new Set<string>();
+      objRes.data?.forEach(o => o.quarter && qs.add(o.quarter));
+      rmRes.data?.forEach(r => r.quarter && qs.add(r.quarter));
+      
+      const sorted = Array.from(qs).sort((a, b) => {
+        const [qa, ya] = a.split(' ');
+        const [qb, yb] = b.split(' ');
+        if (ya !== yb) return yb.localeCompare(ya);
+        return qb.localeCompare(qa);
+      });
+      setAvailableQuarters(sorted);
+    };
+    fetchQuarters();
+  }, [activeProduct]);
 
   useEffect(() => {
     if (!activeProduct) return;
@@ -34,26 +59,63 @@ const ProductOverviewPage = () => {
     const today = new Date().toISOString().slice(0, 10);
 
     const fetchMetrics = async () => {
-      const [objsRes, krRes, allTasksRes, roadmapRes, upcomingRes] = await Promise.all([
-        supabase.from('objectives').select('id, quarter').eq('product_id', pid),
-        supabase.from('key_results').select('current_value, target_value, objective_id').eq('product_id', pid),
-        supabase.from('backlog_tasks').select('id, status, due_date').eq('product_id', pid),
-        supabase.from('roadmap_items').select('id, status, end_date, progress').eq('product_id', pid),
-        supabase
-          .from('schedule_activities')
-          .select('title, activity_date, start_time, status')
-          .eq('product_id', pid)
-          .neq('status', 'done')
-          .gte('activity_date', today)
-          .order('activity_date', { ascending: true })
-          .order('start_time', { ascending: true, nullsFirst: true })
-          .limit(5),
+      let objQuery = supabase.from('objectives').select('id, quarter').eq('product_id', pid);
+      let rmQuery = supabase.from('roadmap_items').select('id, status, end_date, progress').eq('product_id', pid);
+      let tasksQuery = supabase.from('backlog_tasks').select('id, status, due_date').eq('product_id', pid);
+      let scheduleQuery = supabase
+        .from('schedule_activities')
+        .select('title, activity_date, start_time, status')
+        .eq('product_id', pid)
+        .neq('status', 'done')
+        .gte('activity_date', today)
+        .order('activity_date', { ascending: true })
+        .order('start_time', { ascending: true, nullsFirst: true })
+        .limit(5);
+
+      if (selectedQuarter && selectedQuarter !== 'all') {
+        objQuery = objQuery.eq('quarter', selectedQuarter);
+        rmQuery = rmQuery.eq('quarter', selectedQuarter);
+        
+        const dates = getQuarterDates(selectedQuarter);
+        if (dates) {
+          tasksQuery = tasksQuery.gte('due_date', dates.start).lte('due_date', dates.end);
+          scheduleQuery = supabase
+            .from('schedule_activities')
+            .select('title, activity_date, start_time, status')
+            .eq('product_id', pid)
+            .neq('status', 'done')
+            .gte('activity_date', dates.start)
+            .lte('activity_date', dates.end)
+            .order('activity_date', { ascending: true })
+            .order('start_time', { ascending: true, nullsFirst: true })
+            .limit(5);
+        }
+      }
+
+      const [objsRes, rmRes, tasksRes, scheduleRes] = await Promise.all([
+        objQuery,
+        rmQuery,
+        tasksQuery,
+        scheduleQuery,
       ]);
 
       const objectives = objsRes.data || [];
+      const objIds = objectives.map(o => o.id);
+
+      let krQuery = supabase.from('key_results').select('current_value, target_value, objective_id').eq('product_id', pid);
+      if (selectedQuarter && selectedQuarter !== 'all') {
+        if (objIds.length > 0) {
+          krQuery = krQuery.in('objective_id', objIds);
+        } else {
+          krQuery = krQuery.eq('objective_id', 'none'); // força resultado vazio
+        }
+      }
+      
+      const krRes = await krQuery;
+
       const krs = krRes.data || [];
-      const tasks = allTasksRes.data || [];
-      const roadmap = roadmapRes.data || [];
+      const tasks = tasksRes.data || [];
+      const roadmap = rmRes.data || [];
 
       const avgKr = krs.length > 0
         ? krs.reduce((sum, kr) => sum + (Number(kr.target_value) > 0 ? (Number(kr.current_value) / Number(kr.target_value)) * 100 : 0), 0) / krs.length
@@ -96,11 +158,11 @@ const ProductOverviewPage = () => {
         roadmapItems: roadmap.length,
         okrSummary, krSummary, taskSummary, roadmapSummary,
       });
-      setUpcomingActivities(upcomingRes.data || []);
+      setUpcomingActivities(scheduleRes.data || []);
     };
 
     fetchMetrics();
-  }, [activeProduct]);
+  }, [activeProduct, selectedQuarter]);
 
   if (!activeProduct) return null;
 
@@ -132,17 +194,33 @@ const ProductOverviewPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <span className="text-3xl">{activeProduct.emoji}</span>
-          {activeProduct.name}
-        </h1>
-        {activeProduct.description && (
-          <p className="text-sm text-muted-foreground mt-1">{activeProduct.description}</p>
-        )}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <span className="text-3xl">{activeProduct.emoji}</span>
+            {activeProduct.name}
+          </h1>
+          {activeProduct.description && (
+            <p className="text-sm text-muted-foreground mt-1">{activeProduct.description}</p>
+          )}
+        </div>
+        
+        <div className="w-[200px]">
+          <Select value={selectedQuarter} onValueChange={setSelectedQuarter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Visão Geral (Hoje)</SelectItem>
+              {availableQuarters.map(q => (
+                <SelectItem key={q} value={q}>{q}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <ProductHealthScore productId={activeProduct.id} />
+      <ProductHealthScore productId={activeProduct.id} selectedQuarter={selectedQuarter} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(c => {

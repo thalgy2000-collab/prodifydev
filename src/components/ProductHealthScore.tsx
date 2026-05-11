@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Activity, TrendingUp, ListTodo, Map } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, getQuarterDates } from '@/lib/utils';
 
 interface Props {
   productId: string;
+  selectedQuarter?: string;
 }
 
 interface Breakdown {
@@ -15,17 +16,39 @@ interface Breakdown {
   total: number;
 }
 
-const ProductHealthScore = ({ productId }: Props) => {
+const ProductHealthScore = ({ productId, selectedQuarter }: Props) => {
   const [data, setData] = useState<Breakdown | null>(null);
 
   useEffect(() => {
     const fetchScore = async () => {
       const today = new Date().toISOString().slice(0, 10);
 
+      let krQuery = supabase.from('key_results').select('current_value, target_value, objective_id').eq('product_id', productId);
+      let roadmapQuery = supabase.from('roadmap_items').select('status, progress, end_date').eq('product_id', productId);
+      let tasksQuery = supabase.from('backlog_tasks').select('status, due_date').eq('product_id', productId);
+
+      if (selectedQuarter && selectedQuarter !== 'all') {
+        roadmapQuery = roadmapQuery.eq('quarter', selectedQuarter);
+        
+        const objRes = await supabase.from('objectives').select('id').eq('product_id', productId).eq('quarter', selectedQuarter);
+        const objIds = objRes.data?.map(o => o.id) || [];
+        
+        if (objIds.length > 0) {
+          krQuery = krQuery.in('objective_id', objIds);
+        } else {
+          krQuery = krQuery.eq('objective_id', 'none'); // força resultado vazio
+        }
+
+        const dates = getQuarterDates(selectedQuarter);
+        if (dates) {
+          tasksQuery = tasksQuery.gte('due_date', dates.start).lte('due_date', dates.end);
+        }
+      }
+
       const [krRes, roadmapRes, tasksRes] = await Promise.all([
-        supabase.from('key_results').select('current_value, target_value').eq('product_id', productId),
-        supabase.from('roadmap_items').select('status, progress, end_date').eq('product_id', productId),
-        supabase.from('backlog_tasks').select('status, due_date').eq('product_id', productId),
+        krQuery,
+        roadmapQuery,
+        tasksQuery,
       ]);
 
       // OKR score: average KR progress (0-100)
@@ -60,7 +83,7 @@ const ProductHealthScore = ({ productId }: Props) => {
     };
 
     fetchScore();
-  }, [productId]);
+  }, [productId, selectedQuarter]);
 
   if (!data) return null;
 
