@@ -76,7 +76,7 @@ const ProductHealthScore = ({ productId }: Props) => {
 
   const items = [
     { label: 'OKRs', value: data.okr, icon: TrendingUp },
-    { label: 'Sprints', value: data.sprint, icon: Zap },
+    { label: 'Roadmap', value: data.roadmap, icon: Map },
     { label: 'Tarefas', value: data.tasks, icon: ListTodo },
   ];
 
