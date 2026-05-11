@@ -43,9 +43,14 @@ const ProductOverviewPage = () => {
       rmRes.data?.forEach(r => r.quarter && qs.add(r.quarter));
       
       const sorted = Array.from(qs).sort((a, b) => {
-        const [qa, ya] = a.split(' ');
-        const [qb, yb] = b.split(' ');
-        if (ya !== yb) return yb.localeCompare(ya);
+        const partsA = a.split(' ');
+        const partsB = b.split(' ');
+        const qa = partsA[0] || '';
+        const ya = partsA[1] || '';
+        const qb = partsB[0] || '';
+        const yb = partsB[1] || '';
+
+        if (ya && yb && ya !== yb) return yb.localeCompare(ya);
         return qb.localeCompare(qa);
       });
       setAvailableQuarters(sorted);
