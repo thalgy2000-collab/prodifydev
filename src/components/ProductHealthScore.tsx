@@ -22,9 +22,9 @@ const ProductHealthScore = ({ productId }: Props) => {
     const fetchScore = async () => {
       const today = new Date().toISOString().slice(0, 10);
 
-      const [krRes, sprintsRes, tasksRes] = await Promise.all([
+      const [krRes, roadmapRes, tasksRes] = await Promise.all([
         supabase.from('key_results').select('current_value, target_value').eq('product_id', productId),
-        supabase.from('sprints').select('id, status, end_date').eq('product_id', productId),
+        supabase.from('roadmap_items').select('status, progress, end_date').eq('product_id', productId),
         supabase.from('backlog_tasks').select('status, due_date').eq('product_id', productId),
       ]);
 
@@ -34,15 +34,14 @@ const ProductHealthScore = ({ productId }: Props) => {
         krs.reduce((sum, kr) => sum + (Number(kr.target_value) > 0 ? (Number(kr.current_value) / Number(kr.target_value)) * 100 : 0), 0) / krs.length
       ));
 
-      // Sprint score: penalize overdue active sprints
-      const sprints = sprintsRes.data || [];
-      let sprintScore = 70;
-      if (sprints.length > 0) {
-        const active = sprints.filter(s => s.status === 'active');
-        const completed = sprints.filter(s => s.status === 'completed').length;
-        const overdueActive = active.filter(s => s.end_date && s.end_date < today).length;
-        const ratioCompleted = completed / sprints.length;
-        sprintScore = Math.round(Math.max(0, Math.min(100, 60 + ratioCompleted * 40 - overdueActive * 25)));
+      // Roadmap score: avg progress minus penalty for overdue items
+      const items = roadmapRes.data || [];
+      let roadmapScore = 60;
+      if (items.length > 0) {
+        const avgProgress = items.reduce((s, i) => s + (Number(i.progress) || 0), 0) / items.length;
+        const overdue = items.filter(i => i.status !== 'completed' && i.end_date && i.end_date < today).length;
+        const overdueRate = (overdue / items.length) * 100;
+        roadmapScore = Math.round(Math.max(0, Math.min(100, avgProgress - overdueRate * 0.4)));
       }
 
       // Task score: % done minus overdue penalty
@@ -56,8 +55,8 @@ const ProductHealthScore = ({ productId }: Props) => {
         taskScore = Math.round(Math.max(0, Math.min(100, pctDone * 0.7 + 30 - overdueRate * 0.5)));
       }
 
-      const total = Math.round(okrScore * 0.4 + sprintScore * 0.3 + taskScore * 0.3);
-      setData({ okr: okrScore, sprint: sprintScore, tasks: taskScore, total });
+      const total = Math.round(okrScore * 0.4 + roadmapScore * 0.3 + taskScore * 0.3);
+      setData({ okr: okrScore, roadmap: roadmapScore, tasks: taskScore, total });
     };
 
     fetchScore();
