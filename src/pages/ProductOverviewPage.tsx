@@ -3,12 +3,29 @@ import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, TrendingUp, ListTodo, Map } from 'lucide-react';
+import { Target, TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
+
+interface MetricSummary {
+  level: 'critical' | 'warning' | 'ok';
+  text: string;
+}
+
+interface Metrics {
+  okrs: number;
+  avgKr: number;
+  openTasks: number;
+  roadmapItems: number;
+  okrSummary: MetricSummary;
+  krSummary: MetricSummary;
+  taskSummary: MetricSummary;
+  roadmapSummary: MetricSummary;
+}
 
 const ProductOverviewPage = () => {
   const { activeProduct } = useProduct();
-  const [metrics, setMetrics] = useState({ okrs: 0, avgKr: 0, openTasks: 0, roadmapItems: 0 });
+  const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [upcomingActivities, setUpcomingActivities] = useState<any[]>([]);
 
   useEffect(() => {
@@ -17,11 +34,11 @@ const ProductOverviewPage = () => {
     const today = new Date().toISOString().slice(0, 10);
 
     const fetchMetrics = async () => {
-      const [objRes, krRes, tasksRes, roadmapRes, upcomingRes] = await Promise.all([
-        supabase.from('objectives').select('id', { count: 'exact', head: true }).eq('product_id', pid),
-        supabase.from('key_results').select('current_value, target_value').eq('product_id', pid),
-        supabase.from('backlog_tasks').select('id', { count: 'exact', head: true }).eq('product_id', pid).eq('status', 'open'),
-        supabase.from('roadmap_items').select('id', { count: 'exact', head: true }).eq('product_id', pid),
+      const [objsRes, krRes, allTasksRes, roadmapRes, upcomingRes] = await Promise.all([
+        supabase.from('objectives').select('id, quarter').eq('product_id', pid),
+        supabase.from('key_results').select('current_value, target_value, objective_id').eq('product_id', pid),
+        supabase.from('backlog_tasks').select('id, status, due_date').eq('product_id', pid),
+        supabase.from('roadmap_items').select('id, status, end_date, progress').eq('product_id', pid),
         supabase
           .from('schedule_activities')
           .select('title, activity_date, start_time, status')
@@ -33,16 +50,51 @@ const ProductOverviewPage = () => {
           .limit(5),
       ]);
 
+      const objectives = objsRes.data || [];
       const krs = krRes.data || [];
+      const tasks = allTasksRes.data || [];
+      const roadmap = roadmapRes.data || [];
+
       const avgKr = krs.length > 0
         ? krs.reduce((sum, kr) => sum + (Number(kr.target_value) > 0 ? (Number(kr.current_value) / Number(kr.target_value)) * 100 : 0), 0) / krs.length
         : 0;
 
+      const openTasksCount = tasks.filter(t => t.status === 'open').length;
+      const overdueTasks = tasks.filter(t => t.status !== 'done' && t.due_date && t.due_date < today).length;
+      const objsWithoutKr = objectives.filter(o => !krs.some(k => k.objective_id === o.id)).length;
+      const stagnantKrs = krs.filter(k => Number(k.current_value) === 0).length;
+      const overdueRoadmap = roadmap.filter(r => r.status !== 'completed' && r.end_date && r.end_date < today).length;
+
+      const okrSummary: MetricSummary = objsWithoutKr > 0
+        ? { level: 'warning', text: `${objsWithoutKr} sem KRs` }
+        : objectives.length === 0
+          ? { level: 'warning', text: 'Nenhum objetivo definido' }
+          : { level: 'ok', text: 'Todos com KRs' };
+
+      const krSummary: MetricSummary = krs.length === 0
+        ? { level: 'warning', text: 'Sem KRs cadastrados' }
+        : stagnantKrs > 0
+          ? { level: avgKr < 30 ? 'critical' : 'warning', text: `${stagnantKrs} sem progresso` }
+          : { level: 'ok', text: 'Em evolução' };
+
+      const taskSummary: MetricSummary = overdueTasks > 0
+        ? { level: overdueTasks > 5 ? 'critical' : 'warning', text: `${overdueTasks} em atraso` }
+        : openTasksCount === 0
+          ? { level: 'ok', text: 'Backlog limpo' }
+          : { level: 'ok', text: 'Sem atrasos' };
+
+      const roadmapSummary: MetricSummary = overdueRoadmap > 0
+        ? { level: overdueRoadmap > 2 ? 'critical' : 'warning', text: `${overdueRoadmap} item(s) atrasado(s)` }
+        : roadmap.length === 0
+          ? { level: 'warning', text: 'Roadmap vazio' }
+          : { level: 'ok', text: 'No prazo' };
+
       setMetrics({
-        okrs: objRes.count ?? 0,
+        okrs: objectives.length,
         avgKr: Math.round(avgKr),
-        openTasks: tasksRes.count ?? 0,
-        roadmapItems: roadmapRes.count ?? 0,
+        openTasks: openTasksCount,
+        roadmapItems: roadmap.length,
+        okrSummary, krSummary, taskSummary, roadmapSummary,
       });
       setUpcomingActivities(upcomingRes.data || []);
     };
@@ -52,16 +104,30 @@ const ProductOverviewPage = () => {
 
   if (!activeProduct) return null;
 
+  const m = metrics ?? {
+    okrs: 0, avgKr: 0, openTasks: 0, roadmapItems: 0,
+    okrSummary: { level: 'ok' as const, text: '—' },
+    krSummary: { level: 'ok' as const, text: '—' },
+    taskSummary: { level: 'ok' as const, text: '—' },
+    roadmapSummary: { level: 'ok' as const, text: '—' },
+  };
+
   const cards = [
-    { title: 'Total de OKRs', value: metrics.okrs, icon: Target, color: 'text-primary' },
-    { title: 'Progresso médio KRs', value: `${metrics.avgKr}%`, icon: TrendingUp, color: 'text-emerald-500' },
-    { title: 'Tarefas abertas', value: metrics.openTasks, icon: ListTodo, color: 'text-amber-500' },
-    { title: 'Itens no Roadmap', value: metrics.roadmapItems, icon: Map, color: 'text-violet-500' },
+    { title: 'Total de OKRs', value: m.okrs, icon: Target, color: 'text-primary', summary: m.okrSummary },
+    { title: 'Progresso médio KRs', value: `${m.avgKr}%`, icon: TrendingUp, color: 'text-emerald-500', summary: m.krSummary },
+    { title: 'Tarefas abertas', value: m.openTasks, icon: ListTodo, color: 'text-amber-500', summary: m.taskSummary },
+    { title: 'Itens no Roadmap', value: m.roadmapItems, icon: Map, color: 'text-violet-500', summary: m.roadmapSummary },
   ];
 
+  const summaryStyle = (level: MetricSummary['level']) => {
+    if (level === 'critical') return 'text-red-500';
+    if (level === 'warning') return 'text-amber-500';
+    return 'text-emerald-500';
+  };
+
   const formatDate = (d: string) => {
-    const [y, m, day] = d.split('-');
-    return `${day}/${m}/${y.slice(2)}`;
+    const [y, mo, day] = d.split('-');
+    return `${day}/${mo}/${y.slice(2)}`;
   };
 
   return (
@@ -79,17 +145,24 @@ const ProductOverviewPage = () => {
       <ProductHealthScore productId={activeProduct.id} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {cards.map(c => (
-          <Card key={c.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{c.title}</CardTitle>
-              <c.icon className={`h-4 w-4 ${c.color}`} />
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{c.value}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {cards.map(c => {
+          const Icon = c.summary.level === 'ok' ? CheckCircle2 : AlertTriangle;
+          return (
+            <Card key={c.title}>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">{c.title}</CardTitle>
+                <c.icon className={`h-4 w-4 ${c.color}`} />
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{c.value}</p>
+                <div className={cn('mt-2 flex items-center gap-1.5 text-xs', summaryStyle(c.summary.level))}>
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{c.summary.text}</span>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Card>
