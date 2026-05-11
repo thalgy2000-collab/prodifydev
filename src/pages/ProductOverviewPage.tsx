@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Target, TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays } from 'lucide-react';
 import { cn, getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,7 +25,27 @@ interface Metrics {
   roadmapSummary: MetricSummary;
 }
 
+const statusLabels: Record<string, string> = {
+  pending: 'Pendente',
+  in_progress: 'Em andamento',
+  done: 'Concluída',
+};
+
+type Urgency = { label: string; className: string } | null;
+
+const getUrgency = (dateStr: string): Urgency => {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const diff = Math.round((date.getTime() - today.getTime()) / 86400000);
+  if (diff < 0) return { label: 'Atrasada', className: 'bg-destructive text-destructive-foreground border-transparent' };
+  if (diff === 0) return { label: 'Hoje', className: 'bg-yellow-500 text-white border-transparent' };
+  if (diff === 1) return { label: 'Amanhã', className: 'bg-blue-500 text-white border-transparent' };
+  return null;
+};
+
 const ProductOverviewPage = () => {
+  const navigate = useNavigate();
   const { activeProduct } = useProduct();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [upcomingActivities, setUpcomingActivities] = useState<any[]>([]);
@@ -69,7 +90,7 @@ const ProductOverviewPage = () => {
       let tasksQuery = supabase.from('backlog_tasks').select('id, status, due_date').eq('product_id', pid);
       let scheduleQuery = supabase
         .from('schedule_activities')
-        .select('title, activity_date, start_time, status')
+        .select('id, title, activity_date, start_time, status')
         .eq('product_id', pid)
         .neq('status', 'done')
         .gte('activity_date', today)
@@ -86,7 +107,7 @@ const ProductOverviewPage = () => {
           tasksQuery = tasksQuery.gte('due_date', dates.start).lte('due_date', dates.end);
           scheduleQuery = supabase
             .from('schedule_activities')
-            .select('title, activity_date, start_time, status')
+            .select('id, title, activity_date, start_time, status')
             .eq('product_id', pid)
             .neq('status', 'done')
             .gte('activity_date', dates.start)
@@ -163,7 +184,34 @@ const ProductOverviewPage = () => {
         roadmapItems: roadmap.length,
         okrSummary, krSummary, taskSummary, roadmapSummary,
       });
-      setUpcomingActivities(scheduleRes.data || []);
+
+      const upcomingData = scheduleRes.data ?? [];
+      const activityIds = upcomingData.map(a => a.id);
+      const parentMap: Record<string, string> = {};
+      if (activityIds.length > 0) {
+        const { data: criteria } = await supabase
+          .from('acceptance_criteria')
+          .select('schedule_activity_id, task_id')
+          .in('schedule_activity_id', activityIds);
+        const taskIds = Array.from(new Set((criteria ?? []).map(c => c.task_id).filter(Boolean)));
+        if (taskIds.length > 0) {
+          const { data: parentTasks } = await supabase
+            .from('backlog_tasks')
+            .select('id, title')
+            .in('id', taskIds);
+          const titleById = Object.fromEntries((parentTasks ?? []).map(t => [t.id, t.title]));
+          for (const c of criteria ?? []) {
+            if (c.schedule_activity_id && c.task_id && titleById[c.task_id]) {
+              parentMap[c.schedule_activity_id] = titleById[c.task_id];
+            }
+          }
+        }
+      }
+
+      setUpcomingActivities(upcomingData.map(a => ({
+        ...a,
+        parentTaskTitle: parentMap[a.id] ?? null,
+      })));
     };
 
     fetchMetrics();
@@ -249,26 +297,52 @@ const ProductOverviewPage = () => {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Próximas tarefas</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <span className="text-sm sm:text-base font-semibold text-foreground">Próximas tarefas</span>
+            </div>
+            <button
+              onClick={() => navigate(`/produto/${activeProduct.id}/agenda`)}
+              className="text-xs text-primary hover:underline"
+            >
+              Ver agenda
+            </button>
+          </div>
           {upcomingActivities.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma tarefa agendada.</p>
           ) : (
-            <ul className="space-y-2">
-              {upcomingActivities.map((a, i) => (
-                <li key={i} className="flex items-center justify-between text-sm">
-                  <span className="truncate flex-1">{a.title}</span>
-                  <div className="flex items-center gap-2 ml-2">
-                    <Badge variant="outline" className="text-xs">{formatDate(a.activity_date)}</Badge>
-                    {a.start_time && (
-                      <Badge variant="secondary" className="text-xs">{a.start_time.slice(0, 5)}</Badge>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-2 sm:space-y-3">
+              {upcomingActivities.map((a) => {
+                const urgency = getUrgency(a.activity_date);
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => navigate(`/produto/${activeProduct.id}/agenda`)}
+                    className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left gap-2"
+                  >
+                    <span className="text-sm font-medium text-foreground truncate w-full sm:w-auto">
+                      {a.parentTaskTitle && (
+                        <span className="text-muted-foreground">{a.parentTaskTitle} › </span>
+                      )}
+                      {a.title}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                      {urgency && (
+                        <Badge className={`text-xs ${urgency.className}`}>{urgency.label}</Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {formatDate(a.activity_date)}{a.start_time ? ` · ${a.start_time.slice(0, 5)}` : ''}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {statusLabels[a.status] || a.status}
+                      </Badge>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           )}
         </CardContent>
       </Card>
