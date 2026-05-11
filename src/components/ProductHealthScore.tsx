@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, TrendingUp, ListTodo, Zap } from 'lucide-react';
+import { Activity, TrendingUp, ListTodo, Map } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 
 interface Breakdown {
   okr: number;
-  sprint: number;
+  roadmap: number;
   tasks: number;
   total: number;
 }
