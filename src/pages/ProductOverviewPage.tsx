@@ -304,7 +304,7 @@ const ProductOverviewPage = () => {
               <span className="text-sm sm:text-base font-semibold text-foreground">Próximas tarefas</span>
             </div>
             <button
-              onClick={() => navigate(`/produto/${activeProduct.id}/agenda`)}
+              onClick={() => navigate('/produto-agenda')}
               className="text-xs text-primary hover:underline"
             >
               Ver agenda
@@ -319,7 +319,7 @@ const ProductOverviewPage = () => {
                 return (
                   <button
                     key={a.id}
-                    onClick={() => navigate(`/produto/${activeProduct.id}/agenda`)}
+                    onClick={() => navigate('/produto-agenda')}
                     className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors text-left gap-2"
                   >
                     <span className="text-sm font-medium text-foreground truncate w-full sm:w-auto">
