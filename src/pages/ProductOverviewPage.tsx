@@ -216,7 +216,7 @@ const ProductOverviewPage = () => {
               <SelectValue placeholder="Selecione o período" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Visão Geral (Hoje)</SelectItem>
+              <SelectItem value="all">Visão Geral</SelectItem>
               {availableQuarters.map(q => (
                 <SelectItem key={q} value={q}>{q}</SelectItem>
               ))}

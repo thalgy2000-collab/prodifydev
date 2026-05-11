@@ -132,7 +132,7 @@ const ProductHealthScore = ({ productId, selectedQuarter }: Props) => {
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Indicador combinado de OKRs (40%), Roadmap (30%) e Tarefas (30%).
+              Indicador combinado de OKRs ({data.okr}%), Roadmap ({data.roadmap}%) e Tarefas ({data.tasks}%).
             </p>
           </div>
 
