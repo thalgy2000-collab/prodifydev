@@ -389,6 +389,59 @@ const ProductOverviewPage = () => {
       <ProductHealthScore productId={activeProduct.id} selectedQuarter={selectedQuarter} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className={cn('transition-colors', sprintBorder)}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+              <Zap className="h-4 w-4 text-primary" />
+              Sprint Ativa
+            </CardTitle>
+            {sprintAlertIcon === 'warning' && <AlertTriangle className="h-4 w-4 text-amber-500" />}
+            {sprintAlertIcon === 'danger' && <AlertTriangle className="h-4 w-4 text-red-500" />}
+          </CardHeader>
+          <CardContent>
+            {!sprint ? (
+              <p className="text-sm text-muted-foreground">Nenhuma sprint ativa</p>
+            ) : (
+              <>
+                <p className="text-base font-bold truncate">{sprint.name}</p>
+                <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all',
+                      isEncerrandoHoje || isEmRisco ? 'bg-red-500' : isEncerrandoEmBreve ? 'bg-amber-500' : 'bg-primary'
+                    )}
+                    style={{ width: `${sprintProgress}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {sprintInfo!.done}/{sprintInfo!.total} tarefas · {sprintProgress}%
+                  {daysLeft != null && daysLeft > 0 && ` · ${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}`}
+                </p>
+                {sprintAlertText && (
+                  <div className={cn(
+                    'mt-2 flex items-center gap-1.5 text-xs',
+                    sprintAlertIcon === 'danger' ? 'text-red-500' : 'text-amber-500'
+                  )}>
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{sprintAlertText}</span>
+                  </div>
+                )}
+              </>
+            )}
+            <div className="mt-3 flex justify-end">
+              <button
+                onClick={() => navigate('/sprints')}
+                className={cn('inline-flex items-center gap-1 text-sm transition-colors', ctaStyle(sprintCtaTone))}
+              >
+                {(sprintCtaTone === 'warning' || sprintCtaTone === 'danger') && (
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                )}
+                <span>{sprintCtaLabel}</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
         {cards.map(c => {
           const Icon = c.summary.level === 'ok' ? CheckCircle2 : AlertTriangle;
           return (
