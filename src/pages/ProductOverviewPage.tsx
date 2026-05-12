@@ -298,11 +298,47 @@ const ProductOverviewPage = () => {
     : { label: 'Ver Roadmap', route: '/roadmap', tone: 'default' };
 
   const cards = [
-    { title: 'Total de OKRs', value: m.okrs, icon: Target, color: 'text-primary', summary: m.okrSummary, cta: okrCta },
     { title: 'Progresso médio KRs', value: `${m.avgKr}%`, icon: TrendingUp, color: 'text-emerald-500', summary: m.krSummary, cta: krCta },
     { title: 'Tarefas abertas', value: m.openTasks, icon: ListTodo, color: 'text-amber-500', summary: m.taskSummary, cta: taskCta },
     { title: 'Itens no Roadmap', value: m.roadmapItems, icon: Map, color: 'text-violet-500', summary: m.roadmapSummary, cta: roadmapCta },
   ];
+
+  // Sprint Ativa — alertas
+  const sprint = sprintInfo?.sprint ?? null;
+  const daysLeft = sprintInfo?.daysLeft ?? null;
+  const sprintProgress = sprintInfo?.progress ?? 0;
+  const isEncerrandoHoje = sprint != null && daysLeft === 0;
+  const isEncerrandoEmBreve = sprint != null && daysLeft != null && daysLeft > 0 && daysLeft <= 3;
+  const isEmRisco = sprint != null && daysLeft != null && daysLeft > 3 && sprintProgress < 30 && (sprintInfo?.timeElapsedRatio ?? 0) > 0.5;
+
+  let sprintBorder = 'border-border';
+  let sprintAlertIcon: 'none' | 'warning' | 'danger' = 'none';
+  let sprintAlertText: string | null = null;
+  let sprintCtaLabel = 'Ver Sprint';
+  let sprintCtaTone: CtaTone = 'default';
+
+  if (!sprint) {
+    sprintCtaLabel = 'Criar Sprint';
+    sprintCtaTone = 'default';
+  } else if (isEncerrandoHoje) {
+    sprintBorder = 'border-red-500 animate-pulse';
+    sprintAlertIcon = 'danger';
+    sprintAlertText = 'Encerra hoje!';
+    sprintCtaLabel = 'Ver urgências';
+    sprintCtaTone = 'danger';
+  } else if (isEmRisco) {
+    sprintBorder = 'border-red-500 animate-pulse';
+    sprintAlertIcon = 'danger';
+    sprintAlertText = 'Sprint em risco';
+    sprintCtaLabel = 'Revisar Sprint';
+    sprintCtaTone = 'danger';
+  } else if (isEncerrandoEmBreve) {
+    sprintBorder = 'border-amber-500 animate-pulse';
+    sprintAlertIcon = 'warning';
+    sprintAlertText = `Encerra em ${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}!`;
+    sprintCtaLabel = 'Revisar Sprint';
+    sprintCtaTone = 'warning';
+  }
 
   const ctaStyle = (tone: CtaTone) => {
     if (tone === 'danger') return 'text-red-500 hover:text-red-400';
