@@ -4,7 +4,7 @@ import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays, ArrowRight } from 'lucide-react';
+import { TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays, ArrowRight, Zap } from 'lucide-react';
 import { cn, getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -51,6 +51,53 @@ const ProductOverviewPage = () => {
   const [upcomingActivities, setUpcomingActivities] = useState<any[]>([]);
   const [selectedQuarter, setSelectedQuarter] = useState<string>('all');
   const [availableQuarters, setAvailableQuarters] = useState<string[]>([]);
+  const [sprintInfo, setSprintInfo] = useState<{
+    sprint: { id: string; name: string; start_date: string; end_date: string } | null;
+    total: number;
+    done: number;
+    progress: number;
+    daysLeft: number | null;
+    timeElapsedRatio: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!activeProduct) { setSprintInfo(null); return; }
+    const fetchSprint = async () => {
+      const { data: sprint } = await supabase
+        .from('sprints')
+        .select('id, name, start_date, end_date')
+        .eq('product_id', activeProduct.id)
+        .eq('status', 'active')
+        .order('end_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (!sprint) {
+        setSprintInfo({ sprint: null, total: 0, done: 0, progress: 0, daysLeft: null, timeElapsedRatio: 0 });
+        return;
+      }
+
+      const { data: tasks } = await supabase
+        .from('backlog_tasks')
+        .select('id, status')
+        .eq('sprint_id', sprint.id);
+
+      const total = tasks?.length ?? 0;
+      const done = tasks?.filter(t => t.status === 'done').length ?? 0;
+      const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const end = new Date(sprint.end_date); end.setHours(0, 0, 0, 0);
+      const start = new Date(sprint.start_date); start.setHours(0, 0, 0, 0);
+      const daysLeft = Math.ceil((end.getTime() - today.getTime()) / 86400000);
+      const totalMs = end.getTime() - start.getTime();
+      const elapsedMs = today.getTime() - start.getTime();
+      const timeElapsedRatio = totalMs > 0 ? elapsedMs / totalMs : 0;
+
+      setSprintInfo({ sprint, total, done, progress, daysLeft, timeElapsedRatio });
+    };
+    fetchSprint();
+  }, [activeProduct]);
 
   useEffect(() => {
     if (!activeProduct) return;
@@ -251,11 +298,47 @@ const ProductOverviewPage = () => {
     : { label: 'Ver Roadmap', route: '/roadmap', tone: 'default' };
 
   const cards = [
-    { title: 'Total de OKRs', value: m.okrs, icon: Target, color: 'text-primary', summary: m.okrSummary, cta: okrCta },
     { title: 'Progresso médio KRs', value: `${m.avgKr}%`, icon: TrendingUp, color: 'text-emerald-500', summary: m.krSummary, cta: krCta },
     { title: 'Tarefas abertas', value: m.openTasks, icon: ListTodo, color: 'text-amber-500', summary: m.taskSummary, cta: taskCta },
     { title: 'Itens no Roadmap', value: m.roadmapItems, icon: Map, color: 'text-violet-500', summary: m.roadmapSummary, cta: roadmapCta },
   ];
+
+  // Sprint Ativa — alertas
+  const sprint = sprintInfo?.sprint ?? null;
+  const daysLeft = sprintInfo?.daysLeft ?? null;
+  const sprintProgress = sprintInfo?.progress ?? 0;
+  const isEncerrandoHoje = sprint != null && daysLeft === 0;
+  const isEncerrandoEmBreve = sprint != null && daysLeft != null && daysLeft > 0 && daysLeft <= 3;
+  const isEmRisco = sprint != null && daysLeft != null && daysLeft > 3 && sprintProgress < 30 && (sprintInfo?.timeElapsedRatio ?? 0) > 0.5;
+
+  let sprintBorder = 'border-border';
+  let sprintAlertIcon: 'none' | 'warning' | 'danger' = 'none';
+  let sprintAlertText: string | null = null;
+  let sprintCtaLabel = 'Ver Sprint';
+  let sprintCtaTone: CtaTone = 'default';
+
+  if (!sprint) {
+    sprintCtaLabel = 'Criar Sprint';
+    sprintCtaTone = 'default';
+  } else if (isEncerrandoHoje) {
+    sprintBorder = 'border-red-500 animate-pulse';
+    sprintAlertIcon = 'danger';
+    sprintAlertText = 'Encerra hoje!';
+    sprintCtaLabel = 'Ver urgências';
+    sprintCtaTone = 'danger';
+  } else if (isEmRisco) {
+    sprintBorder = 'border-red-500 animate-pulse';
+    sprintAlertIcon = 'danger';
+    sprintAlertText = 'Sprint em risco';
+    sprintCtaLabel = 'Revisar Sprint';
+    sprintCtaTone = 'danger';
+  } else if (isEncerrandoEmBreve) {
+    sprintBorder = 'border-amber-500 animate-pulse';
+    sprintAlertIcon = 'warning';
+    sprintAlertText = `Encerra em ${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}!`;
+    sprintCtaLabel = 'Revisar Sprint';
+    sprintCtaTone = 'warning';
+  }
 
   const ctaStyle = (tone: CtaTone) => {
     if (tone === 'danger') return 'text-red-500 hover:text-red-400';
@@ -306,6 +389,59 @@ const ProductOverviewPage = () => {
       <ProductHealthScore productId={activeProduct.id} selectedQuarter={selectedQuarter} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className={cn('transition-colors', sprintBorder)}>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+              <Zap className="h-4 w-4 text-primary" />
+              Sprint Ativa
+            </CardTitle>
+            {sprintAlertIcon === 'warning' && <AlertTriangle className="h-4 w-4 text-amber-500" />}
+            {sprintAlertIcon === 'danger' && <AlertTriangle className="h-4 w-4 text-red-500" />}
+          </CardHeader>
+          <CardContent>
+            {!sprint ? (
+              <p className="text-sm text-muted-foreground">Nenhuma sprint ativa</p>
+            ) : (
+              <>
+                <p className="text-base font-bold truncate">{sprint.name}</p>
+                <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all',
+                      isEncerrandoHoje || isEmRisco ? 'bg-red-500' : isEncerrandoEmBreve ? 'bg-amber-500' : 'bg-primary'
+                    )}
+                    style={{ width: `${sprintProgress}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {sprintInfo!.done}/{sprintInfo!.total} tarefas · {sprintProgress}%
+                  {daysLeft != null && daysLeft > 0 && ` · ${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}`}
+                </p>
+                {sprintAlertText && (
+                  <div className={cn(
+                    'mt-2 flex items-center gap-1.5 text-xs',
+                    sprintAlertIcon === 'danger' ? 'text-red-500' : 'text-amber-500'
+                  )}>
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{sprintAlertText}</span>
+                  </div>
+                )}
+              </>
+            )}
+            <div className="mt-3 flex justify-end">
+              <button
+                onClick={() => navigate('/sprints')}
+                className={cn('inline-flex items-center gap-1 text-sm transition-colors', ctaStyle(sprintCtaTone))}
+              >
+                {(sprintCtaTone === 'warning' || sprintCtaTone === 'danger') && (
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                )}
+                <span>{sprintCtaLabel}</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
         {cards.map(c => {
           const Icon = c.summary.level === 'ok' ? CheckCircle2 : AlertTriangle;
           return (
