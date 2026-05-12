@@ -23,43 +23,36 @@ const ProductHealthScore = ({ productId, selectedQuarter }: Props) => {
     const fetchScore = async () => {
       const today = new Date().toISOString().slice(0, 10);
 
-      let krQuery = supabase.from('key_results').select('current_value, target_value, objective_id').eq('product_id', productId);
+      let objQuery = supabase.from('objectives').select('*, key_results(*)').eq('product_id', productId);
       let roadmapQuery = supabase.from('roadmap_items').select('status, progress, end_date').eq('product_id', productId);
       let tasksQuery = supabase.from('backlog_tasks').select('status, due_date').eq('product_id', productId);
 
       if (selectedQuarter && selectedQuarter !== 'all') {
+        objQuery = objQuery.eq('quarter', selectedQuarter);
         roadmapQuery = roadmapQuery.eq('quarter', selectedQuarter);
         
-        const objRes = await supabase.from('objectives').select('id').eq('product_id', productId).eq('quarter', selectedQuarter);
-        const objIds = objRes.data?.map(o => o.id) || [];
-        
-        if (objIds.length > 0) {
-          krQuery = krQuery.in('objective_id', objIds);
-        } else {
-          krQuery = krQuery.eq('objective_id', 'none'); // força resultado vazio
-        }
-
         const dates = getQuarterDates(selectedQuarter);
         if (dates) {
           tasksQuery = tasksQuery.gte('due_date', dates.start).lte('due_date', dates.end);
         }
       }
 
-      const [krRes, roadmapRes, tasksRes] = await Promise.all([
-        krQuery,
+      const [objRes, roadmapRes, tasksRes] = await Promise.all([
+        objQuery,
         roadmapQuery,
         tasksQuery,
       ]);
 
       // OKR score: average KR progress (0-100)
-      const krs = krRes.data || [];
-      const okrScore = krs.length === 0 ? 50 : Math.min(100, Math.round(
+      const objectives = objRes.data || [];
+      const krs = objectives.flatMap(o => o.key_results || []);
+      const okrScore = krs.length === 0 ? 0 : Math.min(100, Math.round(
         krs.reduce((sum, kr) => sum + (Number(kr.target_value) > 0 ? (Number(kr.current_value) / Number(kr.target_value)) * 100 : 0), 0) / krs.length
       ));
 
       // Roadmap score: avg progress minus penalty for overdue items
       const items = roadmapRes.data || [];
-      let roadmapScore = 60;
+      let roadmapScore = 0;
       if (items.length > 0) {
         const avgProgress = items.reduce((s, i) => s + (Number(i.progress) || 0), 0) / items.length;
         const overdue = items.filter(i => i.status !== 'completed' && i.end_date && i.end_date < today).length;
@@ -69,7 +62,7 @@ const ProductHealthScore = ({ productId, selectedQuarter }: Props) => {
 
       // Task score: % done minus overdue penalty
       const tasks = tasksRes.data || [];
-      let taskScore = 70;
+      let taskScore = 0;
       if (tasks.length > 0) {
         const done = tasks.filter(t => t.status === 'done').length;
         const overdue = tasks.filter(t => t.status !== 'done' && t.due_date && t.due_date < today).length;
@@ -78,7 +71,12 @@ const ProductHealthScore = ({ productId, selectedQuarter }: Props) => {
         taskScore = Math.round(Math.max(0, Math.min(100, pctDone * 0.7 + 30 - overdueRate * 0.5)));
       }
 
-      const total = Math.round(okrScore * 0.4 + roadmapScore * 0.3 + taskScore * 0.3);
+      const total = Math.round(
+        (okrScore * 0.5) +      // OKRs = 50% do peso
+        (roadmapScore * 0.3) +  // Roadmap = 30% do peso
+        (taskScore * 0.2)       // Tarefas = 20% do peso
+      );
+      
       setData({ okr: okrScore, roadmap: roadmapScore, tasks: taskScore, total });
     };
 
