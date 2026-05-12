@@ -51,6 +51,53 @@ const ProductOverviewPage = () => {
   const [upcomingActivities, setUpcomingActivities] = useState<any[]>([]);
   const [selectedQuarter, setSelectedQuarter] = useState<string>('all');
   const [availableQuarters, setAvailableQuarters] = useState<string[]>([]);
+  const [sprintInfo, setSprintInfo] = useState<{
+    sprint: { id: string; name: string; start_date: string; end_date: string } | null;
+    total: number;
+    done: number;
+    progress: number;
+    daysLeft: number | null;
+    timeElapsedRatio: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!activeProduct) { setSprintInfo(null); return; }
+    const fetchSprint = async () => {
+      const { data: sprint } = await supabase
+        .from('sprints')
+        .select('id, name, start_date, end_date')
+        .eq('product_id', activeProduct.id)
+        .eq('status', 'active')
+        .order('end_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (!sprint) {
+        setSprintInfo({ sprint: null, total: 0, done: 0, progress: 0, daysLeft: null, timeElapsedRatio: 0 });
+        return;
+      }
+
+      const { data: tasks } = await supabase
+        .from('backlog_tasks')
+        .select('id, status')
+        .eq('sprint_id', sprint.id);
+
+      const total = tasks?.length ?? 0;
+      const done = tasks?.filter(t => t.status === 'done').length ?? 0;
+      const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const end = new Date(sprint.end_date); end.setHours(0, 0, 0, 0);
+      const start = new Date(sprint.start_date); start.setHours(0, 0, 0, 0);
+      const daysLeft = Math.ceil((end.getTime() - today.getTime()) / 86400000);
+      const totalMs = end.getTime() - start.getTime();
+      const elapsedMs = today.getTime() - start.getTime();
+      const timeElapsedRatio = totalMs > 0 ? elapsedMs / totalMs : 0;
+
+      setSprintInfo({ sprint, total, done, progress, daysLeft, timeElapsedRatio });
+    };
+    fetchSprint();
+  }, [activeProduct]);
 
   useEffect(() => {
     if (!activeProduct) return;
