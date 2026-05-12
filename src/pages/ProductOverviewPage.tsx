@@ -320,6 +320,21 @@ const ProductOverviewPage = () => {
                   <Icon className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{c.summary.text}</span>
                 </div>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    onClick={() => navigate(c.cta.route)}
+                    className={cn('inline-flex items-center gap-1 text-sm transition-colors', ctaStyle(c.cta.tone))}
+                  >
+                    {(c.cta.tone === 'warning' || c.cta.tone === 'danger') && (
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                    )}
+                    {c.cta.tone === 'success' && (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    )}
+                    <span>{c.cta.label}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </CardContent>
             </Card>
           );
