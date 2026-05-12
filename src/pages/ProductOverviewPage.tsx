@@ -321,19 +321,19 @@ const ProductOverviewPage = () => {
     sprintCtaLabel = 'Criar Sprint';
     sprintCtaTone = 'default';
   } else if (isEncerrandoHoje) {
-    sprintBorder = 'border-red-500 animate-pulse';
+    sprintBorder = 'border-red-500';
     sprintAlertIcon = 'danger';
     sprintAlertText = 'Encerra hoje!';
     sprintCtaLabel = 'Ver urgências';
     sprintCtaTone = 'danger';
   } else if (isEmRisco) {
-    sprintBorder = 'border-red-500 animate-pulse';
+    sprintBorder = 'border-red-500';
     sprintAlertIcon = 'danger';
     sprintAlertText = 'Sprint em risco';
     sprintCtaLabel = 'Revisar Sprint';
     sprintCtaTone = 'danger';
   } else if (isEncerrandoEmBreve) {
-    sprintBorder = 'border-amber-500 animate-pulse';
+    sprintBorder = 'border-amber-500';
     sprintAlertIcon = 'warning';
     sprintAlertText = `Encerra em ${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}!`;
     sprintCtaLabel = 'Revisar Sprint';
