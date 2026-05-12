@@ -4,7 +4,7 @@ import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays } from 'lucide-react';
+import { Target, TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays, ArrowRight } from 'lucide-react';
 import { cn, getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -227,12 +227,42 @@ const ProductOverviewPage = () => {
     roadmapSummary: { level: 'ok' as const, text: '—' },
   };
 
+  type CtaTone = 'default' | 'warning' | 'danger' | 'success';
+  interface CardCta { label: string; route: string; tone: CtaTone; }
+
+  const okrCta: CardCta = m.avgKr < 30 && m.okrs > 0
+    ? { label: 'Revisar OKRs', route: '/okrs', tone: 'danger' }
+    : { label: 'Ver OKRs', route: '/okrs', tone: 'default' };
+
+  const krCta: CardCta = m.avgKr < 20
+    ? { label: 'Atualizar KRs', route: '/okrs', tone: 'warning' }
+    : m.avgKr >= 70
+      ? { label: 'Ver detalhes', route: '/okrs', tone: 'success' }
+      : { label: 'Ver KRs', route: '/okrs', tone: 'default' };
+
+  const taskCta: CardCta = m.openTasks > 20
+    ? { label: 'Priorizar Backlog', route: '/backlog', tone: 'warning' }
+    : m.openTasks === 0
+      ? { label: 'Ver Backlog', route: '/backlog', tone: 'success' }
+      : { label: 'Ver Backlog', route: '/backlog', tone: 'default' };
+
+  const roadmapCta: CardCta = m.roadmapItems === 0
+    ? { label: 'Criar iniciativa', route: '/roadmap', tone: 'warning' }
+    : { label: 'Ver Roadmap', route: '/roadmap', tone: 'default' };
+
   const cards = [
-    { title: 'Total de OKRs', value: m.okrs, icon: Target, color: 'text-primary', summary: m.okrSummary },
-    { title: 'Progresso médio KRs', value: `${m.avgKr}%`, icon: TrendingUp, color: 'text-emerald-500', summary: m.krSummary },
-    { title: 'Tarefas abertas', value: m.openTasks, icon: ListTodo, color: 'text-amber-500', summary: m.taskSummary },
-    { title: 'Itens no Roadmap', value: m.roadmapItems, icon: Map, color: 'text-violet-500', summary: m.roadmapSummary },
+    { title: 'Total de OKRs', value: m.okrs, icon: Target, color: 'text-primary', summary: m.okrSummary, cta: okrCta },
+    { title: 'Progresso médio KRs', value: `${m.avgKr}%`, icon: TrendingUp, color: 'text-emerald-500', summary: m.krSummary, cta: krCta },
+    { title: 'Tarefas abertas', value: m.openTasks, icon: ListTodo, color: 'text-amber-500', summary: m.taskSummary, cta: taskCta },
+    { title: 'Itens no Roadmap', value: m.roadmapItems, icon: Map, color: 'text-violet-500', summary: m.roadmapSummary, cta: roadmapCta },
   ];
+
+  const ctaStyle = (tone: CtaTone) => {
+    if (tone === 'danger') return 'text-red-500 hover:text-red-400';
+    if (tone === 'warning') return 'text-amber-500 hover:text-amber-400';
+    if (tone === 'success') return 'text-emerald-500 hover:text-emerald-400';
+    return 'text-muted-foreground hover:text-foreground';
+  };
 
   const summaryStyle = (level: MetricSummary['level']) => {
     if (level === 'critical') return 'text-red-500';
@@ -289,6 +319,21 @@ const ProductOverviewPage = () => {
                 <div className={cn('mt-2 flex items-center gap-1.5 text-xs', summaryStyle(c.summary.level))}>
                   <Icon className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{c.summary.text}</span>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    onClick={() => navigate(c.cta.route)}
+                    className={cn('inline-flex items-center gap-1 text-sm transition-colors', ctaStyle(c.cta.tone))}
+                  >
+                    {(c.cta.tone === 'warning' || c.cta.tone === 'danger') && (
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                    )}
+                    {c.cta.tone === 'success' && (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    )}
+                    <span>{c.cta.label}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </CardContent>
             </Card>
