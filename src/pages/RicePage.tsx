@@ -573,6 +573,16 @@ const RicePage = () => {
           </table>
         </div>
       )}
+
+      {historyOpenFor && (
+        <RiceSuggestionsHistoryModal
+          taskId={historyOpenFor.id}
+          taskTitle={historyOpenFor.title}
+          itemType={historyOpenFor.type}
+          open={!!historyOpenFor}
+          onOpenChange={(o) => { if (!o) setHistoryOpenFor(null); }}
+        />
+      )}
     </div>
   );
 };
