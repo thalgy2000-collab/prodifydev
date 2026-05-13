@@ -48,8 +48,25 @@ const RicePage = () => {
   const [sortConfig, setSortConfig] = usePersistedState<{ field: string; direction: 'asc' | 'desc' } | null>('rice_sort', null);
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
+  const [suggestionIds, setSuggestionIds] = useState<Record<string, string>>({});
+  const [historyCounts, setHistoryCounts] = useState<Record<string, number>>({});
+  const [historyOpenFor, setHistoryOpenFor] = useState<{ id: string; title: string; type: 'task' | 'initiative' } | null>(null);
   const [openSuggestion, setOpenSuggestion] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = usePersistedState<'all' | 'task' | 'initiative'>('rice_type_filter', 'all');
+
+  const refreshHistoryCounts = useCallback(async () => {
+    if (!activeProduct) return;
+    const { data } = await (supabase.from('rice_ai_suggestions') as any)
+      .select('task_id')
+      .eq('product_id', activeProduct.id);
+    if (data) {
+      const counts: Record<string, number> = {};
+      (data as { task_id: string }[]).forEach(r => { counts[r.task_id] = (counts[r.task_id] || 0) + 1; });
+      setHistoryCounts(counts);
+    }
+  }, [activeProduct]);
+
+  useEffect(() => { refreshHistoryCounts(); }, [refreshHistoryCounts]);
 
   const handleSort = (field: string) => {
     const newConfig = sortConfig?.field === field
