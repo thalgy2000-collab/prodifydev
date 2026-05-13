@@ -78,6 +78,24 @@ const BacklogPage = () => {
   const [epicPanelOpen, setEpicPanelOpen] = useState(false);
   const [selectedEpicId, setSelectedEpicId] = usePersistedState<string | null>('backlog_epic_filter', null);
   const [membersMap, setMembersMap] = useState<Record<string, { name: string; avatar: string | null }>>({});
+  const [riceHistoryCounts, setRiceHistoryCounts] = useState<Record<string, number>>({});
+  const [riceHistoryFor, setRiceHistoryFor] = useState<{ id: string; title: string } | null>(null);
+
+  useEffect(() => {
+    if (!activeProduct) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase.from('rice_ai_suggestions') as any)
+        .select('task_id')
+        .eq('product_id', activeProduct.id);
+      if (!cancelled && data) {
+        const counts: Record<string, number> = {};
+        (data as { task_id: string }[]).forEach(r => { counts[r.task_id] = (counts[r.task_id] || 0) + 1; });
+        setRiceHistoryCounts(counts);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeProduct]);
 
   const fetchMembersMap = useCallback(async () => {
     if (!activeProduct) return;
