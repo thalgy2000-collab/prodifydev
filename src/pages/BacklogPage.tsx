@@ -308,13 +308,6 @@ const BacklogPage = () => {
     }
   };
 
-  // Search filtering
-  const matchesSearch = useCallback((task: BacklogTask) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return task.title.toLowerCase().includes(q) || (task.description?.toLowerCase().includes(q) ?? false);
-  }, [searchQuery]);
-
   // Keyboard shortcuts for search
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
