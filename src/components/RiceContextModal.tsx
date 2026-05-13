@@ -69,7 +69,7 @@ export function RiceContextModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col bg-[#1a1a1a] text-white border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)] overflow-hidden">
+      <DialogContent className="max-w-2xl p-0 bg-[#1a1a1a] text-white border-white/[0.08] shadow-[0_8px_40px_rgba(0,0,0,0.5)] overflow-hidden">
         <DialogHeader className="px-6 py-5 border-b border-white/[0.08] shrink-0">
           <DialogTitle className="text-xl flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
@@ -80,7 +80,7 @@ export function RiceContextModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <div className="overflow-y-auto px-6 py-4 space-y-6" style={{ maxHeight: 'calc(90vh - 160px)' }}>
           <div className="space-y-2">
             <label className="text-sm font-medium">1. Descrição do Problema / Benefício</label>
             <Textarea
