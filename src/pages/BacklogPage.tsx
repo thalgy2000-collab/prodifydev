@@ -687,23 +687,16 @@ const BacklogPage = () => {
       </div>
 
       {/* Active Sprints */}
-      {(() => {
-        const anySprintResults = activeSprints.some(s => getBySprint(s.id).filter(matchesSearch).length > 0);
-        const hasBacklogResults = filtered.length > 0;
-        if (searchQuery.trim() && !anySprintResults && !hasBacklogResults) {
-          return (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
-              <Search className="mb-3 h-10 w-10 text-muted-foreground/50" />
-              <p className="font-medium text-muted-foreground">Nenhuma tarefa encontrada</p>
-              <p className="text-sm text-muted-foreground mt-1">Tente buscar por outro termo</p>
-              <Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={() => setSearchQuery('')}>
-                <X className="h-3.5 w-3.5" /> Limpar busca
-              </Button>
-            </div>
-          );
-        }
-        return null;
-      })()}
+      {showEmptySearchState && (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
+          <Search className="mb-3 h-10 w-10 text-muted-foreground/50" />
+          <p className="font-medium text-muted-foreground">Nenhuma tarefa encontrada</p>
+          <p className="text-sm text-muted-foreground mt-1">Tente buscar por outro termo</p>
+          <Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={() => setSearchQuery('')}>
+            <X className="h-3.5 w-3.5" /> Limpar busca
+          </Button>
+        </div>
+      )}
       {activeSprints.length > 0 && !searchQuery.trim() && (
         <div className="flex items-center justify-end gap-2">
           <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => setAllCollapsed(false)}>
