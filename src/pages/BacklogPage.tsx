@@ -870,7 +870,4 @@ const BacklogPage = () => {
 };
 
 export default BacklogPage;
-
-export default BacklogPage;
-
 export default BacklogPage;
