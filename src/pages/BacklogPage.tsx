@@ -606,42 +606,73 @@ const BacklogPage = () => {
   return (
     <div className={`space-y-6 transition-[margin] duration-200 ${epicPanelOpen ? 'mr-80' : ''}`}>
       {TourElement}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Backlog</h1>
-          <p className="text-sm text-muted-foreground">Gerencie suas tarefas e prioridades</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={epicPanelOpen || selectedEpicId !== null ? 'default' : 'outline'}
-            className="gap-2"
-            onClick={() => setEpicPanelOpen(v => !v)}
-          >
-            <Layers className="h-4 w-4" />
-            Épicos
-            {selectedEpicId !== null && (
-              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>
-            )}
-          </Button>
-          <ImportTasksDialog mode="ai" onImported={() => {}} addTask={addTask} />
-          <ImportTasksDialog mode="file" onImported={() => {}} addTask={addTask} />
-          <Dialog open={sprintOpen} onOpenChange={setSprintOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2"><Zap className="h-4 w-4" />Criar Sprint</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Nova Sprint</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <div className="space-y-2"><Label>Nome</Label><Input placeholder="Sprint 1" value={sprintName} onChange={e => setSprintName(e.target.value)} /></div>
-                <div className="flex gap-3">
-                  <div className="flex-1 space-y-2"><Label>Início</Label><Input type="date" value={sprintStart} onChange={e => setSprintStart(e.target.value)} /></div>
-                  <div className="flex-1 space-y-2"><Label>Fim</Label><Input type="date" value={sprintEnd} onChange={e => setSprintEnd(e.target.value)} /></div>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Backlog</h1>
+            <p className="text-sm text-muted-foreground">Gerencie suas tarefas e prioridades</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={epicPanelOpen || selectedEpicId !== null ? 'default' : 'outline'}
+              className="gap-2"
+              onClick={() => setEpicPanelOpen(v => !v)}
+            >
+              <Layers className="h-4 w-4" />
+              Épicos
+              {selectedEpicId !== null && (
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>
+              )}
+            </Button>
+            <ImportTasksDialog mode="ai" onImported={() => {}} addTask={addTask} />
+            <ImportTasksDialog mode="file" onImported={() => {}} addTask={addTask} />
+            <Dialog open={sprintOpen} onOpenChange={setSprintOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2"><Zap className="h-4 w-4" />Criar Sprint</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Nova Sprint</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-2"><Label>Nome</Label><Input placeholder="Sprint 1" value={sprintName} onChange={e => setSprintName(e.target.value)} /></div>
+                  <div className="flex gap-3">
+                    <div className="flex-1 space-y-2"><Label>Início</Label><Input type="date" value={sprintStart} onChange={e => setSprintStart(e.target.value)} /></div>
+                    <div className="flex-1 space-y-2"><Label>Fim</Label><Input type="date" value={sprintEnd} onChange={e => setSprintEnd(e.target.value)} /></div>
+                  </div>
+                  <Button onClick={handleCreateSprint} className="w-full">Criar Sprint</Button>
                 </div>
-                <Button onClick={handleCreateSprint} className="w-full">Criar Sprint</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
+
+        {/* Search */}
+        <div className="relative w-full sm:w-1/2 sm:mx-auto">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            ref={searchInputRef}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Buscar tarefa..."
+            className="pl-10 pr-10 bg-muted/30 border-border focus:bg-background"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {searchQuery.trim() && (
+          <p className="text-xs text-muted-foreground text-center">
+            {(() => {
+              const all = [...tasks.filter(matchesSearch)];
+              return `${all.length} ${all.length === 1 ? 'tarefa encontrada' : 'tarefas encontradas'}`;
+            })()}
+          </p>
+        )}
       </div>
 
       {/* Active Sprints */}
