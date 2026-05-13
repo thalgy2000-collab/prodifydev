@@ -300,7 +300,44 @@ const BacklogPage = () => {
     }
   };
 
-  const TaskRow = ({ task, showDrag = true }: { task: BacklogTask; showDrag?: boolean }) => {
+  // Search filtering
+  const matchesSearch = useCallback((task: BacklogTask) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return task.title.toLowerCase().includes(q) || (task.description?.toLowerCase().includes(q) ?? false);
+  }, [searchQuery]);
+
+  // Keyboard shortcuts for search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (e.key === 'Escape' && searchQuery) {
+        setSearchQuery('');
+        searchInputRef.current?.blur();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [searchQuery]);
+
+  const HighlightText = ({ text, query }: { text: string; query: string }) => {
+    if (!query.trim()) return <>{text}</>;
+    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === query.toLowerCase() ? (
+            <mark key={i} className="bg-yellow-500/30 text-foreground rounded px-0.5">{part}</mark>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </>
+    );
+  };
     const pCfg = getPriorityConfig(task.priority);
     const sCfg = getTaskStatusConfig(task.status);
     const progress = getProgress(task.id);
