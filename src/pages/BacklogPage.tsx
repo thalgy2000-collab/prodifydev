@@ -762,6 +762,16 @@ const BacklogPage = () => {
         selectedEpicId={selectedEpicId}
         onSelectEpic={setSelectedEpicId}
       />
+
+      {riceHistoryFor && (
+        <RiceSuggestionsHistoryModal
+          taskId={riceHistoryFor.id}
+          taskTitle={riceHistoryFor.title}
+          itemType="task"
+          open={!!riceHistoryFor}
+          onOpenChange={(o) => { if (!o) setRiceHistoryFor(null); }}
+        />
+      )}
     </div>
   );
 };
