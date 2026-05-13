@@ -610,6 +610,10 @@ const BacklogPage = () => {
 
   const { TourElement } = useFeatureTour('backlog', backlogTourSteps);
 
+  const anySprintResults = activeSprints.some(s => getBySprint(s.id).filter(matchesSearch).length > 0);
+  const hasBacklogResults = filtered.length > 0;
+  const showEmptySearchState = searchQuery.trim() && !anySprintResults && !hasBacklogResults;
+
   return (
     <div className={`space-y-6 transition-[margin] duration-200 ${epicPanelOpen ? 'mr-80' : ''}`}>
       {TourElement}
