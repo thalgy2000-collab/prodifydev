@@ -194,6 +194,13 @@ const BacklogPage = () => {
     return t.epicId === selectedEpicId;
   };
   const unassigned = getUnassigned();
+
+  const matchesSearch = useCallback((task: BacklogTask) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return task.title.toLowerCase().includes(q) || (task.description?.toLowerCase().includes(q) ?? false);
+  }, [searchQuery]);
+
   const filtered = unassigned
     .filter(t => filterStatus === 'all' || t.status === filterStatus)
     .filter(matchesEpic)
