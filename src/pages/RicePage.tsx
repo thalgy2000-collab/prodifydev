@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { RiceSuggestionsHistoryModal } from '@/components/RiceSuggestionsHistoryModal';
+import { History } from 'lucide-react';
 import { useRiceStore } from '@/hooks/useRiceStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
@@ -46,8 +48,25 @@ const RicePage = () => {
   const [sortConfig, setSortConfig] = usePersistedState<{ field: string; direction: 'asc' | 'desc' } | null>('rice_sort', null);
   const [loadingAi, setLoadingAi] = useState<string | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<Record<string, AiSuggestion>>({});
+  const [suggestionIds, setSuggestionIds] = useState<Record<string, string>>({});
+  const [historyCounts, setHistoryCounts] = useState<Record<string, number>>({});
+  const [historyOpenFor, setHistoryOpenFor] = useState<{ id: string; title: string; type: 'task' | 'initiative' } | null>(null);
   const [openSuggestion, setOpenSuggestion] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = usePersistedState<'all' | 'task' | 'initiative'>('rice_type_filter', 'all');
+
+  const refreshHistoryCounts = useCallback(async () => {
+    if (!activeProduct) return;
+    const { data } = await (supabase.from('rice_ai_suggestions') as any)
+      .select('task_id')
+      .eq('product_id', activeProduct.id);
+    if (data) {
+      const counts: Record<string, number> = {};
+      (data as { task_id: string }[]).forEach(r => { counts[r.task_id] = (counts[r.task_id] || 0) + 1; });
+      setHistoryCounts(counts);
+    }
+  }, [activeProduct]);
+
+  useEffect(() => { refreshHistoryCounts(); }, [refreshHistoryCounts]);
 
   const handleSort = (field: string) => {
     const newConfig = sortConfig?.field === field
@@ -90,6 +109,40 @@ const RicePage = () => {
       if (data?.error) throw new Error(data.error);
 
       setAiSuggestions(prev => ({ ...prev, [itemId]: data as AiSuggestion }));
+
+      // Persist suggestion in history before showing it
+      if (user) {
+        const aiData = data as AiSuggestion;
+        const mappedImpact = mapAiImpact(Number(aiData.impact));
+        const mappedConfidence = mapAiConfidence(Number(aiData.confidence));
+        const computedScore = Number(
+          calcRiceScore(Number(aiData.reach) || 0, mappedImpact, mappedConfidence, Number(aiData.effort) || 1).toFixed(2)
+        );
+        const { data: inserted } = await (supabase.from('rice_ai_suggestions') as any)
+          .insert({
+            task_id: itemId,
+            product_id: activeProduct.id,
+            user_id: user.id,
+            context_description: description ?? null,
+            suggested_reach: Number(aiData.reach) || 0,
+            suggested_impact: Number(aiData.impact) || 0,
+            suggested_confidence: Number(aiData.confidence) || 0,
+            suggested_effort: Number(aiData.effort) || 0,
+            suggested_score: computedScore,
+            reason_reach: aiData.justificativas?.reach ?? null,
+            reason_impact: aiData.justificativas?.impact ?? null,
+            reason_confidence: aiData.justificativas?.confidence ?? null,
+            reason_effort: aiData.justificativas?.effort ?? null,
+            applied: false,
+          })
+          .select('id')
+          .single();
+        if (inserted?.id) {
+          setSuggestionIds(prev => ({ ...prev, [itemId]: inserted.id }));
+          setHistoryCounts(prev => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+        }
+      }
+
       setOpenSuggestion(itemId);
     } catch (e) {
       sonnerToast.error('Erro ao gerar sugestão da IA', {
@@ -118,6 +171,12 @@ const RicePage = () => {
       const { [itemId]: _, ...rest } = prev;
       return rest;
     });
+    const sId = suggestionIds[itemId];
+    if (sId) {
+      await (supabase.from('rice_ai_suggestions') as any)
+        .update({ applied: true, applied_at: new Date().toISOString() })
+        .eq('id', sId);
+    }
     setOpenSuggestion(null);
     sonnerToast.success('Sugestão da IA aplicada ✨');
   };
@@ -413,6 +472,18 @@ const RicePage = () => {
                           )}
                         </PopoverContent>
                       </Popover>
+                      {(historyCounts[item.id] || 0) > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          title="Ver histórico de sugestões IA"
+                          onClick={() => setHistoryOpenFor({ id: item.id, title: item.title, type: item.type })}
+                        >
+                          <History className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{item.type === 'task' ? 'Tarefa' : 'Iniciativa'}</td>
@@ -501,6 +572,16 @@ const RicePage = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {historyOpenFor && (
+        <RiceSuggestionsHistoryModal
+          taskId={historyOpenFor.id}
+          taskTitle={historyOpenFor.title}
+          itemType={historyOpenFor.type}
+          open={!!historyOpenFor}
+          onOpenChange={(o) => { if (!o) setHistoryOpenFor(null); }}
+        />
       )}
     </div>
   );

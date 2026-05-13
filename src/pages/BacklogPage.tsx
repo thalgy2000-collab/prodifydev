@@ -28,6 +28,7 @@ import { backlogTourSteps } from '@/lib/featureTours';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { useEpicStore } from '@/hooks/useEpicStore';
 import EpicSidePanel from '@/components/EpicSidePanel';
+import { RiceSuggestionsHistoryModal } from '@/components/RiceSuggestionsHistoryModal';
 
 const EditBacklogTaskDialog = lazy(() => import('@/components/EditBacklogTaskDialog'));
 
@@ -77,6 +78,24 @@ const BacklogPage = () => {
   const [epicPanelOpen, setEpicPanelOpen] = useState(false);
   const [selectedEpicId, setSelectedEpicId] = usePersistedState<string | null>('backlog_epic_filter', null);
   const [membersMap, setMembersMap] = useState<Record<string, { name: string; avatar: string | null }>>({});
+  const [riceHistoryCounts, setRiceHistoryCounts] = useState<Record<string, number>>({});
+  const [riceHistoryFor, setRiceHistoryFor] = useState<{ id: string; title: string } | null>(null);
+
+  useEffect(() => {
+    if (!activeProduct) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await (supabase.from('rice_ai_suggestions') as any)
+        .select('task_id')
+        .eq('product_id', activeProduct.id);
+      if (!cancelled && data) {
+        const counts: Record<string, number> = {};
+        (data as { task_id: string }[]).forEach(r => { counts[r.task_id] = (counts[r.task_id] || 0) + 1; });
+        setRiceHistoryCounts(counts);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeProduct]);
 
   const fetchMembersMap = useCallback(async () => {
     if (!activeProduct) return;
@@ -392,6 +411,15 @@ const BacklogPage = () => {
             )}
           </div>
           {task.description && <p className="mt-1 text-sm text-muted-foreground truncate">{task.description}</p>}
+          {(riceHistoryCounts[task.id] || 0) > 0 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setRiceHistoryFor({ id: task.id, title: task.title }); }}
+              className="mt-1 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              ✨ Ver histórico RICE →
+            </button>
+          )}
         </div>
         {assignee && (
           <Avatar className="h-7 w-7 shrink-0" title={assignee.name}>
@@ -734,6 +762,16 @@ const BacklogPage = () => {
         selectedEpicId={selectedEpicId}
         onSelectEpic={setSelectedEpicId}
       />
+
+      {riceHistoryFor && (
+        <RiceSuggestionsHistoryModal
+          taskId={riceHistoryFor.id}
+          taskTitle={riceHistoryFor.title}
+          itemType="task"
+          open={!!riceHistoryFor}
+          onOpenChange={(o) => { if (!o) setRiceHistoryFor(null); }}
+        />
+      )}
     </div>
   );
 };
