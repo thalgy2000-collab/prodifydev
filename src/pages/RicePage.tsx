@@ -472,6 +472,18 @@ const RicePage = () => {
                           )}
                         </PopoverContent>
                       </Popover>
+                      {(historyCounts[item.id] || 0) > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          title="Ver histórico de sugestões IA"
+                          onClick={() => setHistoryOpenFor({ id: item.id, title: item.title, type: item.type })}
+                        >
+                          <History className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{item.type === 'task' ? 'Tarefa' : 'Iniciativa'}</td>
