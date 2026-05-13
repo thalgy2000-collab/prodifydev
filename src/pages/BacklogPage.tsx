@@ -339,6 +339,8 @@ const BacklogPage = () => {
       </>
     );
   };
+
+  const TaskRow = ({ task, showDrag = true }: { task: BacklogTask; showDrag?: boolean }) => {
     const pCfg = getPriorityConfig(task.priority);
     const sCfg = getTaskStatusConfig(task.status);
     const progress = getProgress(task.id);
