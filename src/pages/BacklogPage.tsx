@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle, ChevronDown, ChevronRight, Layers, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, Pencil, ListTodo, Zap, GripVertical, ClipboardCheck, Rocket, HelpCircle, ChevronDown, ChevronRight, Layers, ExternalLink, Search, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
@@ -124,6 +124,8 @@ const BacklogPage = () => {
 
   const [editTask, setEditTask] = useState<BacklogTask | null>(null);
   const [filterStatus, setFilterStatus] = usePersistedState<string>('backlog_filter', 'all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [sprintOpen, setSprintOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -192,9 +194,17 @@ const BacklogPage = () => {
     return t.epicId === selectedEpicId;
   };
   const unassigned = getUnassigned();
+
+  const matchesSearch = useCallback((task: BacklogTask) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return task.title.toLowerCase().includes(q) || (task.description?.toLowerCase().includes(q) ?? false);
+  }, [searchQuery]);
+
   const filtered = unassigned
     .filter(t => filterStatus === 'all' || t.status === filterStatus)
-    .filter(matchesEpic);
+    .filter(matchesEpic)
+    .filter(matchesSearch);
 
   // Collapsed state per sprint, persisted in localStorage
   const getInitialCollapsed = (sprintId: string, status: SprintStatus) => {
@@ -298,6 +308,38 @@ const BacklogPage = () => {
     }
   };
 
+  // Keyboard shortcuts for search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      if (e.key === 'Escape' && searchQuery) {
+        setSearchQuery('');
+        searchInputRef.current?.blur();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [searchQuery]);
+
+  const HighlightText = ({ text, query }: { text: string; query: string }) => {
+    if (!query.trim()) return <>{text}</>;
+    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === query.toLowerCase() ? (
+            <mark key={i} className="bg-yellow-500/30 text-foreground rounded px-0.5">{part}</mark>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </>
+    );
+  };
+
   const TaskRow = ({ task, showDrag = true }: { task: BacklogTask; showDrag?: boolean }) => {
     const pCfg = getPriorityConfig(task.priority);
     const sCfg = getTaskStatusConfig(task.status);
@@ -358,7 +400,9 @@ const BacklogPage = () => {
         {showDrag && <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium">{task.title}</span>
+            <span className="font-medium">
+              <HighlightText text={task.title} query={searchQuery} />
+            </span>
             <Badge variant="secondary" style={{ backgroundColor: `hsl(${pCfg.color} / 0.15)`, color: `hsl(${pCfg.color})` }}>{pCfg.label}</Badge>
             <Badge variant="outline">{sCfg.label}</Badge>
             {taskSprint && (
@@ -410,7 +454,11 @@ const BacklogPage = () => {
               </Badge>
             )}
           </div>
-          {task.description && <p className="mt-1 text-sm text-muted-foreground truncate">{task.description}</p>}
+          {task.description && (
+            <p className="mt-1 text-sm text-muted-foreground truncate">
+              <HighlightText text={task.description} query={searchQuery} />
+            </p>
+          )}
           {(riceHistoryCounts[task.id] || 0) > 0 && (
             <button
               type="button"
@@ -564,49 +612,94 @@ const BacklogPage = () => {
 
   const { TourElement } = useFeatureTour('backlog', backlogTourSteps);
 
+  const anySprintResults = activeSprints.some(s => getBySprint(s.id).filter(matchesSearch).length > 0);
+  const hasBacklogResults = filtered.length > 0;
+  const showEmptySearchState = searchQuery.trim() && !anySprintResults && !hasBacklogResults;
+
   return (
     <div className={`space-y-6 transition-[margin] duration-200 ${epicPanelOpen ? 'mr-80' : ''}`}>
       {TourElement}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Backlog</h1>
-          <p className="text-sm text-muted-foreground">Gerencie suas tarefas e prioridades</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={epicPanelOpen || selectedEpicId !== null ? 'default' : 'outline'}
-            className="gap-2"
-            onClick={() => setEpicPanelOpen(v => !v)}
-          >
-            <Layers className="h-4 w-4" />
-            Épicos
-            {selectedEpicId !== null && (
-              <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>
-            )}
-          </Button>
-          <ImportTasksDialog mode="ai" onImported={() => {}} addTask={addTask} />
-          <ImportTasksDialog mode="file" onImported={() => {}} addTask={addTask} />
-          <Dialog open={sprintOpen} onOpenChange={setSprintOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2"><Zap className="h-4 w-4" />Criar Sprint</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Nova Sprint</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <div className="space-y-2"><Label>Nome</Label><Input placeholder="Sprint 1" value={sprintName} onChange={e => setSprintName(e.target.value)} /></div>
-                <div className="flex gap-3">
-                  <div className="flex-1 space-y-2"><Label>Início</Label><Input type="date" value={sprintStart} onChange={e => setSprintStart(e.target.value)} /></div>
-                  <div className="flex-1 space-y-2"><Label>Fim</Label><Input type="date" value={sprintEnd} onChange={e => setSprintEnd(e.target.value)} /></div>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Backlog</h1>
+            <p className="text-sm text-muted-foreground">Gerencie suas tarefas e prioridades</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={epicPanelOpen || selectedEpicId !== null ? 'default' : 'outline'}
+              className="gap-2"
+              onClick={() => setEpicPanelOpen(v => !v)}
+            >
+              <Layers className="h-4 w-4" />
+              Épicos
+              {selectedEpicId !== null && (
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">1</Badge>
+              )}
+            </Button>
+            <ImportTasksDialog mode="ai" onImported={() => {}} addTask={addTask} />
+            <ImportTasksDialog mode="file" onImported={() => {}} addTask={addTask} />
+            <Dialog open={sprintOpen} onOpenChange={setSprintOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2"><Zap className="h-4 w-4" />Criar Sprint</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Nova Sprint</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-2"><Label>Nome</Label><Input placeholder="Sprint 1" value={sprintName} onChange={e => setSprintName(e.target.value)} /></div>
+                  <div className="flex gap-3">
+                    <div className="flex-1 space-y-2"><Label>Início</Label><Input type="date" value={sprintStart} onChange={e => setSprintStart(e.target.value)} /></div>
+                    <div className="flex-1 space-y-2"><Label>Fim</Label><Input type="date" value={sprintEnd} onChange={e => setSprintEnd(e.target.value)} /></div>
+                  </div>
+                  <Button onClick={handleCreateSprint} className="w-full">Criar Sprint</Button>
                 </div>
-                <Button onClick={handleCreateSprint} className="w-full">Criar Sprint</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
+
+        {/* Search */}
+        <div className="relative w-full sm:w-1/2 sm:mx-auto">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            ref={searchInputRef}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Buscar tarefa..."
+            className="pl-10 pr-10 bg-muted/30 border-border focus:bg-background"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => { setSearchQuery(''); searchInputRef.current?.focus(); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {searchQuery.trim() && (
+          <p className="text-xs text-muted-foreground text-center">
+            {(() => {
+              const all = [...tasks.filter(matchesSearch)];
+              return `${all.length} ${all.length === 1 ? 'tarefa encontrada' : 'tarefas encontradas'}`;
+            })()}
+          </p>
+        )}
       </div>
 
       {/* Active Sprints */}
-      {activeSprints.length > 0 && (
+      {showEmptySearchState && (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
+          <Search className="mb-3 h-10 w-10 text-muted-foreground/50" />
+          <p className="font-medium text-muted-foreground">Nenhuma tarefa encontrada</p>
+          <p className="text-sm text-muted-foreground mt-1">Tente buscar por outro termo</p>
+          <Button variant="outline" size="sm" className="mt-4 gap-1.5" onClick={() => setSearchQuery('')}>
+            <X className="h-3.5 w-3.5" /> Limpar busca
+          </Button>
+        </div>
+      )}
+      {activeSprints.length > 0 && !searchQuery.trim() && (
         <div className="flex items-center justify-end gap-2">
           <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => setAllCollapsed(false)}>
             <ChevronDown className="h-3.5 w-3.5" /> Expandir tudo
@@ -617,10 +710,12 @@ const BacklogPage = () => {
         </div>
       )}
       {activeSprints.map(sprint => {
-        const sprintTasks = getBySprint(sprint.id);
+        const sprintTasks = getBySprint(sprint.id).filter(matchesSearch);
         const totalPoints = sprintTasks.reduce((s, t) => s + (t.storyPoints || 0), 0);
         const sCfg = getSprintStatusConfig(sprint.status);
         const isCollapsed = collapsedSprints[sprint.id] ?? (sprint.status !== 'active');
+        const showSprint = !searchQuery.trim() || sprintTasks.length > 0;
+        if (!showSprint) return null;
         return (
           <div
             key={sprint.id}
@@ -662,7 +757,7 @@ const BacklogPage = () => {
                 {sprintTasks.length === 0 ? (
                   <>
                     <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-                      Arraste tarefas do backlog para esta sprint
+                      {searchQuery.trim() ? 'Nenhuma tarefa encontrada nesta seção' : 'Arraste tarefas do backlog para esta sprint'}
                     </div>
                     <InlineCreate sprintId={sprint.id} />
                   </>
@@ -679,46 +774,48 @@ const BacklogPage = () => {
       })}
 
       {/* Backlog section */}
-      <div
-        data-tour-feature="backlog-list"
-        onDragOver={e => { e.preventDefault(); setDragOverBacklog(true); }}
-        onDragLeave={() => setDragOverBacklog(false)}
-        onDrop={onDropBacklog}
-        className={`space-y-4 rounded-xl border-2 p-5 transition-colors ${
-          dragOverBacklog ? 'border-primary bg-primary/5' : 'border-transparent'
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <ListTodo className="h-4 w-4" /> Backlog
-            <span className="text-sm font-normal text-muted-foreground">({filtered.length})</span>
-          </h2>
-          <div data-tour-feature="backlog-priority">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {filtered.length === 0 ? (
-          <>
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
-              <ListTodo className="mb-3 h-10 w-10 text-muted-foreground/50" />
-              <p className="font-medium text-muted-foreground">Nenhuma tarefa no backlog</p>
+      {(!searchQuery.trim() || filtered.length > 0) && (
+        <div
+          data-tour-feature="backlog-list"
+          onDragOver={e => { e.preventDefault(); setDragOverBacklog(true); }}
+          onDragLeave={() => setDragOverBacklog(false)}
+          onDrop={onDropBacklog}
+          className={`space-y-4 rounded-xl border-2 p-5 transition-colors ${
+            dragOverBacklog ? 'border-primary bg-primary/5' : 'border-transparent'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <ListTodo className="h-4 w-4" /> Backlog
+              <span className="text-sm font-normal text-muted-foreground">({filtered.length})</span>
+            </h2>
+            <div data-tour-feature="backlog-priority">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
-            <InlineCreate />
-          </>
-        ) : (
-          <div className="space-y-2">
-            {filtered.map(task => <TaskRow key={task.id} task={task} />)}
-            <InlineCreate />
           </div>
-        )}
-      </div>
+
+          {filtered.length === 0 ? (
+            <>
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+                <ListTodo className="mb-3 h-10 w-10 text-muted-foreground/50" />
+                <p className="font-medium text-muted-foreground">Nenhuma tarefa no backlog</p>
+              </div>
+              <InlineCreate />
+            </>
+          ) : (
+            <div className="space-y-2">
+              {filtered.map(task => <TaskRow key={task.id} task={task} />)}
+              <InlineCreate />
+            </div>
+          )}
+        </div>
+      )}
 
       {editTask && (
         <Suspense fallback={null}>
