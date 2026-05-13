@@ -21,6 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { supabase } from '@/integrations/supabase/client';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { riceTourSteps } from '@/lib/featureTours';
+import { RiceContextModal, RiceContextData } from '@/components/RiceContextModal';
 
 interface AiSuggestion {
   reach: number;
@@ -54,6 +55,14 @@ const RicePage = () => {
   const [openSuggestion, setOpenSuggestion] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = usePersistedState<'all' | 'task' | 'initiative'>('rice_type_filter', 'all');
 
+  const [showContextModal, setShowContextModal] = useState(false);
+  const [selectedTaskForContext, setSelectedTaskForContext] = useState<{ id: string; title: string; description?: string | null } | null>(null);
+
+  const handleSuggestClick = (task: { id: string; title: string; description?: string | null }) => {
+    setSelectedTaskForContext(task);
+    setShowContextModal(true);
+  };
+
   const refreshHistoryCounts = useCallback(async () => {
     if (!activeProduct) return;
     const { data } = await (supabase.from('rice_ai_suggestions') as any)
@@ -80,8 +89,10 @@ const RicePage = () => {
     ...initiatives.map(i => ({ id: i.id, title: i.title, description: i.description, type: 'initiative' as const })),
   ];
 
-  const handleSuggestAi = async (itemId: string, title: string, description?: string) => {
-    if (!activeProduct) return;
+  const handleGenerateSuggestion = async (contextData: RiceContextData) => {
+    if (!activeProduct || !selectedTaskForContext) return;
+    const { id: itemId, title, description } = selectedTaskForContext;
+
     setLoadingAi(itemId);
     try {
       const keyResults = objectives.flatMap(o => o.keyResults.map(k => ({
@@ -102,8 +113,18 @@ const RicePage = () => {
         };
       });
 
+      const objetivo = objectives?.find(o => o.id === contextData.objetivoId);
+      const enrichedDescription = `
+Descrição: ${contextData.descricao || description || 'Não informada'}
+Público impactado: ${contextData.publicoImpactado || 'Não informado'}
+Nível de impacto: ${contextData.nivelImpacto || 'Não informado'}
+Objetivo: ${objetivo?.title || 'Nenhum'}
+Complexidade: ${contextData.complexidade || 'Não informada'}
+Evidências: ${contextData.evidencias || 'Nenhuma'}
+      `.trim();
+
       const { data, error } = await supabase.functions.invoke('suggest-rice-scores', {
-        body: { title, description, keyResults, history },
+        body: { title, description: enrichedDescription, keyResults, history },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -123,7 +144,12 @@ const RicePage = () => {
             task_id: itemId,
             product_id: activeProduct.id,
             user_id: user.id,
-            context_description: description ?? null,
+            context_description: contextData.descricao || null,
+            context_audience: contextData.publicoImpactado || null,
+            context_impact_level: contextData.nivelImpacto || null,
+            context_objective_id: contextData.objetivoId || null,
+            context_complexity: contextData.complexidade || null,
+            context_evidence: contextData.evidencias || null,
             suggested_reach: Number(aiData.reach) || 0,
             suggested_impact: Number(aiData.impact) || 0,
             suggested_confidence: Number(aiData.confidence) || 0,
@@ -143,6 +169,7 @@ const RicePage = () => {
         }
       }
 
+      setShowContextModal(false);
       setOpenSuggestion(itemId);
     } catch (e) {
       sonnerToast.error('Erro ao gerar sugestão da IA', {
@@ -407,7 +434,7 @@ const RicePage = () => {
                               if (sug) {
                                 setOpenSuggestion(item.id);
                               } else {
-                                handleSuggestAi(item.id, item.title, item.description);
+                                handleSuggestClick(item);
                               }
                             }}
                           >
@@ -583,6 +610,15 @@ const RicePage = () => {
           onOpenChange={(o) => { if (!o) setHistoryOpenFor(null); }}
         />
       )}
+
+      <RiceContextModal
+        task={selectedTaskForContext}
+        objectives={objectives.map(o => ({ id: o.id, title: o.title }))}
+        open={showContextModal}
+        onOpenChange={setShowContextModal}
+        onGenerate={handleGenerateSuggestion}
+        isLoading={!!loadingAi && loadingAi === selectedTaskForContext?.id}
+      />
     </div>
   );
 };
