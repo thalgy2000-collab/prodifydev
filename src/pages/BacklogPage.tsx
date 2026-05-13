@@ -28,6 +28,7 @@ import { backlogTourSteps } from '@/lib/featureTours';
 import { useUndoStack } from '@/hooks/useUndoStack';
 import { useEpicStore } from '@/hooks/useEpicStore';
 import EpicSidePanel from '@/components/EpicSidePanel';
+import { RiceSuggestionsHistoryModal } from '@/components/RiceSuggestionsHistoryModal';
 
 const EditBacklogTaskDialog = lazy(() => import('@/components/EditBacklogTaskDialog'));
 
