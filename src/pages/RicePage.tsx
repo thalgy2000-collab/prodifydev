@@ -171,6 +171,12 @@ const RicePage = () => {
       const { [itemId]: _, ...rest } = prev;
       return rest;
     });
+    const sId = suggestionIds[itemId];
+    if (sId) {
+      await (supabase.from('rice_ai_suggestions') as any)
+        .update({ applied: true, applied_at: new Date().toISOString() })
+        .eq('id', sId);
+    }
     setOpenSuggestion(null);
     sonnerToast.success('Sugestão da IA aplicada ✨');
   };
