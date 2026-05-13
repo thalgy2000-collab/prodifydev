@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { RiceSuggestionsHistoryModal } from '@/components/RiceSuggestionsHistoryModal';
+import { History } from 'lucide-react';
 import { useRiceStore } from '@/hooks/useRiceStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
