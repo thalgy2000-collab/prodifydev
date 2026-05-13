@@ -397,7 +397,9 @@ const BacklogPage = () => {
         {showDrag && <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium">{task.title}</span>
+            <span className="font-medium">
+              <HighlightText text={task.title} query={searchQuery} />
+            </span>
             <Badge variant="secondary" style={{ backgroundColor: `hsl(${pCfg.color} / 0.15)`, color: `hsl(${pCfg.color})` }}>{pCfg.label}</Badge>
             <Badge variant="outline">{sCfg.label}</Badge>
             {taskSprint && (
@@ -449,7 +451,11 @@ const BacklogPage = () => {
               </Badge>
             )}
           </div>
-          {task.description && <p className="mt-1 text-sm text-muted-foreground truncate">{task.description}</p>}
+          {task.description && (
+            <p className="mt-1 text-sm text-muted-foreground truncate">
+              <HighlightText text={task.description} query={searchQuery} />
+            </p>
+          )}
           {(riceHistoryCounts[task.id] || 0) > 0 && (
             <button
               type="button"
