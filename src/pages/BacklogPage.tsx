@@ -693,10 +693,12 @@ const BacklogPage = () => {
         </div>
       )}
       {activeSprints.map(sprint => {
-        const sprintTasks = getBySprint(sprint.id);
+        const sprintTasks = getBySprint(sprint.id).filter(matchesSearch);
         const totalPoints = sprintTasks.reduce((s, t) => s + (t.storyPoints || 0), 0);
         const sCfg = getSprintStatusConfig(sprint.status);
         const isCollapsed = collapsedSprints[sprint.id] ?? (sprint.status !== 'active');
+        const showSprint = !searchQuery.trim() || sprintTasks.length > 0;
+        if (!showSprint) return null;
         return (
           <div
             key={sprint.id}
@@ -738,7 +740,7 @@ const BacklogPage = () => {
                 {sprintTasks.length === 0 ? (
                   <>
                     <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-                      Arraste tarefas do backlog para esta sprint
+                      {searchQuery.trim() ? 'Nenhuma tarefa encontrada nesta seção' : 'Arraste tarefas do backlog para esta sprint'}
                     </div>
                     <InlineCreate sprintId={sprint.id} />
                   </>
