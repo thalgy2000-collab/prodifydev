@@ -772,46 +772,48 @@ const BacklogPage = () => {
       })}
 
       {/* Backlog section */}
-      <div
-        data-tour-feature="backlog-list"
-        onDragOver={e => { e.preventDefault(); setDragOverBacklog(true); }}
-        onDragLeave={() => setDragOverBacklog(false)}
-        onDrop={onDropBacklog}
-        className={`space-y-4 rounded-xl border-2 p-5 transition-colors ${
-          dragOverBacklog ? 'border-primary bg-primary/5' : 'border-transparent'
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <ListTodo className="h-4 w-4" /> Backlog
-            <span className="text-sm font-normal text-muted-foreground">({filtered.length})</span>
-          </h2>
-          <div data-tour-feature="backlog-priority">
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {filtered.length === 0 ? (
-          <>
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
-              <ListTodo className="mb-3 h-10 w-10 text-muted-foreground/50" />
-              <p className="font-medium text-muted-foreground">Nenhuma tarefa no backlog</p>
+      {(!searchQuery.trim() || filtered.length > 0) && (
+        <div
+          data-tour-feature="backlog-list"
+          onDragOver={e => { e.preventDefault(); setDragOverBacklog(true); }}
+          onDragLeave={() => setDragOverBacklog(false)}
+          onDrop={onDropBacklog}
+          className={`space-y-4 rounded-xl border-2 p-5 transition-colors ${
+            dragOverBacklog ? 'border-primary bg-primary/5' : 'border-transparent'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <ListTodo className="h-4 w-4" /> Backlog
+              <span className="text-sm font-normal text-muted-foreground">({filtered.length})</span>
+            </h2>
+            <div data-tour-feature="backlog-priority">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  {Object.entries(TASK_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
-            <InlineCreate />
-          </>
-        ) : (
-          <div className="space-y-2">
-            {filtered.map(task => <TaskRow key={task.id} task={task} />)}
-            <InlineCreate />
           </div>
-        )}
-      </div>
+
+          {filtered.length === 0 ? (
+            <>
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+                <ListTodo className="mb-3 h-10 w-10 text-muted-foreground/50" />
+                <p className="font-medium text-muted-foreground">Nenhuma tarefa no backlog</p>
+              </div>
+              <InlineCreate />
+            </>
+          ) : (
+            <div className="space-y-2">
+              {filtered.map(task => <TaskRow key={task.id} task={task} />)}
+              <InlineCreate />
+            </div>
+          )}
+        </div>
+      )}
 
       {editTask && (
         <Suspense fallback={null}>
