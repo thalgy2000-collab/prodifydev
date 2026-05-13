@@ -693,15 +693,6 @@ const BacklogPage = () => {
           </Button>
         </div>
       )}
-        <div className="flex items-center justify-end gap-2">
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => setAllCollapsed(false)}>
-            <ChevronDown className="h-3.5 w-3.5" /> Expandir tudo
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={() => setAllCollapsed(true)}>
-            <ChevronRight className="h-3.5 w-3.5" /> Recolher tudo
-          </Button>
-        </div>
-      )}
       {activeSprints.map(sprint => {
         const sprintTasks = getBySprint(sprint.id).filter(matchesSearch);
         const totalPoints = sprintTasks.reduce((s, t) => s + (t.storyPoints || 0), 0);
