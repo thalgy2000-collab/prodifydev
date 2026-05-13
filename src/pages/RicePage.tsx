@@ -109,6 +109,40 @@ const RicePage = () => {
       if (data?.error) throw new Error(data.error);
 
       setAiSuggestions(prev => ({ ...prev, [itemId]: data as AiSuggestion }));
+
+      // Persist suggestion in history before showing it
+      if (user) {
+        const aiData = data as AiSuggestion;
+        const mappedImpact = mapAiImpact(Number(aiData.impact));
+        const mappedConfidence = mapAiConfidence(Number(aiData.confidence));
+        const computedScore = Number(
+          calcRiceScore(Number(aiData.reach) || 0, mappedImpact, mappedConfidence, Number(aiData.effort) || 1).toFixed(2)
+        );
+        const { data: inserted } = await (supabase.from('rice_ai_suggestions') as any)
+          .insert({
+            task_id: itemId,
+            product_id: activeProduct.id,
+            user_id: user.id,
+            context_description: description ?? null,
+            suggested_reach: Number(aiData.reach) || 0,
+            suggested_impact: Number(aiData.impact) || 0,
+            suggested_confidence: Number(aiData.confidence) || 0,
+            suggested_effort: Number(aiData.effort) || 0,
+            suggested_score: computedScore,
+            reason_reach: aiData.justificativas?.reach ?? null,
+            reason_impact: aiData.justificativas?.impact ?? null,
+            reason_confidence: aiData.justificativas?.confidence ?? null,
+            reason_effort: aiData.justificativas?.effort ?? null,
+            applied: false,
+          })
+          .select('id')
+          .single();
+        if (inserted?.id) {
+          setSuggestionIds(prev => ({ ...prev, [itemId]: inserted.id }));
+          setHistoryCounts(prev => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+        }
+      }
+
       setOpenSuggestion(itemId);
     } catch (e) {
       sonnerToast.error('Erro ao gerar sugestão da IA', {
