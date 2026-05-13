@@ -1034,6 +1034,103 @@ export type Database = {
           },
         ]
       }
+      rice_ai_suggestions: {
+        Row: {
+          applied: boolean | null
+          applied_at: string | null
+          context_audience: string | null
+          context_complexity: string | null
+          context_description: string | null
+          context_evidence: string | null
+          context_impact_level: string | null
+          context_objective_id: string | null
+          created_at: string | null
+          id: string
+          product_id: string
+          reason_confidence: string | null
+          reason_effort: string | null
+          reason_impact: string | null
+          reason_reach: string | null
+          suggested_confidence: number | null
+          suggested_effort: number | null
+          suggested_impact: number | null
+          suggested_reach: number | null
+          suggested_score: number | null
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          applied?: boolean | null
+          applied_at?: string | null
+          context_audience?: string | null
+          context_complexity?: string | null
+          context_description?: string | null
+          context_evidence?: string | null
+          context_impact_level?: string | null
+          context_objective_id?: string | null
+          created_at?: string | null
+          id?: string
+          product_id: string
+          reason_confidence?: string | null
+          reason_effort?: string | null
+          reason_impact?: string | null
+          reason_reach?: string | null
+          suggested_confidence?: number | null
+          suggested_effort?: number | null
+          suggested_impact?: number | null
+          suggested_reach?: number | null
+          suggested_score?: number | null
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          applied?: boolean | null
+          applied_at?: string | null
+          context_audience?: string | null
+          context_complexity?: string | null
+          context_description?: string | null
+          context_evidence?: string | null
+          context_impact_level?: string | null
+          context_objective_id?: string | null
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          reason_confidence?: string | null
+          reason_effort?: string | null
+          reason_impact?: string | null
+          reason_reach?: string | null
+          suggested_confidence?: number | null
+          suggested_effort?: number | null
+          suggested_impact?: number | null
+          suggested_reach?: number | null
+          suggested_score?: number | null
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rice_ai_suggestions_context_objective_id_fkey"
+            columns: ["context_objective_id"]
+            isOneToOne: false
+            referencedRelation: "objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rice_ai_suggestions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rice_ai_suggestions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "backlog_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rice_scores: {
         Row: {
           ai_suggested: boolean
