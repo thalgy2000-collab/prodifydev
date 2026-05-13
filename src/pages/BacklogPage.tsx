@@ -196,7 +196,8 @@ const BacklogPage = () => {
   const unassigned = getUnassigned();
   const filtered = unassigned
     .filter(t => filterStatus === 'all' || t.status === filterStatus)
-    .filter(matchesEpic);
+    .filter(matchesEpic)
+    .filter(matchesSearch);
 
   // Collapsed state per sprint, persisted in localStorage
   const getInitialCollapsed = (sprintId: string, status: SprintStatus) => {
