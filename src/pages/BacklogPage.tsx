@@ -124,6 +124,8 @@ const BacklogPage = () => {
 
   const [editTask, setEditTask] = useState<BacklogTask | null>(null);
   const [filterStatus, setFilterStatus] = usePersistedState<string>('backlog_filter', 'all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [sprintOpen, setSprintOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
