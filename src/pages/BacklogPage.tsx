@@ -411,6 +411,15 @@ const BacklogPage = () => {
             )}
           </div>
           {task.description && <p className="mt-1 text-sm text-muted-foreground truncate">{task.description}</p>}
+          {(riceHistoryCounts[task.id] || 0) > 0 && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setRiceHistoryFor({ id: task.id, title: task.title }); }}
+              className="mt-1 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              ✨ Ver histórico RICE →
+            </button>
+          )}
         </div>
         {assignee && (
           <Avatar className="h-7 w-7 shrink-0" title={assignee.name}>
