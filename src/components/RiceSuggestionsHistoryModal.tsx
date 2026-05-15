@@ -83,8 +83,8 @@ export const RiceSuggestionsHistoryModal = ({ taskId, taskTitle, itemType = 'tas
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[85vh] p-0 flex flex-col overflow-hidden">
+        <DialogHeader className="px-6 py-5 border-b border-border shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
             Histórico de sugestões IA
@@ -92,7 +92,7 @@ export const RiceSuggestionsHistoryModal = ({ taskId, taskTitle, itemType = 'tas
           <DialogDescription>Tarefa: {taskTitle}</DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-3 -mr-3">
+        <div className="overflow-y-auto px-6 py-4" style={{ maxHeight: 'calc(85vh - 100px)' }}>
           {loading ? (
             <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
               <Loader2 className="h-4 w-4 animate-spin" /> Carregando histórico…
@@ -173,7 +173,7 @@ export const RiceSuggestionsHistoryModal = ({ taskId, taskTitle, itemType = 'tas
               })}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

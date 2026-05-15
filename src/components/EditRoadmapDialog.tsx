@@ -136,9 +136,9 @@ const EditRoadmapDialog = ({ item, objectives, existingThemes = [], open, onOpen
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Editar Iniciativa</DialogTitle></DialogHeader>
-        <div className="space-y-4 pt-2">
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
+        <DialogHeader className="px-6 py-5 border-b border-border shrink-0"><DialogTitle>Editar Iniciativa</DialogTitle></DialogHeader>
+        <div className="overflow-y-auto px-6 py-4 space-y-4" style={{ maxHeight: 'calc(90vh - 80px)' }}>
           <div className="space-y-2"><Label>Título</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2">
             <Label>Tema</Label>
