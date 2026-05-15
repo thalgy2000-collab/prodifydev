@@ -124,6 +124,24 @@ const RoadmapPage = () => {
     return aE - bE;
   });
 
+  // Group by theme (preserving sorted order). Items without a theme go to "Sem tema".
+  const SEM_TEMA = 'Sem tema';
+  const grouped = sorted.reduce<Record<string, RoadmapItem[]>>((acc, it) => {
+    const key = (it.theme && it.theme.trim()) || SEM_TEMA;
+    (acc[key] ||= []).push(it);
+    return acc;
+  }, {});
+  const themeOrder = Object.keys(grouped).sort((a, b) => {
+    if (a === SEM_TEMA) return 1;
+    if (b === SEM_TEMA) return -1;
+    return a.localeCompare(b, 'pt-BR');
+  });
+
+  // Unique themes for autocomplete in dialogs
+  const existingThemes = Array.from(
+    new Set(items.map(i => (i.theme || '').trim()).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
   const { TourElement } = useFeatureTour('roadmap', roadmapTourSteps);
 
   return (
@@ -136,7 +154,7 @@ const RoadmapPage = () => {
             <h1 className="text-2xl font-bold tracking-tight">Roadmap</h1>
             <p className="text-sm text-muted-foreground">Cronograma visual das iniciativas</p>
           </div>
-          <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} onAdd={handleAdd} />
+          <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} existingThemes={existingThemes} onAdd={handleAdd} />
         </div>
 
         {/* Quarter & Year Navigation */}
