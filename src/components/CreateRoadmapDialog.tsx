@@ -19,6 +19,7 @@ import { Objective, OKRCategory } from '@/types/okr';
 interface Props {
   quarter: string;
   objectives: Objective[];
+  existingThemes?: string[];
   onAdd: (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => void;
 }
 
@@ -31,7 +32,7 @@ const buildQuarterOptions = (current: string): string[] => {
   return opts;
 };
 
-const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
+const CreateRoadmapDialog = ({ quarter, objectives, existingThemes = [], onAdd }: Props) => {
   const [open, setOpen] = useState(false);
   const [selectedQuarter, setSelectedQuarter] = useState<string>(quarter);
   const [title, setTitle] = useState('');
@@ -43,6 +44,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [color, setColor] = useState(ROADMAP_COLORS[0]);
+  const [theme, setTheme] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [quarterChangedNotice, setQuarterChangedNotice] = useState(false);
 
@@ -108,6 +110,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
     const endMonth = Math.max(startMonth, endDate.getMonth() % 3);
     onAdd({
       title, description, quarter: selectedQuarter, status, progress, category, color,
+      theme: theme.trim() || null,
       objectiveId: objectiveId && objectiveId !== 'none' ? objectiveId : undefined,
       linkedKRs,
       startMonth, endMonth,
@@ -117,7 +120,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
     setTitle(''); setDescription(''); setProgress(0);
     setObjectiveId(''); setLinkedKRs([]);
     setStartDate(undefined); setEndDate(undefined);
-    setColor(ROADMAP_COLORS[0]); setOpen(false);
+    setColor(ROADMAP_COLORS[0]); setTheme(''); setOpen(false);
   };
 
   return (
@@ -129,6 +132,19 @@ const CreateRoadmapDialog = ({ quarter, objectives, onAdd }: Props) => {
         <DialogHeader><DialogTitle>Nova Iniciativa — {selectedQuarter}</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lançar MVP do produto" value={title} onChange={e => setTitle(e.target.value)} /></div>
+          <div className="space-y-2">
+            <Label>Tema</Label>
+            <Input
+              list="roadmap-themes-create"
+              placeholder="Ex: Aquisição, Ativação, Retenção..."
+              value={theme}
+              onChange={e => setTheme(e.target.value)}
+            />
+            <datalist id="roadmap-themes-create">
+              {existingThemes.map(t => <option key={t} value={t} />)}
+            </datalist>
+            <p className="text-xs text-muted-foreground">Agrupa iniciativas em tópicos no roadmap</p>
+          </div>
           <div className="space-y-2"><Label>Descrição</Label><Textarea placeholder="Detalhes da iniciativa..." value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
 
           <div className="space-y-2">
