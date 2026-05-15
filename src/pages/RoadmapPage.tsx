@@ -170,55 +170,66 @@ const RoadmapPage = () => {
             <p className="mt-1 text-sm text-muted-foreground/70">Crie sua primeira iniciativa para este trimestre</p>
           </div>
         ) : (
-          <div data-tour-feature="roadmap-grid" className="rounded-xl border border-border bg-card overflow-hidden">
-            {/* Month Headers */}
-            <div className="grid grid-cols-3 border-b border-border">
-              {months.map((month, i) => (
-                <div
-                  key={i}
-                  className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center ${i < 2 ? 'border-r border-border/50' : ''}`}
-                >
-                  {month}
-                </div>
-              ))}
+          <div data-tour-feature="roadmap-grid" className="rounded-xl border border-border bg-card overflow-hidden flex flex-col">
+            {/* Header Row */}
+            <div className="flex border-b border-border bg-muted/10">
+              <div className="w-48 shrink-0 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-r border-border/50 flex items-center">
+                Temas
+              </div>
+              <div className="flex-1 grid grid-cols-3">
+                {months.map((month, i) => (
+                  <div
+                    key={i}
+                    className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center ${i < 2 ? 'border-r border-border/50' : ''}`}
+                  >
+                    {month}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Theme groups */}
             {themeOrder.map((themeName) => (
-              <div key={themeName}>
-                <div className="bg-muted/40 px-4 py-2 border-b border-border/50 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-primary/70" />
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {themeName}
-                  </h3>
-                  <span className="text-xs text-muted-foreground/70">
-                    · {grouped[themeName].length} {grouped[themeName].length === 1 ? 'iniciativa' : 'iniciativas'}
+              <div key={themeName} className="flex border-b border-border/50 last:border-b-0">
+                {/* Theme Sidebar Cell */}
+                <div className="w-48 shrink-0 p-4 border-r border-border/50 bg-muted/5 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div className="h-2 w-2 rounded-full bg-primary/70 shrink-0" />
+                    <h3 className="text-sm font-semibold tracking-tight truncate" title={themeName}>
+                      {themeName}
+                    </h3>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider pl-4">
+                    {grouped[themeName].length} {grouped[themeName].length === 1 ? 'iniciativa' : 'iniciativas'}
                   </span>
                 </div>
-                {grouped[themeName].map((item) => {
-                  const progress = Math.max(0, Math.min(100, item.progress ?? 0));
-                  const progressColor = getProgressColor(progress);
-                  const pos = computeBarPosition(item, selectedQuarter);
-                  const startD = parseDateOnly(item.startDate);
-                  const endD = parseDateOnly(item.endDate);
-                  return (
-                    <div
-                      key={item.id}
-                      className="group relative border-b border-border/50 last:border-b-0 hover:bg-muted/30 transition-colors"
-                    >
-                      <div className="grid grid-cols-3 min-h-[52px]">
-                        {[0, 1, 2].map(i => (
-                          <div key={i} className={`${i < 2 ? 'border-r border-border/30' : ''}`} />
-                        ))}
-                      </div>
-                      {/* Bar overlay */}
+                
+                {/* Timeline Grid Cell */}
+                <div className="flex-1 flex flex-col">
+                  {grouped[themeName].map((item, idx) => {
+                    const progress = Math.max(0, Math.min(100, item.progress ?? 0));
+                    const progressColor = getProgressColor(progress);
+                    const pos = computeBarPosition(item, selectedQuarter);
+                    const startD = parseDateOnly(item.startDate);
+                    const endD = parseDateOnly(item.endDate);
+                    return (
                       <div
-                        className="absolute top-0 bottom-0 flex items-center pointer-events-none"
-                        style={{
-                          left: `${pos.left}%`,
-                          width: `${pos.width}%`,
-                        }}
+                        key={item.id}
+                        className={`group relative hover:bg-muted/30 transition-colors ${idx < grouped[themeName].length - 1 ? 'border-b border-border/30' : ''}`}
                       >
+                        <div className="grid grid-cols-3 min-h-[52px]">
+                          {[0, 1, 2].map(i => (
+                            <div key={i} className={`${i < 2 ? 'border-r border-border/30' : ''}`} />
+                          ))}
+                        </div>
+                        {/* Bar overlay */}
+                        <div
+                          className="absolute top-0 bottom-0 flex items-center pointer-events-none"
+                          style={{
+                            left: `${pos.left}%`,
+                            width: `${pos.width}%`,
+                          }}
+                        >
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div
@@ -277,6 +288,7 @@ const RoadmapPage = () => {
                     </div>
                   );
                 })}
+                </div>
               </div>
             ))}
           </div>
