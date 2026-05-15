@@ -19,6 +19,7 @@ export interface RoadmapItem {
   /** @deprecated use linkedKRs instead */
   krContribution?: number;
   linkedKRs: RoadmapItemKR[];
+  theme?: string | null;
   startMonth: number;
   endMonth: number;
   startDate?: string | null;
