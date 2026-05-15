@@ -1275,6 +1275,7 @@ export type Database = {
           start_date: string | null
           start_month: number
           status: string
+          theme: string | null
           title: string
           user_id: string
         }
@@ -1296,6 +1297,7 @@ export type Database = {
           start_date?: string | null
           start_month?: number
           status?: string
+          theme?: string | null
           title: string
           user_id: string
         }
@@ -1317,6 +1319,7 @@ export type Database = {
           start_date?: string | null
           start_month?: number
           status?: string
+          theme?: string | null
           title?: string
           user_id?: string
         }
