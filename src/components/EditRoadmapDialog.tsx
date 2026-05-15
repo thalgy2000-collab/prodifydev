@@ -19,6 +19,7 @@ import { Objective, OKRCategory } from '@/types/okr';
 interface Props {
   item: RoadmapItem;
   objectives: Objective[];
+  existingThemes?: string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (updated: RoadmapItem) => void;
@@ -33,7 +34,7 @@ const buildQuarterOptions = (current: string): string[] => {
   return opts;
 };
 
-const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Props) => {
+const EditRoadmapDialog = ({ item, objectives, existingThemes = [], open, onOpenChange, onSave }: Props) => {
   const [selectedQuarter, setSelectedQuarter] = useState<string>(item.quarter);
   const [title, setTitle] = useState(item.title);
   const [description, setDescription] = useState(item.description);
@@ -44,6 +45,7 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
   const [startDate, setStartDate] = useState<Date | undefined>(parseDateOnly(item.startDate) || undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(parseDateOnly(item.endDate) || undefined);
   const [color, setColor] = useState(item.color || ROADMAP_COLORS[0]);
+  const [theme, setTheme] = useState(item.theme || '');
   const [error, setError] = useState<string | null>(null);
   const [quarterChangedNotice, setQuarterChangedNotice] = useState(false);
 
@@ -62,6 +64,7 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
     setStartDate(parseDateOnly(item.startDate) || undefined);
     setEndDate(parseDateOnly(item.endDate) || undefined);
     setColor(item.color || ROADMAP_COLORS[0]);
+    setTheme(item.theme || '');
     setError(null);
     setQuarterChangedNotice(false);
   }, [item]);
@@ -121,6 +124,7 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
     const endMonth = Math.max(startMonth, endDate.getMonth() % 3);
     onSave({
       ...item, title, description, quarter: selectedQuarter, status, progress, category, color,
+      theme: theme.trim() || null,
       objectiveId: objectiveId && objectiveId !== 'none' ? objectiveId : undefined,
       linkedKRs,
       startMonth, endMonth,
@@ -136,6 +140,18 @@ const EditRoadmapDialog = ({ item, objectives, open, onOpenChange, onSave }: Pro
         <DialogHeader><DialogTitle>Editar Iniciativa</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2"><Label>Título</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
+          <div className="space-y-2">
+            <Label>Tema</Label>
+            <Input
+              list="roadmap-themes-edit"
+              placeholder="Ex: Aquisição, Ativação, Retenção..."
+              value={theme}
+              onChange={e => setTheme(e.target.value)}
+            />
+            <datalist id="roadmap-themes-edit">
+              {existingThemes.map(t => <option key={t} value={t} />)}
+            </datalist>
+          </div>
           <div className="space-y-2"><Label>Descrição</Label><Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
 
           <div className="space-y-2">

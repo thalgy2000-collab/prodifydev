@@ -44,6 +44,7 @@ export const useRoadmapStore = () => {
       keyResultId: d.key_result_id ?? undefined,
       krContribution: d.kr_contribution ? Number(d.kr_contribution) : undefined,
       linkedKRs: krsByItemId[d.id] || [],
+      theme: d.theme ?? null,
       startMonth: d.start_month, endMonth: d.end_month,
       startDate: d.start_date ?? null, endDate: d.end_date ?? null,
       color: d.color || '#6366f1',
@@ -81,6 +82,7 @@ export const useRoadmapStore = () => {
       start_month: data.startMonth, end_month: data.endMonth,
       start_date: data.startDate || null, end_date: data.endDate || null,
       color: data.color || '#6366f1',
+      theme: data.theme || null,
     }).select('id').single();
 
     if (inserted && data.linkedKRs.length > 0) {
@@ -139,6 +141,7 @@ export const useRoadmapStore = () => {
       start_month: updated.startMonth, end_month: updated.endMonth,
       start_date: updated.startDate || null, end_date: updated.endDate || null,
       color: updated.color || '#6366f1',
+      theme: updated.theme || null,
     }).eq('id', updated.id);
 
     await saveLinkedKRs(updated.id, updated.linkedKRs);
