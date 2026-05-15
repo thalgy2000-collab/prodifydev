@@ -183,89 +183,102 @@ const RoadmapPage = () => {
               ))}
             </div>
 
-            {/* Rows */}
-            {sorted.map((item) => {
-              const progress = Math.max(0, Math.min(100, item.progress ?? 0));
-              const progressColor = getProgressColor(progress);
-              const pos = computeBarPosition(item, selectedQuarter);
-              const startD = parseDateOnly(item.startDate);
-              const endD = parseDateOnly(item.endDate);
-              return (
-                <div
-                  key={item.id}
-                  className="group relative border-b border-border/50 last:border-b-0 hover:bg-muted/30 transition-colors"
-                >
-                  <div className="grid grid-cols-3 min-h-[52px]">
-                    {[0, 1, 2].map(i => (
-                      <div key={i} className={`${i < 2 ? 'border-r border-border/30' : ''}`} />
-                    ))}
-                  </div>
-                  {/* Bar overlay */}
-                  <div
-                    className="absolute top-0 bottom-0 flex items-center pointer-events-none"
-                    style={{
-                      left: `${pos.left}%`,
-                      width: `${pos.width}%`,
-                    }}
-                  >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div
-                          data-tour-feature="roadmap-card"
-                          className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md relative overflow-hidden"
-                          style={{
-                            backgroundColor: item.color,
-                            opacity: 0.85,
-                          }}
-                          onClick={() => setEditItem(item)}
-                        >
-                          {/* Progress fill overlay */}
-                          <div
-                            data-tour-feature="roadmap-progress"
-                            className="absolute inset-y-0 left-0 transition-all"
-                            style={{
-                              width: `${progress}%`,
-                              backgroundColor: progressColor,
-                              opacity: 0.55,
-                            }}
-                          />
-                          <Link2 className="relative h-3.5 w-3.5 text-white/90 shrink-0" />
-                          <span className="relative text-xs font-medium text-white truncate drop-shadow-sm">
-                            {item.title}
-                          </span>
-                          <span className="relative ml-auto text-xs font-mono font-semibold text-white drop-shadow-sm shrink-0">
-                            {progress}%
-                          </span>
-                          <div className="relative flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setEditItem(item); }}
-                              className="rounded p-0.5 hover:bg-white/20 transition-colors"
-                            >
-                              <Pencil className="h-3 w-3 text-white/90" />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
-                              className="rounded p-0.5 hover:bg-white/20 transition-colors"
-                            >
-                              <Trash2 className="h-3 w-3 text-white/90" />
-                            </button>
-                          </div>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-xs">
-                        <p className="font-semibold">{item.title}</p>
-                        {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
-                        <p className="text-xs mt-1">
-                          {startD && endD
-                            ? `${startD.toLocaleDateString('pt-BR')} — ${endD.toLocaleDateString('pt-BR')}`
-                            : `${months[item.startMonth]} — ${months[item.endMonth]}`} · {progress}%
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
+            {/* Theme groups */}
+            {themeOrder.map((themeName) => (
+              <div key={themeName}>
+                <div className="bg-muted/40 px-4 py-2 border-b border-border/50 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary/70" />
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {themeName}
+                  </h3>
+                  <span className="text-xs text-muted-foreground/70">
+                    · {grouped[themeName].length} {grouped[themeName].length === 1 ? 'iniciativa' : 'iniciativas'}
+                  </span>
                 </div>
-              );
-            })}
+                {grouped[themeName].map((item) => {
+                  const progress = Math.max(0, Math.min(100, item.progress ?? 0));
+                  const progressColor = getProgressColor(progress);
+                  const pos = computeBarPosition(item, selectedQuarter);
+                  const startD = parseDateOnly(item.startDate);
+                  const endD = parseDateOnly(item.endDate);
+                  return (
+                    <div
+                      key={item.id}
+                      className="group relative border-b border-border/50 last:border-b-0 hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="grid grid-cols-3 min-h-[52px]">
+                        {[0, 1, 2].map(i => (
+                          <div key={i} className={`${i < 2 ? 'border-r border-border/30' : ''}`} />
+                        ))}
+                      </div>
+                      {/* Bar overlay */}
+                      <div
+                        className="absolute top-0 bottom-0 flex items-center pointer-events-none"
+                        style={{
+                          left: `${pos.left}%`,
+                          width: `${pos.width}%`,
+                        }}
+                      >
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div
+                              data-tour-feature="roadmap-card"
+                              className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md relative overflow-hidden"
+                              style={{
+                                backgroundColor: item.color,
+                                opacity: 0.85,
+                              }}
+                              onClick={() => setEditItem(item)}
+                            >
+                              {/* Progress fill overlay */}
+                              <div
+                                data-tour-feature="roadmap-progress"
+                                className="absolute inset-y-0 left-0 transition-all"
+                                style={{
+                                  width: `${progress}%`,
+                                  backgroundColor: progressColor,
+                                  opacity: 0.55,
+                                }}
+                              />
+                              <Link2 className="relative h-3.5 w-3.5 text-white/90 shrink-0" />
+                              <span className="relative text-xs font-medium text-white truncate drop-shadow-sm">
+                                {item.title}
+                              </span>
+                              <span className="relative ml-auto text-xs font-mono font-semibold text-white drop-shadow-sm shrink-0">
+                                {progress}%
+                              </span>
+                              <div className="relative flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setEditItem(item); }}
+                                  className="rounded p-0.5 hover:bg-white/20 transition-colors"
+                                >
+                                  <Pencil className="h-3 w-3 text-white/90" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                  className="rounded p-0.5 hover:bg-white/20 transition-colors"
+                                >
+                                  <Trash2 className="h-3 w-3 text-white/90" />
+                                </button>
+                              </div>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <p className="font-semibold">{item.title}</p>
+                            {item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+                            <p className="text-xs mt-1">
+                              {startD && endD
+                                ? `${startD.toLocaleDateString('pt-BR')} — ${endD.toLocaleDateString('pt-BR')}`
+                                : `${months[item.startMonth]} — ${months[item.endMonth]}`} · {progress}%
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         )}
 
@@ -273,6 +286,7 @@ const RoadmapPage = () => {
           <EditRoadmapDialog
             item={editItem}
             objectives={objectives}
+            existingThemes={existingThemes}
             open={!!editItem}
             onOpenChange={(open) => !open && setEditItem(null)}
             onSave={handleUpdate}
