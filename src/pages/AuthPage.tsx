@@ -1,6 +1,14 @@
 // AuthPage Component - Updated Layout
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+
+declare global {
+  interface Window {
+    google?: any;
+    handleGoogleOneTap?: (response: { credential: string }) => void;
+  }
+}
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,6 +53,55 @@ const AuthPage = () => {
   const [forgotError, setForgotError] = useState<string | null>(null);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    const handleGoogleOneTap = async (response: { credential: string }) => {
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: response.credential,
+      });
+      if (error) {
+        toast.error('Erro ao fazer login com Google');
+        return;
+      }
+      navigate('/inicio');
+    };
+
+    const initOneTap = () => {
+      if (!window.google?.accounts?.id) return;
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleOneTap,
+        auto_select: true,
+        cancel_on_tap_outside: false,
+      });
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed?.()) {
+          console.log('One Tap não exibido:', notification.getNotDisplayedReason?.());
+        }
+      });
+    };
+
+    const existing = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
+    if (existing) {
+      initOneTap();
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = initOneTap;
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      window.google?.accounts?.id?.cancel();
+    };
+  }, [navigate]);
 
   const {
     register,
