@@ -1,6 +1,14 @@
 // AuthPage Component - Updated Layout
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+
+declare global {
+  interface Window {
+    google?: any;
+    handleGoogleOneTap?: (response: { credential: string }) => void;
+  }
+}
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
