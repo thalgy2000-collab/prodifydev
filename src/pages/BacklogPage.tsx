@@ -414,8 +414,13 @@ const BacklogPage = () => {
             {taskEpic && (
               <Badge
                 variant="secondary"
-                className="gap-1"
+                className="gap-1 cursor-pointer hover:opacity-80 transition-opacity"
                 style={{ backgroundColor: `${taskEpic.color}22`, color: taskEpic.color, borderColor: `${taskEpic.color}55` }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedEpicId(taskEpic.id);
+                  setEpicPanelOpen(true);
+                }}
               >
                 <Layers className="h-3 w-3" />
                 {taskEpic.name}
