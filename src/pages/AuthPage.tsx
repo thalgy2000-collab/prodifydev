@@ -59,44 +59,86 @@ const AuthPage = () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
-    const handleGoogleOneTap = async (response: { credential: string }) => {
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: response.credential,
-      });
-      if (error) {
-        toast.error('Erro ao fazer login com Google');
-        return;
-      }
-      navigate('/inicio');
+    // Gera nonce seguro
+    const generateNonce = async () => {
+      const array = new Uint8Array(32);
+      crypto.getRandomValues(array);
+      const rawNonce = Array.from(array)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+      
+      // Hash SHA-256 do nonce (enviado ao Google)
+      const encoder = new TextEncoder();
+      const data = encoder.encode(rawNonce);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashedNonce = hashArray
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+      
+      return { rawNonce, hashedNonce };
     };
 
-    const initOneTap = () => {
+    const initOneTap = async () => {
+      const { rawNonce, hashedNonce } = await generateNonce();
+
+      // Aguarda o script do Google carregar
+      const waitForGoogle = () => new Promise<void>((resolve) => {
+        if (window.google?.accounts?.id) {
+          resolve();
+          return;
+        }
+        const interval = setInterval(() => {
+          if (window.google?.accounts?.id) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 100);
+        setTimeout(() => {
+          clearInterval(interval);
+          resolve();
+        }, 5000);
+      });
+
+      const existing = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
+      if (!existing) {
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+
+      await waitForGoogle();
+
       if (!window.google?.accounts?.id) return;
+
       window.google.accounts.id.initialize({
         client_id: clientId,
-        callback: handleGoogleOneTap,
-        auto_select: true,
-        cancel_on_tap_outside: false,
+        nonce: hashedNonce, // hash enviado ao Google
+        callback: async (response: { credential: string }) => {
+          const { error } = await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: response.credential,
+            nonce: rawNonce, // raw enviado ao Supabase
+          });
+
+          if (error) {
+            console.error('Google One Tap error:', error);
+            toast.error('Erro ao fazer login com Google');
+            return;
+          }
+
+          navigate('/inicio');
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
       });
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed?.()) {
-          console.log('One Tap não exibido:', notification.getNotDisplayedReason?.());
-        }
-      });
+
+      window.google.accounts.id.prompt();
     };
 
-    const existing = document.querySelector<HTMLScriptElement>('script[src="https://accounts.google.com/gsi/client"]');
-    if (existing) {
-      initOneTap();
-    } else {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = initOneTap;
-      document.head.appendChild(script);
-    }
+    initOneTap();
 
     return () => {
       window.google?.accounts?.id?.cancel();
