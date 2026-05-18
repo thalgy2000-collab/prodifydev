@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays, ArrowRight, Zap } from 'lucide-react';
 import { cn, getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
+import OKRsAtRiskCard from '@/components/OKRsAtRiskCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface MetricSummary {
