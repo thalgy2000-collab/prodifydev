@@ -153,6 +153,7 @@ const EventTooltip = ({ act, category, productLabel, isTask, displayTitle, child
 );
 
 const AgendaPage = () => {
+  const { isDark } = useTheme();
   const { activities: localActivities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
   const { tasks } = useBacklogStore();
