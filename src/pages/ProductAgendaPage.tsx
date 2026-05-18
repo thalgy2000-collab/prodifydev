@@ -262,7 +262,7 @@ const ProductAgendaPage = () => {
                 {selectedDateActivities.map(act => (
                   <div
                     key={act.id}
-                    style={getEventStyle(act.id)}
+                    style={getEventStyle(act.id, isDark)}
                     className={cn('p-2.5 cursor-pointer transition-opacity text-foreground', act.status === 'done' && 'opacity-50')}
                     onClick={() => openEdit(act)}
                   >
@@ -333,7 +333,7 @@ const ProductAgendaPage = () => {
                         <button
                           key={act.id}
                           onClick={(e) => { e.stopPropagation(); openEdit(act); }}
-                          style={getEventStyle(act.id)}
+                          style={getEventStyle(act.id, isDark)}
                           className={cn(
                             'w-full text-left px-1.5 py-0.5 text-[10px] font-medium truncate block text-foreground',
                             act.status === 'done' && 'opacity-50 line-through'
