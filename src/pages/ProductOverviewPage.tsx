@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays, ArrowRight, Zap } from 'lucide-react';
 import { cn, getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
+import OKRsAtRiskCard from '@/components/OKRsAtRiskCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface MetricSummary {
@@ -387,6 +388,8 @@ const ProductOverviewPage = () => {
       </div>
 
       <ProductHealthScore productId={activeProduct.id} selectedQuarter={selectedQuarter} />
+
+      <OKRsAtRiskCard productId={activeProduct.id} selectedQuarter={selectedQuarter} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className={cn('transition-colors', sprintBorder)}>
