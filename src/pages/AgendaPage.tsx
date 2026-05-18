@@ -145,7 +145,7 @@ const EventTooltip = ({ act, category, productLabel, isTask, displayTitle, child
           <p className="text-[10px] text-muted-foreground whitespace-pre-wrap">{act.description}</p>
         )}
         {act.status === 'done' && (
-          <p className="text-[10px] text-green-500">✓ Concluído</p>
+          <p className="text-[10px] text-success">✓ Concluído</p>
         )}
       </div>
     </TooltipContent>
@@ -875,7 +875,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                         className="mt-0.5 shrink-0"
                       >
                         {act.status === 'done'
-                          ? <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ? <CheckCircle2 className="h-5 w-5 text-success" />
                           : <Circle className="h-5 w-5 text-muted-foreground" />}
                       </button>
                       <div className="flex-1 min-w-0">
