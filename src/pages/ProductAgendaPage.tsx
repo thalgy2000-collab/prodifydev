@@ -19,6 +19,7 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/useTheme';
 
 const EVENT_HUES = [217, 262, 160, 25, 340, 190, 45, 280];
 
@@ -28,13 +29,15 @@ function getEventHue(id: string) {
   return EVENT_HUES[Math.abs(hash) % EVENT_HUES.length];
 }
 
-function getEventStyle(id: string): React.CSSProperties {
+function getEventStyle(id: string, isDark = false): React.CSSProperties {
   const h = getEventHue(id);
+  const bgAlpha = isDark ? 0.22 : 0.12;
+  const fgLightness = isDark ? 78 : 55;
   return {
-    backgroundColor: `hsla(${h}, 80%, 55%, 0.12)`,
+    backgroundColor: `hsla(${h}, 80%, 55%, ${bgAlpha})`,
     borderLeft: `4px solid hsl(${h}, 80%, 55%)`,
     borderRadius: '4px',
-    color: `hsl(${h}, 80%, 55%)`,
+    color: `hsl(${h}, 80%, ${fgLightness}%)`,
   };
 }
 
