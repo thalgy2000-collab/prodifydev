@@ -26,6 +26,7 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/useTheme';
 
 type ViewMode = 'month' | 'week' | 'day';
 type EventCategory = 'meeting' | 'task' | 'sprint' | 'release';
@@ -47,13 +48,20 @@ function getCategory(act: ScheduleActivity, isTask: boolean): EventCategory {
   return 'meeting';
 }
 
-function getEventStyle(category: EventCategory): React.CSSProperties {
+function getEventStyle(category: EventCategory, isDark = false): React.CSSProperties {
   const { hsl } = CATEGORY_COLORS[category];
+  // Stronger tint + lighter foreground in dark mode for legibility/contrast
+  // matching the polished look of Nubank/iFood agendas.
+  const bgAlpha = isDark ? 0.22 : 0.12;
+  const parts = hsl.split(' ');
+  const hue = parts[0];
+  const sat = parts[1];
+  const fgLightness = isDark ? '78%' : parts[2];
   return {
-    backgroundColor: `hsla(${hsl}, 0.12)`,
+    backgroundColor: `hsla(${hsl}, ${bgAlpha})`,
     borderLeft: `4px solid hsl(${hsl})`,
     borderRadius: '4px',
-    color: `hsl(${hsl})`,
+    color: `hsl(${hue} ${sat} ${fgLightness})`,
   };
 }
 
@@ -137,7 +145,7 @@ const EventTooltip = ({ act, category, productLabel, isTask, displayTitle, child
           <p className="text-[10px] text-muted-foreground whitespace-pre-wrap">{act.description}</p>
         )}
         {act.status === 'done' && (
-          <p className="text-[10px] text-green-500">✓ Concluído</p>
+          <p className="text-[10px] text-success">✓ Concluído</p>
         )}
       </div>
     </TooltipContent>
@@ -145,6 +153,7 @@ const EventTooltip = ({ act, category, productLabel, isTask, displayTitle, child
 );
 
 const AgendaPage = () => {
+  const { isDark } = useTheme();
   const { activities: localActivities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
   const { tasks } = useBacklogStore();
@@ -501,7 +510,7 @@ const AgendaPage = () => {
                     <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={dt}>
                       <div
                         className={cn('p-2 cursor-pointer transition-opacity', act.status === 'done' && 'opacity-50')}
-                        style={getEventStyle(cat)}
+                        style={getEventStyle(cat, isDark)}
                         onClick={() => openEdit(act)}
                       >
                         <div className="flex items-start gap-2">
@@ -614,7 +623,9 @@ interface MonthViewProps {
   getDisplayTitle: (act: ScheduleActivity) => string;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: MonthViewProps) => {
+  const { isDark } = useTheme();
+  return (
   <div className="h-full flex flex-col">
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
       {WEEK_DAYS_SHORT.map(d => (
@@ -665,7 +676,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                   <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                     <button
                       onClick={(e) => { e.stopPropagation(); onEditEvent(act); }}
-                      style={getEventStyle(cat)}
+                      style={getEventStyle(cat, isDark)}
                       className={cn(
                         'w-full text-left px-1.5 py-0.5 font-medium truncate block text-foreground',
                         dense ? 'text-[9px]' : 'text-xs',
@@ -689,7 +700,8 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
       })}
     </div>
   </div>
-);
+  );
+};
 
 /* ─── Week View ─── */
 interface WeekViewProps {
@@ -706,6 +718,7 @@ interface WeekViewProps {
 }
 
 const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: WeekViewProps) => {
+  const { isDark } = useTheme();
   // Real interval-overlap counts per event (same day + overlapping time range)
   const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
@@ -766,7 +779,7 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                   <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                     <button
                       onClick={() => onEditEvent(act)}
-                      style={{ top: `${top}px`, height: `${height}px`, ...getEventStyle(cat) }}
+                      style={{ top: `${top}px`, height: `${height}px`, ...getEventStyle(cat, isDark) }}
                       className={cn(
                         'absolute left-0.5 right-0.5 px-1.5 py-0.5 font-medium overflow-hidden cursor-pointer text-foreground text-left',
                         dense ? 'text-[9px]' : 'text-xs',
@@ -806,6 +819,7 @@ interface DayViewProps {
 }
 
 const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity, getDisplayTitle }: DayViewProps) => {
+  const { isDark } = useTheme();
   // Real interval-overlap counts per event (same date + overlapping time range)
   const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
@@ -852,7 +866,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                       'p-3 cursor-pointer transition-all hover:shadow-md',
                       act.status === 'done' && 'opacity-60'
                     )}
-                    style={getEventStyle(cat)}
+                    style={getEventStyle(cat, isDark)}
                     onClick={() => onEditEvent(act)}
                   >
                     <div className="flex items-start gap-3">
@@ -861,7 +875,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                         className="mt-0.5 shrink-0"
                       >
                         {act.status === 'done'
-                          ? <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          ? <CheckCircle2 className="h-5 w-5 text-success" />
                           : <Circle className="h-5 w-5 text-muted-foreground" />}
                       </button>
                       <div className="flex-1 min-w-0">

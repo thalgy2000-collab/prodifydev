@@ -19,6 +19,7 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/useTheme';
 
 const EVENT_HUES = [217, 262, 160, 25, 340, 190, 45, 280];
 
@@ -28,19 +29,22 @@ function getEventHue(id: string) {
   return EVENT_HUES[Math.abs(hash) % EVENT_HUES.length];
 }
 
-function getEventStyle(id: string): React.CSSProperties {
+function getEventStyle(id: string, isDark = false): React.CSSProperties {
   const h = getEventHue(id);
+  const bgAlpha = isDark ? 0.22 : 0.12;
+  const fgLightness = isDark ? 78 : 55;
   return {
-    backgroundColor: `hsla(${h}, 80%, 55%, 0.12)`,
+    backgroundColor: `hsla(${h}, 80%, 55%, ${bgAlpha})`,
     borderLeft: `4px solid hsl(${h}, 80%, 55%)`,
     borderRadius: '4px',
-    color: `hsl(${h}, 80%, 55%)`,
+    color: `hsl(${h}, 80%, ${fgLightness}%)`,
   };
 }
 
 const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
 const ProductAgendaPage = () => {
+  const { isDark } = useTheme();
   const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
   const activityIds = useMemo(() => activities.map(a => a.id), [activities]);
@@ -259,7 +263,7 @@ const ProductAgendaPage = () => {
                 {selectedDateActivities.map(act => (
                   <div
                     key={act.id}
-                    style={getEventStyle(act.id)}
+                    style={getEventStyle(act.id, isDark)}
                     className={cn('p-2.5 cursor-pointer transition-opacity text-foreground', act.status === 'done' && 'opacity-50')}
                     onClick={() => openEdit(act)}
                   >
@@ -330,7 +334,7 @@ const ProductAgendaPage = () => {
                         <button
                           key={act.id}
                           onClick={(e) => { e.stopPropagation(); openEdit(act); }}
-                          style={getEventStyle(act.id)}
+                          style={getEventStyle(act.id, isDark)}
                           className={cn(
                             'w-full text-left px-1.5 py-0.5 text-[10px] font-medium truncate block text-foreground',
                             act.status === 'done' && 'opacity-50 line-through'
