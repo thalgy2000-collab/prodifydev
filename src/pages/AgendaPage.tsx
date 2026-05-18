@@ -26,6 +26,7 @@ import {
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/hooks/useTheme';
 
 type ViewMode = 'month' | 'week' | 'day';
 type EventCategory = 'meeting' | 'task' | 'sprint' | 'release';
@@ -47,13 +48,20 @@ function getCategory(act: ScheduleActivity, isTask: boolean): EventCategory {
   return 'meeting';
 }
 
-function getEventStyle(category: EventCategory): React.CSSProperties {
+function getEventStyle(category: EventCategory, isDark = false): React.CSSProperties {
   const { hsl } = CATEGORY_COLORS[category];
+  // Stronger tint + lighter foreground in dark mode for legibility/contrast
+  // matching the polished look of Nubank/iFood agendas.
+  const bgAlpha = isDark ? 0.22 : 0.12;
+  const parts = hsl.split(' ');
+  const hue = parts[0];
+  const sat = parts[1];
+  const fgLightness = isDark ? '78%' : parts[2];
   return {
-    backgroundColor: `hsla(${hsl}, 0.12)`,
+    backgroundColor: `hsla(${hsl}, ${bgAlpha})`,
     borderLeft: `4px solid hsl(${hsl})`,
     borderRadius: '4px',
-    color: `hsl(${hsl})`,
+    color: `hsl(${hue} ${sat} ${fgLightness})`,
   };
 }
 
