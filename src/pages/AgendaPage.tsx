@@ -718,6 +718,7 @@ interface WeekViewProps {
 }
 
 const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: WeekViewProps) => {
+  const { isDark } = useTheme();
   // Real interval-overlap counts per event (same day + overlapping time range)
   const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
