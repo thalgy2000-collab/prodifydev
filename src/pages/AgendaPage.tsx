@@ -700,7 +700,8 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
       })}
     </div>
   </div>
-);
+  );
+};
 
 /* ─── Week View ─── */
 interface WeekViewProps {
