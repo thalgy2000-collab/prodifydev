@@ -819,6 +819,7 @@ interface DayViewProps {
 }
 
 const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus, onDeleteEvent, getProductInfo, isTaskActivity, getDisplayTitle }: DayViewProps) => {
+  const { isDark } = useTheme();
   // Real interval-overlap counts per event (same date + overlapping time range)
   const overlapCounts = useMemo(() => buildOverlapCounts(activities), [activities]);
 
