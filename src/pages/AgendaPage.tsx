@@ -623,7 +623,9 @@ interface MonthViewProps {
   getDisplayTitle: (act: ScheduleActivity) => string;
 }
 
-const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: MonthViewProps) => (
+const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, onCreateEvent, onEditEvent, isTaskActivity, getProductInfo, getDisplayTitle }: MonthViewProps) => {
+  const { isDark } = useTheme();
+  return (
   <div className="h-full flex flex-col">
     <div className="grid grid-cols-7 border-b border-border bg-muted/30">
       {WEEK_DAYS_SHORT.map(d => (
