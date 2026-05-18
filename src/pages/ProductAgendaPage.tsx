@@ -44,6 +44,7 @@ function getEventStyle(id: string, isDark = false): React.CSSProperties {
 const WEEK_DAYS_SHORT = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
 const ProductAgendaPage = () => {
+  const { isDark } = useTheme();
   const { activities, addActivity, updateActivity, deleteActivity } = useScheduleStore();
   const { sprints } = useSprintStore();
   const activityIds = useMemo(() => activities.map(a => a.id), [activities]);
