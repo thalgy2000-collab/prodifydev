@@ -509,7 +509,7 @@ const AgendaPage = () => {
                     <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={dt}>
                       <div
                         className={cn('p-2 cursor-pointer transition-opacity', act.status === 'done' && 'opacity-50')}
-                        style={getEventStyle(cat)}
+                        style={getEventStyle(cat, isDark)}
                         onClick={() => openEdit(act)}
                       >
                         <div className="flex items-start gap-2">
@@ -673,7 +673,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                   <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                     <button
                       onClick={(e) => { e.stopPropagation(); onEditEvent(act); }}
-                      style={getEventStyle(cat)}
+                      style={getEventStyle(cat, isDark)}
                       className={cn(
                         'w-full text-left px-1.5 py-0.5 font-medium truncate block text-foreground',
                         dense ? 'text-[9px]' : 'text-xs',
@@ -774,7 +774,7 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                   <EventTooltip key={act.id} act={act} category={cat} productLabel={prod ? `${prod.emoji} ${prod.name}` : null} isTask={isTaskActivity(act.title)} displayTitle={getDisplayTitle(act)}>
                     <button
                       onClick={() => onEditEvent(act)}
-                      style={{ top: `${top}px`, height: `${height}px`, ...getEventStyle(cat) }}
+                      style={{ top: `${top}px`, height: `${height}px`, ...getEventStyle(cat, isDark) }}
                       className={cn(
                         'absolute left-0.5 right-0.5 px-1.5 py-0.5 font-medium overflow-hidden cursor-pointer text-foreground text-left',
                         dense ? 'text-[9px]' : 'text-xs',
@@ -860,7 +860,7 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                       'p-3 cursor-pointer transition-all hover:shadow-md',
                       act.status === 'done' && 'opacity-60'
                     )}
-                    style={getEventStyle(cat)}
+                    style={getEventStyle(cat, isDark)}
                     onClick={() => onEditEvent(act)}
                   >
                     <div className="flex items-start gap-3">
