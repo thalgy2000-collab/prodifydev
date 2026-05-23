@@ -150,10 +150,11 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                       <Button
                         variant="ghost" size="icon"
                         className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
-                        onClick={(e) => { e.stopPropagation(); localStorage.setItem('prodify_active_product', product.id); navigate('/configuracoes?tab=general'); }}
+                        onClick={(e) => { e.stopPropagation(); openEdit(product); }}
                       >
                         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                       </Button>
+
                       <Button
                         variant="ghost" size="icon"
                         className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
