@@ -9,6 +9,7 @@ export interface Product {
   description: string;
   emoji: string;
   color: string;
+  logoUrl: string | null;
   ownerId: string;
   createdAt: string;
 }
