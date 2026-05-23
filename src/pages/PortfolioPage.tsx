@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProduct } from '@/contexts/ProductContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Trash2, Users, Search, X, ClipboardList } from 'lucide-react';
+import { Plus, Trash2, Users, Search, X, ClipboardList, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import ProductTemplateDialog from '@/components/ProductTemplateDialog';
 import ProductIconPicker from '@/components/ProductIconPicker';
