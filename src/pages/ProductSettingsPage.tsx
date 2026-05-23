@@ -17,8 +17,9 @@ import ProductIconPicker from '@/components/ProductIconPicker';
 import { uploadProductLogo, deleteProductLogo } from '@/lib/productLogo';
 
 const ProductSettingsPage = () => {
-  const { activeProduct, deleteProduct } = useProduct();
+  const { activeProduct, deleteProduct, fetchProducts } = useProduct();
   const { profile } = useProfile();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tabQuery = searchParams.get('tab');
@@ -29,6 +30,9 @@ const ProductSettingsPage = () => {
   const [productDescription, setProductDescription] = useState('');
   const [productEmoji, setProductEmoji] = useState('');
   const [productColor, setProductColor] = useState('');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
   const [savingProduct, setSavingProduct] = useState(false);
 
   // Jira Integration states
