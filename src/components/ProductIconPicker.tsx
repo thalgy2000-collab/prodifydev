@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 const DEFAULT_EMOJIS = ['📦', '🚀', '💡', '🎯', '🛒', '📱', '🎨', '⚡', '🔧', '📊', '🌍', '💎'];
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-const MAX_SIZE = 2 * 1024 * 1024;
+const MAX_SIZE = 10 * 1024 * 1024;
 
 interface Props {
   emoji: string;
@@ -39,7 +39,7 @@ const ProductIconPicker = ({
       return;
     }
     if (file.size > MAX_SIZE) {
-      toast.error('Imagem muito grande. Máximo 2MB.');
+      toast.error('Imagem muito grande. Máximo 10MB.');
       return;
     }
     const url = URL.createObjectURL(file);
@@ -114,7 +114,7 @@ const ProductIconPicker = ({
           >
             <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
             <p className="text-sm font-medium">Arraste a logo ou clique para selecionar</p>
-            <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP ou SVG · Máx 2MB</p>
+            <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP ou SVG · Máx 10MB</p>
           </div>
         )}
         <input
