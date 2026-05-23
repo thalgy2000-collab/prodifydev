@@ -9,6 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Trash2, Users, Search, X, ClipboardList } from 'lucide-react';
 import { toast } from 'sonner';
 import ProductTemplateDialog from '@/components/ProductTemplateDialog';
+import ProductIconPicker from '@/components/ProductIconPicker';
+import ProductIcon from '@/components/ProductIcon';
 
 
 const EMOJIS = ['📦', '🚀', '💡', '🎯', '🛒', '📱', '🎨', '⚡', '🔧', '📊', '🌍', '💎'];
