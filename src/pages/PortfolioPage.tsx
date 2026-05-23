@@ -23,6 +23,7 @@ interface PortfolioPageProps {
 
 const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const { products, loading, createProduct, deleteProduct, setActiveProductId } = useProduct();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
