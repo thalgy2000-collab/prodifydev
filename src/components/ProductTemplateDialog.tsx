@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Loader2, Rocket } from 'lucide-react';
 import { toast } from 'sonner';
+import ProductIconPicker from '@/components/ProductIconPicker';
+import { uploadProductLogo } from '@/lib/productLogo';
 
 interface KrTemplate {
   title: string;
