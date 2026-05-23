@@ -240,6 +240,44 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
         )}
       </div>
       <ProductTemplateDialog open={templateOpen} onOpenChange={setTemplateOpen} />
+
+      <Dialog open={editingId !== null} onOpenChange={(o) => { if (!o) setEditingId(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Produto</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome do produto" />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição</Label>
+              <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="Breve descrição" rows={2} />
+            </div>
+            <div className="space-y-2">
+              <Label>Ícone</Label>
+              <ProductIconPicker
+                emoji={editEmoji}
+                onEmojiChange={setEditEmoji}
+                logoUrl={editRemoveLogo ? null : editLogoUrl}
+                onLogoFileChange={(f) => { setEditLogoFile(f); setEditRemoveLogo(false); }}
+                onRemoveLogo={() => { setEditLogoFile(null); setEditLogoUrl(null); setEditRemoveLogo(true); }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Cor</Label>
+              <div className="flex flex-wrap gap-2">
+                {COLORS.map(c => (
+                  <button key={c} onClick={() => setEditColor(c)}
+                    className={`h-7 w-7 rounded-full transition-transform ${editColor === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            </div>
+            <Button onClick={handleUpdate} disabled={saving} className="w-full">{saving ? 'Salvando…' : 'Salvar alterações'}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
