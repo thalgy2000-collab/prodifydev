@@ -145,14 +145,13 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                       <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Breve descrição" rows={2} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Emoji</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {EMOJIS.map(e => (
-                          <button key={e} onClick={() => setEmoji(e)}
-                            className={`text-xl p-1.5 rounded-md transition-colors ${emoji === e ? 'bg-primary/15 ring-2 ring-primary' : 'hover:bg-muted'}`}
-                          >{e}</button>
-                        ))}
-                      </div>
+                      <Label>Ícone</Label>
+                      <ProductIconPicker
+                        emoji={emoji}
+                        onEmojiChange={setEmoji}
+                        logoUrl={null}
+                        onLogoFileChange={(f) => setLogoFile(f)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Cor</Label>
