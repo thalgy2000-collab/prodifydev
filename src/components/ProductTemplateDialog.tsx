@@ -75,6 +75,7 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
   const [color, setColor] = useState('#6366f1');
   const [quarter, setQuarter] = useState(getCurrentQuarter());
   const [creating, setCreating] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!open) return;
