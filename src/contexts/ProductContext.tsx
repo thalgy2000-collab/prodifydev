@@ -49,7 +49,7 @@ interface ProductContextType {
   setActiveProductId: (id: string | null) => void;
   loading: boolean;
   fetchProducts: () => Promise<void>;
-  createProduct: (data: { name: string; description: string; emoji: string; color: string }) => Promise<void>;
+  createProduct: (data: { name: string; description: string; emoji: string; color: string; logoFile?: File | null }) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   members: ProductMember[];
   fetchMembers: () => Promise<void>;
