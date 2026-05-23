@@ -341,17 +341,24 @@ const ProductSettingsPage = () => {
                     <Label htmlFor="productDescription">Descrição</Label>
                     <Textarea id="productDescription" value={productDescription} onChange={e => setProductDescription(e.target.value)} placeholder="Descrição do produto" rows={3} />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="productEmoji">Emoji</Label>
-                      <Input id="productEmoji" value={productEmoji} onChange={e => setProductEmoji(e.target.value)} placeholder="🚀" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="productColor">Cor</Label>
-                      <div className="flex items-center gap-2">
-                        <Input id="productColor" type="color" value={productColor} onChange={e => setProductColor(e.target.value)} className="w-12 h-10 p-1" />
-                        <Input value={productColor} onChange={e => setProductColor(e.target.value)} placeholder="#000000" />
-                      </div>
+                  <div className="space-y-2">
+                    <Label>Ícone do produto</Label>
+                    <ProductIconPicker
+                      emoji={productEmoji || '📦'}
+                      onEmojiChange={setProductEmoji}
+                      logoUrl={removeLogo ? null : currentLogoUrl}
+                      onLogoFileChange={(f) => {
+                        setLogoFile(f);
+                        if (f) setRemoveLogo(false);
+                      }}
+                      onRemoveExistingLogo={() => setRemoveLogo(true)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="productColor">Cor</Label>
+                    <div className="flex items-center gap-2 max-w-xs">
+                      <Input id="productColor" type="color" value={productColor} onChange={e => setProductColor(e.target.value)} className="w-12 h-10 p-1" />
+                      <Input value={productColor} onChange={e => setProductColor(e.target.value)} placeholder="#000000" />
                     </div>
                   </div>
                   <Button onClick={handleSaveProduct} disabled={savingProduct} className="w-full">
