@@ -102,7 +102,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     if (data) {
       setProducts(data.map((d: any) => ({
         id: d.id, name: d.name, description: d.description,
-        emoji: d.emoji, color: d.color, ownerId: d.owner_id, createdAt: d.created_at,
+        emoji: d.emoji, color: d.color, logoUrl: d.logo_url ?? null,
+        ownerId: d.owner_id, createdAt: d.created_at,
       })));
     }
     setLoading(false);
@@ -119,12 +120,22 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [loading, activeProductId, activeProduct, products, setActiveProductId]);
 
-  const createProduct = useCallback(async (data: { name: string; description: string; emoji: string; color: string }) => {
+  const createProduct = useCallback(async (data: { name: string; description: string; emoji: string; color: string; logoFile?: File | null }) => {
     if (!user) return;
     const { data: inserted } = await (supabase.from('products') as any)
       .insert({ name: data.name, description: data.description, emoji: data.emoji, color: data.color, owner_id: user.id })
       .select().single();
     if (inserted) {
+      // Upload logo if provided
+      if (data.logoFile) {
+        try {
+          const { uploadProductLogo } = await import('@/lib/productLogo');
+          const url = await uploadProductLogo(data.logoFile, user.id, inserted.id);
+          await (supabase.from('products') as any).update({ logo_url: url }).eq('id', inserted.id);
+        } catch (e) {
+          console.error('Falha ao enviar logo', e);
+        }
+      }
       // Add owner as member
       await (supabase.from('product_members') as any)
         .insert({ product_id: inserted.id, user_id: user.id, role: 'owner' });
