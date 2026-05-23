@@ -18,6 +18,7 @@ export interface AdminProduct {
   id: string;
   name: string;
   emoji: string;
+  logoUrl: string | null;
   ownerId: string;
   ownerName: string | null;
   membersCount: number;
