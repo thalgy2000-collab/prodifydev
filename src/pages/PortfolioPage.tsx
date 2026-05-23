@@ -22,7 +22,7 @@ interface PortfolioPageProps {
 }
 
 const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
-  const { products, loading, createProduct, deleteProduct, setActiveProductId } = useProduct();
+  const { products, loading, createProduct, updateProduct, deleteProduct, setActiveProductId } = useProduct();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -34,10 +34,50 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editEmoji, setEditEmoji] = useState('📦');
+  const [editColor, setEditColor] = useState('#6366f1');
+  const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
+  const [editLogoUrl, setEditLogoUrl] = useState<string | null>(null);
+  const [editRemoveLogo, setEditRemoveLogo] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   const searchQuery = externalQuery ?? localSearch;
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const openEdit = (product: typeof products[number]) => {
+    setEditingId(product.id);
+    setEditName(product.name);
+    setEditDescription(product.description || '');
+    setEditEmoji(product.emoji);
+    setEditColor(product.color);
+    setEditLogoFile(null);
+    setEditLogoUrl(product.logoUrl);
+    setEditRemoveLogo(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+    if (!editName.trim()) { toast.error('Nome é obrigatório'); return; }
+    setSaving(true);
+    try {
+      await updateProduct(editingId, {
+        name: editName, description: editDescription, emoji: editEmoji, color: editColor,
+        logoFile: editLogoFile, removeLogo: editRemoveLogo,
+      });
+      toast.success('Produto atualizado!');
+      setEditingId(null);
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao atualizar produto');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleCreate = async () => {
     if (!name.trim()) { toast.error('Nome é obrigatório'); return; }
@@ -53,6 +93,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
       setCreating(false);
     }
   };
+
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
