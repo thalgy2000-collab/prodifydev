@@ -164,7 +164,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                         ))}
                       </div>
                     </div>
-                    <Button onClick={handleCreate} className="w-full">Criar Produto</Button>
+                    <Button onClick={handleCreate} disabled={creating} className="w-full">{creating ? 'Criando…' : 'Criar Produto'}</Button>
                   </div>
                 </DialogContent>
               </Dialog>
