@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProduct } from '@/contexts/ProductContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Trash2, Users, Search, X, ClipboardList } from 'lucide-react';
+import { Plus, Trash2, Users, Search, X, ClipboardList, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import ProductTemplateDialog from '@/components/ProductTemplateDialog';
 import ProductIconPicker from '@/components/ProductIconPicker';
@@ -22,6 +23,7 @@ interface PortfolioPageProps {
 
 const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const { products, loading, createProduct, deleteProduct, setActiveProductId } = useProduct();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -103,13 +105,22 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <ProductIcon emoji={product.emoji} logoUrl={product.logoUrl} name={product.name} size={40} emojiClassName="text-3xl" />
-                    <Button
-                      variant="ghost" size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
-                      onClick={(e) => { e.stopPropagation(); deleteProduct(product.id); toast.success('Produto removido'); }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost" size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+                        onClick={(e) => { e.stopPropagation(); localStorage.setItem('prodify_active_product', product.id); navigate('/configuracoes?tab=general'); }}
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                      <Button
+                        variant="ghost" size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+                        onClick={(e) => { e.stopPropagation(); deleteProduct(product.id); toast.success('Produto removido'); }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                   <h3 className="font-semibold text-base mb-1">{product.name}</h3>
                   {product.description && (
