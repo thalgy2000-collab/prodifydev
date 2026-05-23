@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useProduct } from '@/contexts/ProductContext';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,8 @@ import { Loader2, Save, Settings, Link as LinkIcon, Trash2, ArrowLeft, RefreshCw
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import ProductIconPicker from '@/components/ProductIconPicker';
+import { uploadProductLogo, deleteProductLogo } from '@/lib/productLogo';
 
 const ProductSettingsPage = () => {
   const { activeProduct, deleteProduct } = useProduct();
