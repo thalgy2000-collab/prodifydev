@@ -250,33 +250,28 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Meu SaaS" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Emoji</Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {EMOJIS.map(e => (
-                    <button
-                      key={e}
-                      type="button"
-                      onClick={() => setEmoji(e)}
-                      className={`text-lg p-1.5 rounded-md transition-colors ${emoji === e ? 'bg-primary/15 ring-2 ring-primary' : 'hover:bg-muted'}`}
-                    >{e}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Cor</Label>
-                <div className="flex flex-wrap gap-2">
-                  {COLORS.map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setColor(c)}
-                      className={`h-7 w-7 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
+            <div className="space-y-2">
+              <Label>Ícone</Label>
+              <ProductIconPicker
+                emoji={emoji}
+                onEmojiChange={setEmoji}
+                logoUrl={null}
+                onLogoFileChange={(f) => setLogoFile(f)}
+                emojis={EMOJIS}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Cor</Label>
+              <div className="flex flex-wrap gap-2">
+                {COLORS.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className={`h-7 w-7 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
               </div>
             </div>
 
