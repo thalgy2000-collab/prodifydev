@@ -22,7 +22,7 @@ interface PortfolioPageProps {
 }
 
 const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
-  const { products, loading, createProduct, deleteProduct, setActiveProductId } = useProduct();
+  const { products, loading, createProduct, updateProduct, deleteProduct, setActiveProductId } = useProduct();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -34,10 +34,50 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  // Edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editEmoji, setEditEmoji] = useState('📦');
+  const [editColor, setEditColor] = useState('#6366f1');
+  const [editLogoFile, setEditLogoFile] = useState<File | null>(null);
+  const [editLogoUrl, setEditLogoUrl] = useState<string | null>(null);
+  const [editRemoveLogo, setEditRemoveLogo] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   const searchQuery = externalQuery ?? localSearch;
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const openEdit = (product: typeof products[number]) => {
+    setEditingId(product.id);
+    setEditName(product.name);
+    setEditDescription(product.description || '');
+    setEditEmoji(product.emoji);
+    setEditColor(product.color);
+    setEditLogoFile(null);
+    setEditLogoUrl(product.logoUrl);
+    setEditRemoveLogo(false);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+    if (!editName.trim()) { toast.error('Nome é obrigatório'); return; }
+    setSaving(true);
+    try {
+      await updateProduct(editingId, {
+        name: editName, description: editDescription, emoji: editEmoji, color: editColor,
+        logoFile: editLogoFile, removeLogo: editRemoveLogo,
+      });
+      toast.success('Produto atualizado!');
+      setEditingId(null);
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao atualizar produto');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleCreate = async () => {
     if (!name.trim()) { toast.error('Nome é obrigatório'); return; }
@@ -53,6 +93,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
       setCreating(false);
     }
   };
+
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
@@ -109,10 +150,11 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                       <Button
                         variant="ghost" size="icon"
                         className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
-                        onClick={(e) => { e.stopPropagation(); localStorage.setItem('prodify_active_product', product.id); navigate('/configuracoes?tab=general'); }}
+                        onClick={(e) => { e.stopPropagation(); openEdit(product); }}
                       >
                         <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                       </Button>
+
                       <Button
                         variant="ghost" size="icon"
                         className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
@@ -198,6 +240,45 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
         )}
       </div>
       <ProductTemplateDialog open={templateOpen} onOpenChange={setTemplateOpen} />
+
+      <Dialog open={editingId !== null} onOpenChange={(o) => { if (!o) setEditingId(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Produto</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Nome do produto" />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição</Label>
+              <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="Breve descrição" rows={2} />
+            </div>
+            <div className="space-y-2">
+              <Label>Ícone</Label>
+              <ProductIconPicker
+                emoji={editEmoji}
+                onEmojiChange={setEditEmoji}
+                logoUrl={editRemoveLogo ? null : editLogoUrl}
+                onLogoFileChange={(f) => { setEditLogoFile(f); if (f) setEditRemoveLogo(false); }}
+                onRemoveExistingLogo={() => { setEditLogoFile(null); setEditLogoUrl(null); setEditRemoveLogo(true); }}
+              />
+
+            </div>
+            <div className="space-y-2">
+              <Label>Cor</Label>
+              <div className="flex flex-wrap gap-2">
+                {COLORS.map(c => (
+                  <button key={c} onClick={() => setEditColor(c)}
+                    className={`h-7 w-7 rounded-full transition-transform ${editColor === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            </div>
+            <Button onClick={handleUpdate} disabled={saving} className="w-full">{saving ? 'Salvando…' : 'Salvar alterações'}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

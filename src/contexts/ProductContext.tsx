@@ -50,6 +50,7 @@ interface ProductContextType {
   loading: boolean;
   fetchProducts: () => Promise<void>;
   createProduct: (data: { name: string; description: string; emoji: string; color: string; logoFile?: File | null }) => Promise<void>;
+  updateProduct: (id: string, data: { name: string; description: string; emoji: string; color: string; logoFile?: File | null; removeLogo?: boolean }) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   members: ProductMember[];
   fetchMembers: () => Promise<void>;
@@ -146,11 +147,29 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user, fetchProducts, setActiveProductId]);
 
+  const updateProduct = useCallback(async (id: string, data: { name: string; description: string; emoji: string; color: string; logoFile?: File | null; removeLogo?: boolean }) => {
+    if (!user) return;
+    const update: any = { name: data.name, description: data.description, emoji: data.emoji, color: data.color };
+    if (data.removeLogo) update.logo_url = null;
+    if (data.logoFile) {
+      try {
+        const { uploadProductLogo } = await import('@/lib/productLogo');
+        update.logo_url = await uploadProductLogo(data.logoFile, user.id, id);
+      } catch (e: any) {
+        const { toast } = await import('sonner');
+        toast.error('Falha ao enviar logo: ' + (e?.message || 'erro desconhecido'));
+      }
+    }
+    await (supabase.from('products') as any).update(update).eq('id', id);
+    await fetchProducts();
+  }, [user, fetchProducts]);
+
   const deleteProduct = useCallback(async (id: string) => {
     await (supabase.from('products') as any).delete().eq('id', id);
     if (activeProductId === id) setActiveProductId(null);
     await fetchProducts();
   }, [activeProductId, fetchProducts, setActiveProductId]);
+
 
   const fetchMembers = useCallback(async () => {
     if (!activeProductId) { setMembers([]); return; }
@@ -332,7 +351,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ProductContext.Provider value={{
       products, activeProduct, setActiveProductId, loading, fetchProducts,
-      createProduct, deleteProduct, members, fetchMembers,
+      createProduct, updateProduct, deleteProduct, members, fetchMembers,
       inviteMember, removeMember, updateMemberRole, userRole,
       invites, fetchInvites, createInvite, cancelInvite,
       pendingInvites, fetchPendingInvites, acceptInvite, rejectInvite,
