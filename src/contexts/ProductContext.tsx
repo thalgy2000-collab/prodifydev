@@ -132,8 +132,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
           const { uploadProductLogo } = await import('@/lib/productLogo');
           const url = await uploadProductLogo(data.logoFile, user.id, inserted.id);
           await (supabase.from('products') as any).update({ logo_url: url }).eq('id', inserted.id);
-        } catch (e) {
+        } catch (e: any) {
           console.error('Falha ao enviar logo', e);
+          const { toast } = await import('sonner');
+          toast.error('Falha ao enviar logo: ' + (e?.message || 'erro desconhecido'));
         }
       }
       // Add owner as member
