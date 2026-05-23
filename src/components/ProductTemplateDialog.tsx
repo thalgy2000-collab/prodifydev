@@ -85,6 +85,8 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
     setEmoji('🚀');
     setColor('#6366f1');
     setQuarter(getCurrentQuarter());
+    setLogoFile(null);
+
 
     (async () => {
       setLoadingTpl(true);
