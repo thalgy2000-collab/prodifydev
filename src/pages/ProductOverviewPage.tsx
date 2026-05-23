@@ -8,6 +8,7 @@ import { TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays, A
 import { cn, getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
 import OKRsAtRiskCard from '@/components/OKRsAtRiskCard';
+import ProductIcon from '@/components/ProductIcon';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface MetricSummary {
