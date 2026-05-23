@@ -11,6 +11,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
 import { useProduct } from '@/contexts/ProductContext';
 import { LayoutDashboard, Target, Compass, Calculator, Rocket, BarChart3, ChevronLeft } from 'lucide-react';
+import ProductIcon from '@/components/ProductIcon';
 
 const buildInternalSteps = (): TourStep[] => [
   {
@@ -103,7 +104,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               </button>
               {activeProduct && (
                 <>
-                  <span className="text-lg leading-none">{activeProduct.emoji}</span>
+                  <ProductIcon emoji={activeProduct.emoji} logoUrl={activeProduct.logoUrl} name={activeProduct.name} size={22} emojiClassName="text-lg" />
                   <span className="text-sm font-semibold truncate">{activeProduct.name}</span>
                 </>
               )}

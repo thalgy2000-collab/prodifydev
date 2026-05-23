@@ -9,9 +9,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Trash2, Users, Search, X, ClipboardList } from 'lucide-react';
 import { toast } from 'sonner';
 import ProductTemplateDialog from '@/components/ProductTemplateDialog';
+import ProductIconPicker from '@/components/ProductIconPicker';
+import ProductIcon from '@/components/ProductIcon';
 
 
-const EMOJIS = ['📦', '🚀', '💡', '🎯', '🛒', '📱', '🎨', '⚡', '🔧', '📊', '🌍', '💎'];
+// Emoji list is handled by ProductIconPicker
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#14b8a6'];
 
 interface PortfolioPageProps {
@@ -25,8 +27,10 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const [description, setDescription] = useState('');
   const [emoji, setEmoji] = useState('📦');
   const [color, setColor] = useState('#6366f1');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [localSearch, setLocalSearch] = useState('');
   const [templateOpen, setTemplateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const searchQuery = externalQuery ?? localSearch;
   const filteredProducts = products.filter(p =>
@@ -35,10 +39,17 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
 
   const handleCreate = async () => {
     if (!name.trim()) { toast.error('Nome é obrigatório'); return; }
-    await createProduct({ name, description, emoji, color });
-    setOpen(false);
-    setName(''); setDescription(''); setEmoji('📦'); setColor('#6366f1');
-    toast.success('Produto criado!');
+    setCreating(true);
+    try {
+      await createProduct({ name, description, emoji, color, logoFile });
+      setOpen(false);
+      setName(''); setDescription(''); setEmoji('📦'); setColor('#6366f1'); setLogoFile(null);
+      toast.success('Produto criado!');
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao criar produto');
+    } finally {
+      setCreating(false);
+    }
   };
 
   if (loading) {
@@ -91,7 +102,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
               >
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
-                    <span className="text-3xl">{product.emoji}</span>
+                    <ProductIcon emoji={product.emoji} logoUrl={product.logoUrl} name={product.name} size={40} emojiClassName="text-3xl" />
                     <Button
                       variant="ghost" size="icon"
                       className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
@@ -134,14 +145,13 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                       <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Breve descrição" rows={2} />
                     </div>
                     <div className="space-y-2">
-                      <Label>Emoji</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {EMOJIS.map(e => (
-                          <button key={e} onClick={() => setEmoji(e)}
-                            className={`text-xl p-1.5 rounded-md transition-colors ${emoji === e ? 'bg-primary/15 ring-2 ring-primary' : 'hover:bg-muted'}`}
-                          >{e}</button>
-                        ))}
-                      </div>
+                      <Label>Ícone</Label>
+                      <ProductIconPicker
+                        emoji={emoji}
+                        onEmojiChange={setEmoji}
+                        logoUrl={null}
+                        onLogoFileChange={(f) => setLogoFile(f)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Cor</Label>
@@ -154,7 +164,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                         ))}
                       </div>
                     </div>
-                    <Button onClick={handleCreate} className="w-full">Criar Produto</Button>
+                    <Button onClick={handleCreate} disabled={creating} className="w-full">{creating ? 'Criando…' : 'Criar Produto'}</Button>
                   </div>
                 </DialogContent>
               </Dialog>

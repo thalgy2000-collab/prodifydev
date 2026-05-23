@@ -18,6 +18,7 @@ export interface AdminProduct {
   id: string;
   name: string;
   emoji: string;
+  logoUrl: string | null;
   ownerId: string;
   ownerName: string | null;
   membersCount: number;
@@ -65,7 +66,7 @@ export function useAdmin() {
     try {
       const [profilesRes, productsRes, membersRes, tasksRes, eventsRes, invitesRes] = await Promise.all([
         (supabase.from('profiles') as any).select('id, email, display_name, full_name, avatar_url, created_at, last_seen_at, is_admin, is_active'),
-        supabase.from('products').select('id, name, emoji, owner_id, created_at').order('created_at', { ascending: false }),
+        supabase.from('products').select('id, name, emoji, logo_url, owner_id, created_at').order('created_at', { ascending: false }),
         supabase.from('product_members').select('product_id, user_id'),
         supabase.from('backlog_tasks').select('product_id'),
         supabase.from('events').select('id, event_name, user_id, page, properties, created_at').order('created_at', { ascending: false }).limit(500),
@@ -112,6 +113,7 @@ export function useAdmin() {
           id: p.id,
           name: p.name,
           emoji: p.emoji ?? '📦',
+          logoUrl: p.logo_url ?? null,
           ownerId: p.owner_id,
           ownerName: owner?.display_name ?? owner?.full_name ?? owner?.email ?? '—',
           membersCount: membersByProduct.get(p.id) ?? 0,

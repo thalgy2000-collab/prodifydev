@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Loader2, Rocket } from 'lucide-react';
 import { toast } from 'sonner';
+import ProductIconPicker from '@/components/ProductIconPicker';
+import { uploadProductLogo } from '@/lib/productLogo';
 
 interface KrTemplate {
   title: string;
@@ -73,6 +75,7 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
   const [color, setColor] = useState('#6366f1');
   const [quarter, setQuarter] = useState(getCurrentQuarter());
   const [creating, setCreating] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -82,6 +85,8 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
     setEmoji('🚀');
     setColor('#6366f1');
     setQuarter(getCurrentQuarter());
+    setLogoFile(null);
+
 
     (async () => {
       setLoadingTpl(true);
@@ -123,6 +128,14 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
         .select()
         .single();
       if (pErr || !product) throw pErr || new Error('Falha ao criar produto');
+
+      // Upload logo if provided
+      if (logoFile) {
+        try {
+          const url = await uploadProductLogo(logoFile, user.id, product.id);
+          await (supabase.from('products') as any).update({ logo_url: url }).eq('id', product.id);
+        } catch (e) { console.warn('logo upload falhou', e); }
+      }
 
       // 2. Add owner as member (trigger may already do this, ignore conflict)
       await (supabase.from('product_members') as any)
@@ -237,33 +250,28 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Meu SaaS" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Emoji</Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {EMOJIS.map(e => (
-                    <button
-                      key={e}
-                      type="button"
-                      onClick={() => setEmoji(e)}
-                      className={`text-lg p-1.5 rounded-md transition-colors ${emoji === e ? 'bg-primary/15 ring-2 ring-primary' : 'hover:bg-muted'}`}
-                    >{e}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Cor</Label>
-                <div className="flex flex-wrap gap-2">
-                  {COLORS.map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setColor(c)}
-                      className={`h-7 w-7 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
+            <div className="space-y-2">
+              <Label>Ícone</Label>
+              <ProductIconPicker
+                emoji={emoji}
+                onEmojiChange={setEmoji}
+                logoUrl={null}
+                onLogoFileChange={(f) => setLogoFile(f)}
+                emojis={EMOJIS}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Cor</Label>
+              <div className="flex flex-wrap gap-2">
+                {COLORS.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className={`h-7 w-7 rounded-full transition-transform ${color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
               </div>
             </div>
 

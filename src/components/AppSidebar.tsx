@@ -11,6 +11,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import ProductIcon from '@/components/ProductIcon';
 
 type Item = { title: string; url: string; tourId?: string };
 type Group = { label: string; icon?: typeof Target; emoji?: string; items: Item[]; tourKey: string; slug: string };
@@ -155,7 +156,7 @@ export function AppSidebar() {
                   title={activeProduct.name}
                   aria-label="Trocar produto"
                 >
-                  <span className="text-xl leading-none">{activeProduct.emoji}</span>
+                  <ProductIcon emoji={activeProduct.emoji} logoUrl={activeProduct.logoUrl} name={activeProduct.name} size={24} emojiClassName="text-xl" />
                   {expanded && (
                     <span className="truncate text-sm font-medium text-foreground">{activeProduct.name}</span>
                   )}
@@ -173,7 +174,7 @@ export function AppSidebar() {
                     onClick={() => setActiveProductId(product.id)}
                     className="flex items-center gap-2 cursor-pointer"
                   >
-                    <span className="text-base">{product.emoji}</span>
+                    <ProductIcon emoji={product.emoji} logoUrl={product.logoUrl} name={product.name} size={20} emojiClassName="text-base" />
                     <span className="truncate flex-1">{product.name}</span>
                     {product.id === activeProduct.id && <Check className="h-4 w-4 text-primary shrink-0" />}
                   </DropdownMenuItem>

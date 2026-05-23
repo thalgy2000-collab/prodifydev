@@ -8,6 +8,7 @@ import { TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays, A
 import { cn, getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
 import OKRsAtRiskCard from '@/components/OKRsAtRiskCard';
+import ProductIcon from '@/components/ProductIcon';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface MetricSummary {
@@ -364,7 +365,7 @@ const ProductOverviewPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <span className="text-3xl">{activeProduct.emoji}</span>
+            <ProductIcon emoji={activeProduct.emoji} logoUrl={activeProduct.logoUrl} name={activeProduct.name} size={36} emojiClassName="text-3xl" />
             {activeProduct.name}
           </h1>
           {activeProduct.description && (

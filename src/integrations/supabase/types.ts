@@ -857,6 +857,7 @@ export type Database = {
           emoji: string
           id: string
           is_public: boolean | null
+          logo_url: string | null
           name: string
           owner_id: string
           public_token: string | null
@@ -868,6 +869,7 @@ export type Database = {
           emoji?: string
           id?: string
           is_public?: boolean | null
+          logo_url?: string | null
           name: string
           owner_id: string
           public_token?: string | null
@@ -879,6 +881,7 @@ export type Database = {
           emoji?: string
           id?: string
           is_public?: boolean | null
+          logo_url?: string | null
           name?: string
           owner_id?: string
           public_token?: string | null

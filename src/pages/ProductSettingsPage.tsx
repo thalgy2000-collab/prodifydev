@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useProduct } from '@/contexts/ProductContext';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,10 +13,13 @@ import { Loader2, Save, Settings, Link as LinkIcon, Trash2, ArrowLeft, RefreshCw
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import ProductIconPicker from '@/components/ProductIconPicker';
+import { uploadProductLogo, deleteProductLogo } from '@/lib/productLogo';
 
 const ProductSettingsPage = () => {
-  const { activeProduct, deleteProduct } = useProduct();
+  const { activeProduct, deleteProduct, fetchProducts } = useProduct();
   const { profile } = useProfile();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tabQuery = searchParams.get('tab');
@@ -26,6 +30,9 @@ const ProductSettingsPage = () => {
   const [productDescription, setProductDescription] = useState('');
   const [productEmoji, setProductEmoji] = useState('');
   const [productColor, setProductColor] = useState('');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
+  const [removeLogo, setRemoveLogo] = useState(false);
   const [savingProduct, setSavingProduct] = useState(false);
 
   // Jira Integration states
@@ -52,6 +59,9 @@ const ProductSettingsPage = () => {
       setProductDescription(activeProduct.description || '');
       setProductEmoji(activeProduct.emoji || '');
       setProductColor(activeProduct.color || '');
+      setCurrentLogoUrl(activeProduct.logoUrl || null);
+      setLogoFile(null);
+      setRemoveLogo(false);
     }
   }, [activeProduct]);
 
@@ -91,21 +101,36 @@ const ProductSettingsPage = () => {
   }, [activeProduct, activeSection, profile]);
 
   const handleSaveProduct = async () => {
-    if (!activeProduct) return;
+    if (!activeProduct || !user) return;
     setSavingProduct(true);
     try {
-      const { error } = await supabase.from('products').update({
+      let nextLogoUrl: string | null | undefined = undefined; // undefined = no change
+
+      if (logoFile) {
+        toast.loading('Enviando logo...', { id: 'logo-upload' });
+        nextLogoUrl = await uploadProductLogo(logoFile, user.id, activeProduct.id);
+        toast.dismiss('logo-upload');
+      } else if (removeLogo && currentLogoUrl) {
+        try { await deleteProductLogo(currentLogoUrl); } catch (e) { console.warn(e); }
+        nextLogoUrl = null;
+      }
+
+      const update: any = {
         name: productName.trim(),
         description: productDescription.trim(),
         emoji: productEmoji.trim(),
         color: productColor,
-      }).eq('id', activeProduct.id);
+      };
+      if (nextLogoUrl !== undefined) update.logo_url = nextLogoUrl;
 
+      const { error } = await supabase.from('products').update(update).eq('id', activeProduct.id);
       if (error) throw new Error('Erro ao salvar: ' + error.message);
 
       toast.success('Produto atualizado com sucesso!');
+      await fetchProducts();
       window.location.reload();
     } catch (err: any) {
+      toast.dismiss('logo-upload');
       toast.error(err.message || 'Erro ao salvar alterações');
     } finally {
       setSavingProduct(false);
@@ -316,17 +341,24 @@ const ProductSettingsPage = () => {
                     <Label htmlFor="productDescription">Descrição</Label>
                     <Textarea id="productDescription" value={productDescription} onChange={e => setProductDescription(e.target.value)} placeholder="Descrição do produto" rows={3} />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="productEmoji">Emoji</Label>
-                      <Input id="productEmoji" value={productEmoji} onChange={e => setProductEmoji(e.target.value)} placeholder="🚀" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="productColor">Cor</Label>
-                      <div className="flex items-center gap-2">
-                        <Input id="productColor" type="color" value={productColor} onChange={e => setProductColor(e.target.value)} className="w-12 h-10 p-1" />
-                        <Input value={productColor} onChange={e => setProductColor(e.target.value)} placeholder="#000000" />
-                      </div>
+                  <div className="space-y-2">
+                    <Label>Ícone do produto</Label>
+                    <ProductIconPicker
+                      emoji={productEmoji || '📦'}
+                      onEmojiChange={setProductEmoji}
+                      logoUrl={removeLogo ? null : currentLogoUrl}
+                      onLogoFileChange={(f) => {
+                        setLogoFile(f);
+                        if (f) setRemoveLogo(false);
+                      }}
+                      onRemoveExistingLogo={() => setRemoveLogo(true)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="productColor">Cor</Label>
+                    <div className="flex items-center gap-2 max-w-xs">
+                      <Input id="productColor" type="color" value={productColor} onChange={e => setProductColor(e.target.value)} className="w-12 h-10 p-1" />
+                      <Input value={productColor} onChange={e => setProductColor(e.target.value)} placeholder="#000000" />
                     </div>
                   </div>
                   <Button onClick={handleSaveProduct} disabled={savingProduct} className="w-full">
