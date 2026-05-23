@@ -101,21 +101,36 @@ const ProductSettingsPage = () => {
   }, [activeProduct, activeSection, profile]);
 
   const handleSaveProduct = async () => {
-    if (!activeProduct) return;
+    if (!activeProduct || !user) return;
     setSavingProduct(true);
     try {
-      const { error } = await supabase.from('products').update({
+      let nextLogoUrl: string | null | undefined = undefined; // undefined = no change
+
+      if (logoFile) {
+        toast.loading('Enviando logo...', { id: 'logo-upload' });
+        nextLogoUrl = await uploadProductLogo(logoFile, user.id, activeProduct.id);
+        toast.dismiss('logo-upload');
+      } else if (removeLogo && currentLogoUrl) {
+        try { await deleteProductLogo(currentLogoUrl); } catch (e) { console.warn(e); }
+        nextLogoUrl = null;
+      }
+
+      const update: any = {
         name: productName.trim(),
         description: productDescription.trim(),
         emoji: productEmoji.trim(),
         color: productColor,
-      }).eq('id', activeProduct.id);
+      };
+      if (nextLogoUrl !== undefined) update.logo_url = nextLogoUrl;
 
+      const { error } = await supabase.from('products').update(update).eq('id', activeProduct.id);
       if (error) throw new Error('Erro ao salvar: ' + error.message);
 
       toast.success('Produto atualizado com sucesso!');
+      await fetchProducts();
       window.location.reload();
     } catch (err: any) {
+      toast.dismiss('logo-upload');
       toast.error(err.message || 'Erro ao salvar alterações');
     } finally {
       setSavingProduct(false);
