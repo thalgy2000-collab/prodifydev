@@ -50,6 +50,7 @@ interface ProductContextType {
   loading: boolean;
   fetchProducts: () => Promise<void>;
   createProduct: (data: { name: string; description: string; emoji: string; color: string; logoFile?: File | null }) => Promise<void>;
+  updateProduct: (id: string, data: { name: string; description: string; emoji: string; color: string; logoFile?: File | null; removeLogo?: boolean }) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
   members: ProductMember[];
   fetchMembers: () => Promise<void>;
