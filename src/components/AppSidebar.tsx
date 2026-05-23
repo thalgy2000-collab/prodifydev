@@ -174,7 +174,7 @@ export function AppSidebar() {
                     onClick={() => setActiveProductId(product.id)}
                     className="flex items-center gap-2 cursor-pointer"
                   >
-                    <span className="text-base">{product.emoji}</span>
+                    <ProductIcon emoji={product.emoji} logoUrl={product.logoUrl} name={product.name} size={20} emojiClassName="text-base" />
                     <span className="truncate flex-1">{product.name}</span>
                     {product.id === activeProduct.id && <Check className="h-4 w-4 text-primary shrink-0" />}
                   </DropdownMenuItem>
