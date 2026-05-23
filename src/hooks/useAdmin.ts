@@ -113,6 +113,7 @@ export function useAdmin() {
           id: p.id,
           name: p.name,
           emoji: p.emoji ?? '📦',
+          logoUrl: p.logo_url ?? null,
           ownerId: p.owner_id,
           ownerName: owner?.display_name ?? owner?.full_name ?? owner?.email ?? '—',
           membersCount: membersByProduct.get(p.id) ?? 0,
