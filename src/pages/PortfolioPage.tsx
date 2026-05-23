@@ -27,8 +27,10 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
   const [description, setDescription] = useState('');
   const [emoji, setEmoji] = useState('📦');
   const [color, setColor] = useState('#6366f1');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [localSearch, setLocalSearch] = useState('');
   const [templateOpen, setTemplateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const searchQuery = externalQuery ?? localSearch;
   const filteredProducts = products.filter(p =>
@@ -37,10 +39,17 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
 
   const handleCreate = async () => {
     if (!name.trim()) { toast.error('Nome é obrigatório'); return; }
-    await createProduct({ name, description, emoji, color });
-    setOpen(false);
-    setName(''); setDescription(''); setEmoji('📦'); setColor('#6366f1');
-    toast.success('Produto criado!');
+    setCreating(true);
+    try {
+      await createProduct({ name, description, emoji, color, logoFile });
+      setOpen(false);
+      setName(''); setDescription(''); setEmoji('📦'); setColor('#6366f1'); setLogoFile(null);
+      toast.success('Produto criado!');
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao criar produto');
+    } finally {
+      setCreating(false);
+    }
   };
 
   if (loading) {
