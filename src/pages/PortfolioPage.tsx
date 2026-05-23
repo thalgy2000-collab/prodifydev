@@ -102,7 +102,7 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
               >
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
-                    <span className="text-3xl">{product.emoji}</span>
+                    <ProductIcon emoji={product.emoji} logoUrl={product.logoUrl} name={product.name} size={40} emojiClassName="text-3xl" />
                     <Button
                       variant="ghost" size="icon"
                       className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
