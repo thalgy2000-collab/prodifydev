@@ -212,7 +212,7 @@ export default function AdminPage() {
                   <TableBody>
                     {products.map(p => (
                       <TableRow key={p.id}>
-                        <TableCell><span className="mr-2">{p.emoji}</span>{p.name}</TableCell>
+                        <TableCell><span className="inline-flex items-center gap-2"><ProductIcon emoji={p.emoji} logoUrl={p.logoUrl} name={p.name} size={20} emojiClassName="text-base" />{p.name}</span></TableCell>
                         <TableCell className="text-muted-foreground">{p.ownerName}</TableCell>
                         <TableCell>{p.membersCount}</TableCell>
                         <TableCell>{p.tasksCount}</TableCell>
