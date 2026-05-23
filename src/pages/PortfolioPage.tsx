@@ -105,13 +105,22 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <ProductIcon emoji={product.emoji} logoUrl={product.logoUrl} name={product.name} size={40} emojiClassName="text-3xl" />
-                    <Button
-                      variant="ghost" size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
-                      onClick={(e) => { e.stopPropagation(); deleteProduct(product.id); toast.success('Produto removido'); }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost" size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+                        onClick={(e) => { e.stopPropagation(); localStorage.setItem('prodify_active_product', product.id); navigate('/configuracoes?tab=general'); }}
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                      <Button
+                        variant="ghost" size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+                        onClick={(e) => { e.stopPropagation(); deleteProduct(product.id); toast.success('Produto removido'); }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                   <h3 className="font-semibold text-base mb-1">{product.name}</h3>
                   {product.description && (
