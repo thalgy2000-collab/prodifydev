@@ -59,6 +59,9 @@ const ProductSettingsPage = () => {
       setProductDescription(activeProduct.description || '');
       setProductEmoji(activeProduct.emoji || '');
       setProductColor(activeProduct.color || '');
+      setCurrentLogoUrl(activeProduct.logoUrl || null);
+      setLogoFile(null);
+      setRemoveLogo(false);
     }
   }, [activeProduct]);
 
