@@ -259,9 +259,10 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                 emoji={editEmoji}
                 onEmojiChange={setEditEmoji}
                 logoUrl={editRemoveLogo ? null : editLogoUrl}
-                onLogoFileChange={(f) => { setEditLogoFile(f); setEditRemoveLogo(false); }}
-                onRemoveLogo={() => { setEditLogoFile(null); setEditLogoUrl(null); setEditRemoveLogo(true); }}
+                onLogoFileChange={(f) => { setEditLogoFile(f); if (f) setEditRemoveLogo(false); }}
+                onRemoveExistingLogo={() => { setEditLogoFile(null); setEditLogoUrl(null); setEditRemoveLogo(true); }}
               />
+
             </div>
             <div className="space-y-2">
               <Label>Cor</Label>
