@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { ArrowLeft, Users, Package, Activity, Mail, Search, Trash2, ShieldCheck, ShieldOff, UserCheck, UserX } from 'lucide-react';
 import prodifyLogo from '@/assets/prodify-logo.png';
+import ProductIcon from '@/components/ProductIcon';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
