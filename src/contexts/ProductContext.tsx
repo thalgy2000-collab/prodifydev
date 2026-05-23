@@ -351,7 +351,7 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ProductContext.Provider value={{
       products, activeProduct, setActiveProductId, loading, fetchProducts,
-      createProduct, deleteProduct, members, fetchMembers,
+      createProduct, updateProduct, deleteProduct, members, fetchMembers,
       inviteMember, removeMember, updateMemberRole, userRole,
       invites, fetchInvites, createInvite, cancelInvite,
       pendingInvites, fetchPendingInvites, acceptInvite, rejectInvite,
