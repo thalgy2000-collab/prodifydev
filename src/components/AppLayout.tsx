@@ -11,6 +11,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
 import { useProduct } from '@/contexts/ProductContext';
 import { LayoutDashboard, Target, Compass, Calculator, Rocket, BarChart3, ChevronLeft } from 'lucide-react';
+import ProductIcon from '@/components/ProductIcon';
 
 const buildInternalSteps = (): TourStep[] => [
   {
