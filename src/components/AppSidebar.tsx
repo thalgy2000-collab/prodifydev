@@ -156,7 +156,7 @@ export function AppSidebar() {
                   title={activeProduct.name}
                   aria-label="Trocar produto"
                 >
-                  <span className="text-xl leading-none">{activeProduct.emoji}</span>
+                  <ProductIcon emoji={activeProduct.emoji} logoUrl={activeProduct.logoUrl} name={activeProduct.name} size={24} emojiClassName="text-xl" />
                   {expanded && (
                     <span className="truncate text-sm font-medium text-foreground">{activeProduct.name}</span>
                   )}
