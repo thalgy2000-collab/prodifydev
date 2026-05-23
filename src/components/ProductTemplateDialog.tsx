@@ -129,6 +129,14 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
         .single();
       if (pErr || !product) throw pErr || new Error('Falha ao criar produto');
 
+      // Upload logo if provided
+      if (logoFile) {
+        try {
+          const url = await uploadProductLogo(logoFile, user.id, product.id);
+          await (supabase.from('products') as any).update({ logo_url: url }).eq('id', product.id);
+        } catch (e) { console.warn('logo upload falhou', e); }
+      }
+
       // 2. Add owner as member (trigger may already do this, ignore conflict)
       await (supabase.from('product_members') as any)
         .insert({ product_id: product.id, user_id: user.id, role: 'owner' });
