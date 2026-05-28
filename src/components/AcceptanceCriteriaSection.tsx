@@ -218,7 +218,9 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
       </div>
 
       <div className="flex items-center gap-2">
-        <Input
+        <CountedInput
+          maxLength={200}
+          inline
           placeholder="Novo critério de aceite..."
           value={newCriterionTitle}
           onChange={e => setNewCriterionTitle(e.target.value)}
