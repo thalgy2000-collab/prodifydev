@@ -248,7 +248,7 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
           <div className="space-y-4 mt-2">
             <div className="space-y-2">
               <Label>Nome do produto *</Label>
-              <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Meu SaaS" />
+              <CountedInput maxLength={50} value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Meu SaaS" />
             </div>
 
             <div className="space-y-2">
