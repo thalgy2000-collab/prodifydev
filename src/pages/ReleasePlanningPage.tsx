@@ -97,7 +97,7 @@ const ReleasePlanningPage = () => {
             <div className="space-y-4">
               <div>
                 <Label>Nome</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Launch MVP" />
+                <CountedInput maxLength={50} inline value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Launch MVP" />
               </div>
               <div>
                 <Label>Versão</Label>
