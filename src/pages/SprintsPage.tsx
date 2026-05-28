@@ -331,8 +331,8 @@ const SprintsPage = () => {
             <DialogContent>
               <DialogHeader><DialogTitle>Nova Sprint</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
-                <div className="space-y-2"><Label>Nome</Label><Input placeholder="Sprint 1" value={name} onChange={e => setName(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Meta</Label><Input placeholder="Objetivo da sprint..." value={goal} onChange={e => setGoal(e.target.value)} /></div>
+                <div className="space-y-2"><Label>Nome</Label><CountedInput maxLength={50} inline placeholder="Sprint 1" value={name} onChange={e => setName(e.target.value)} /></div>
+                <div className="space-y-2"><Label>Meta</Label><CountedInput maxLength={200} inline placeholder="Objetivo da sprint..." value={goal} onChange={e => setGoal(e.target.value)} /></div>
                 <div className="flex gap-3">
                   <div className="flex-1 space-y-2"><Label>Início</Label><Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} /></div>
                   <div className="flex-1 space-y-2"><Label>Fim</Label><Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} /></div>
