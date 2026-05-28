@@ -88,12 +88,14 @@ const SwotPage = () => {
             ))}
           </SelectContent>
         </Select>
-        <Input
+        <CountedInput
+          maxLength={200}
+          inline
           placeholder="Descreva o item..."
           value={newContent}
           onChange={e => setNewContent(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
-          className="flex-1"
+          containerClassName="flex-1"
         />
         <Button onClick={handleAdd} size="sm" className="gap-1">
           <Plus className="h-4 w-4" /> Adicionar
