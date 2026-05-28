@@ -132,7 +132,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, existingThemes = [], onAdd }
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Nova Iniciativa — {selectedQuarter}</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-2">
-          <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lançar MVP do produto" value={title} onChange={e => setTitle(e.target.value)} /></div>
+          <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} inline placeholder="Ex: Lançar MVP do produto" value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2">
             <Label>Tema</Label>
             <Input
@@ -146,7 +146,7 @@ const CreateRoadmapDialog = ({ quarter, objectives, existingThemes = [], onAdd }
             </datalist>
             <p className="text-xs text-muted-foreground">Agrupa iniciativas em tópicos no roadmap</p>
           </div>
-          <div className="space-y-2"><Label>Descrição</Label><Textarea placeholder="Detalhes da iniciativa..." value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
+          <div className="space-y-2"><Label>Descrição</Label><CountedTextarea maxLength={300} placeholder="Detalhes da iniciativa..." value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
 
           <div className="space-y-2">
             <Label>Quarter</Label>
