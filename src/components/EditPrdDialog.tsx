@@ -79,7 +79,7 @@ export function EditPrdDialog({ prd, open, onOpenChange, onUpdate, onDelete }: P
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-1">
                 <Label>Título</Label>
-                <Input value={form.title || ''} onChange={e => set('title', e.target.value)} />
+                <CountedInput maxLength={100} inline value={form.title || ''} onChange={e => set('title', e.target.value)} />
               </div>
               <div>
                 <Label>Versão</Label>
@@ -100,17 +100,17 @@ export function EditPrdDialog({ prd, open, onOpenChange, onUpdate, onDelete }: P
 
             <div>
               <Label>Problema a resolver</Label>
-              <Textarea rows={3} value={form.problem || ''} onChange={e => set('problem', e.target.value)} />
+              <CountedTextarea maxLength={1000} rows={3} value={form.problem || ''} onChange={e => set('problem', e.target.value)} />
             </div>
 
             <div>
               <Label>Objetivo do produto</Label>
-              <Textarea rows={3} value={form.objective || ''} onChange={e => set('objective', e.target.value)} />
+              <CountedTextarea maxLength={1000} rows={3} value={form.objective || ''} onChange={e => set('objective', e.target.value)} />
             </div>
 
             <div>
               <Label>Público-alvo</Label>
-              <Textarea rows={3} value={form.targetAudience || ''} onChange={e => set('targetAudience', e.target.value)} />
+              <CountedTextarea maxLength={300} rows={3} value={form.targetAudience || ''} onChange={e => set('targetAudience', e.target.value)} />
             </div>
 
             {/* Editable lists */}
