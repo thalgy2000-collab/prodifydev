@@ -45,7 +45,7 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label>Objetivo</Label>
-            <Input placeholder="Ex: Aumentar a receita recorrente" value={title} onChange={e => setTitle(e.target.value)} />
+            <CountedInput maxLength={100} placeholder="Ex: Aumentar a receita recorrente" value={title} onChange={e => setTitle(e.target.value)} />
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
