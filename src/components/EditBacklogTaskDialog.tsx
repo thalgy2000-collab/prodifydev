@@ -358,8 +358,8 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       <DialogContent className="sm:max-w-lg h-[95vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-3 shrink-0 border-b border-border/50"><DialogTitle>Editar Tarefa</DialogTitle></DialogHeader>
         <div className="space-y-4 pt-4 px-6 overflow-y-auto flex-1 min-h-0 pb-4">
-          <div className="space-y-2"><Label>Título</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
-          <div className="space-y-2"><Label>Descrição</Label><Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
+          <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} value={title} onChange={e => setTitle(e.target.value)} /></div>
+          <div className="space-y-2"><Label>Descrição</Label><CountedTextarea maxLength={500} value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
           <div className="flex gap-3">
             <div className="flex-1 space-y-2"><Label>Prioridade</Label><Select value={priority} onValueChange={v => setPriority(v as TaskPriority)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(PRIORITY_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent></Select></div>
           </div>
