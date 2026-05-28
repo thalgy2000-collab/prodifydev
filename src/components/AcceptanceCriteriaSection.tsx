@@ -169,7 +169,9 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
               />
               {editingCriterionId === criterion.id ? (
                 <div className="flex-1 flex items-center gap-1">
-                  <Input
+                  <CountedInput
+                    maxLength={200}
+                    inline
                     value={editingCriterionTitle}
                     onChange={e => setEditingCriterionTitle(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') handleCancelEdit(); }}
@@ -216,7 +218,9 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
       </div>
 
       <div className="flex items-center gap-2">
-        <Input
+        <CountedInput
+          maxLength={200}
+          inline
           placeholder="Novo critério de aceite..."
           value={newCriterionTitle}
           onChange={e => setNewCriterionTitle(e.target.value)}

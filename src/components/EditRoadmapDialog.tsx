@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CountedInput, CountedTextarea } from '@/components/ui/counted-input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
@@ -139,7 +140,7 @@ const EditRoadmapDialog = ({ item, objectives, existingThemes = [], open, onOpen
       <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
         <DialogHeader className="px-6 py-5 border-b border-border shrink-0"><DialogTitle>Editar Iniciativa</DialogTitle></DialogHeader>
         <div className="overflow-y-auto px-6 py-4 space-y-4" style={{ maxHeight: 'calc(90vh - 80px)' }}>
-          <div className="space-y-2"><Label>Título</Label><Input value={title} onChange={e => setTitle(e.target.value)} /></div>
+          <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} inline value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2">
             <Label>Tema</Label>
             <Input
@@ -152,7 +153,7 @@ const EditRoadmapDialog = ({ item, objectives, existingThemes = [], open, onOpen
               {existingThemes.map(t => <option key={t} value={t} />)}
             </datalist>
           </div>
-          <div className="space-y-2"><Label>Descrição</Label><Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
+          <div className="space-y-2"><Label>Descrição</Label><CountedTextarea maxLength={300} value={description} onChange={e => setDescription(e.target.value)} rows={2} /></div>
 
           <div className="space-y-2">
             <Label>Quarter</Label>

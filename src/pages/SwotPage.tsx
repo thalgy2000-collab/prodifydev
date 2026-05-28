@@ -9,6 +9,7 @@ import { useOKRStore } from '@/hooks/useOKRStore';
 import { SwotCategory, SWOT_CONFIG } from '@/types/swot';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CountedInput } from '@/components/ui/counted-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Shield } from 'lucide-react';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
@@ -87,12 +88,14 @@ const SwotPage = () => {
             ))}
           </SelectContent>
         </Select>
-        <Input
+        <CountedInput
+          maxLength={200}
+          inline
           placeholder="Descreva o item..."
           value={newContent}
           onChange={e => setNewContent(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && handleAdd()}
-          className="flex-1"
+          containerClassName="flex-1"
         />
         <Button onClick={handleAdd} size="sm" className="gap-1">
           <Plus className="h-4 w-4" /> Adicionar

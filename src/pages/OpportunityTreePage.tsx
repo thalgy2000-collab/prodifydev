@@ -6,6 +6,7 @@ import { OpportunityNode, OpportunityNodeType, NODE_TYPE_CONFIG } from '@/types/
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { CountedInput, CountedTextarea } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -424,8 +425,8 @@ const OpportunityTreePage = () => {
                 <SelectContent>{Object.entries(NODE_TYPE_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.icon} {v.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2"><Label>Título</Label><Input value={newTitle} onChange={e => setNewTitle(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Descrição</Label><Textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} /></div>
+            <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} inline value={newTitle} onChange={e => setNewTitle(e.target.value)} /></div>
+            <div className="space-y-2"><Label>Descrição</Label><CountedTextarea maxLength={300} value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} /></div>
             <Button onClick={handleCreate} className="w-full">Criar</Button>
           </div>
         </DialogContent>
@@ -442,8 +443,8 @@ const OpportunityTreePage = () => {
                 <SelectContent>{Object.entries(NODE_TYPE_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.icon} {v.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2"><Label>Título</Label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Descrição</Label><Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={4} /></div>
+            <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} inline value={editTitle} onChange={e => setEditTitle(e.target.value)} /></div>
+            <div className="space-y-2"><Label>Descrição</Label><CountedTextarea maxLength={300} value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={4} /></div>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => setEditingNode(null)}>Cancelar</Button>
               <Button className="flex-1" onClick={handleSaveEdit}>Salvar</Button>
