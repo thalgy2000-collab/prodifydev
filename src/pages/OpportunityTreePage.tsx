@@ -425,8 +425,8 @@ const OpportunityTreePage = () => {
                 <SelectContent>{Object.entries(NODE_TYPE_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.icon} {v.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2"><Label>Título</Label><Input value={newTitle} onChange={e => setNewTitle(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Descrição</Label><Textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} /></div>
+            <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} inline value={newTitle} onChange={e => setNewTitle(e.target.value)} /></div>
+            <div className="space-y-2"><Label>Descrição</Label><CountedTextarea maxLength={300} value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} /></div>
             <Button onClick={handleCreate} className="w-full">Criar</Button>
           </div>
         </DialogContent>
