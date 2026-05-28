@@ -191,11 +191,11 @@ const PortfolioPage = ({ searchQuery: externalQuery }: PortfolioPageProps) => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Nome</Label>
-                      <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome do produto" />
+                      <CountedInput maxLength={50} value={name} onChange={e => setName(e.target.value)} placeholder="Nome do produto" />
                     </div>
                     <div className="space-y-2">
                       <Label>Descrição</Label>
-                      <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Breve descrição" rows={2} />
+                      <CountedTextarea maxLength={200} value={description} onChange={e => setDescription(e.target.value)} placeholder="Breve descrição" rows={2} />
                     </div>
                     <div className="space-y-2">
                       <Label>Ícone</Label>
