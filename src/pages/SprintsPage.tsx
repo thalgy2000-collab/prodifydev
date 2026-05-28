@@ -6,6 +6,7 @@ import { Sprint, SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
 import { BacklogTask, PRIORITY_CONFIG, TaskStatus } from '@/types/backlog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CountedInput } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
