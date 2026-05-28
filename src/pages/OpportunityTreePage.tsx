@@ -443,8 +443,8 @@ const OpportunityTreePage = () => {
                 <SelectContent>{Object.entries(NODE_TYPE_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.icon} {v.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2"><Label>Título</Label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Descrição</Label><Textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={4} /></div>
+            <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} inline value={editTitle} onChange={e => setEditTitle(e.target.value)} /></div>
+            <div className="space-y-2"><Label>Descrição</Label><CountedTextarea maxLength={300} value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={4} /></div>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => setEditingNode(null)}>Cancelar</Button>
               <Button className="flex-1" onClick={handleSaveEdit}>Salvar</Button>
