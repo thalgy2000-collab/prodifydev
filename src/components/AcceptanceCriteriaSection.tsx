@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CountedInput } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2, Pencil, Check, X, ClipboardCheck, Sparkles, Loader2 } from 'lucide-react';

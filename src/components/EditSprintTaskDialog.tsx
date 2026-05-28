@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { CountedInput, CountedTextarea } from '@/components/ui/counted-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -72,11 +73,11 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
           <div className="space-y-4 pt-4 px-6 overflow-y-auto flex-1 min-h-0 pb-4">
             <div className="space-y-2">
               <Label>Título</Label>
-              <Input value={title} onChange={e => setTitle(e.target.value)} />
+              <CountedInput maxLength={100} value={title} onChange={e => setTitle(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label>Descrição</Label>
-              <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} />
+              <CountedTextarea maxLength={500} value={description} onChange={e => setDescription(e.target.value)} rows={3} />
             </div>
 
             {/* Acceptance Criteria Section */}

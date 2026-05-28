@@ -5,6 +5,7 @@ import { useProduct } from '@/contexts/ProductContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CountedInput } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -247,7 +248,7 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
           <div className="space-y-4 mt-2">
             <div className="space-y-2">
               <Label>Nome do produto *</Label>
-              <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Meu SaaS" />
+              <CountedInput maxLength={50} value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Meu SaaS" />
             </div>
 
             <div className="space-y-2">

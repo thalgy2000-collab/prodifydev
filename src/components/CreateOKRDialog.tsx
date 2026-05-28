@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CountedInput } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Plus, X } from 'lucide-react';
 import { KeyResult, OKRCategory } from '@/types/okr';
@@ -44,7 +45,7 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label>Objetivo</Label>
-            <Input placeholder="Ex: Aumentar a receita recorrente" value={title} onChange={e => setTitle(e.target.value)} />
+            <CountedInput maxLength={100} placeholder="Ex: Aumentar a receita recorrente" value={title} onChange={e => setTitle(e.target.value)} />
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -54,7 +55,7 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
             {krs.map((kr, i) => (
               <div key={i} className="space-y-2 rounded-lg border border-border bg-secondary/30 p-3">
                 <div className="flex items-center gap-2">
-                  <Input placeholder="Descrição do KR" value={kr.title} onChange={e => updateKR(i, 'title', e.target.value)} className="flex-1" />
+                  <CountedInput maxLength={100} inline placeholder="Descrição do KR" value={kr.title} onChange={e => updateKR(i, 'title', e.target.value)} containerClassName="flex-1" />
                   {krs.length > 1 && (
                     <Button variant="ghost" size="icon" onClick={() => removeKR(i)} className="h-8 w-8 shrink-0"><X className="h-3 w-3" /></Button>
                   )}
