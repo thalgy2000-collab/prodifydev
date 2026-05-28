@@ -6,6 +6,7 @@ import { OpportunityNode, OpportunityNodeType, NODE_TYPE_CONFIG } from '@/types/
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { CountedInput, CountedTextarea } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
