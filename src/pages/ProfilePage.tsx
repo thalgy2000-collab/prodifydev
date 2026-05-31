@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CountedInput, CountedTextarea } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -294,17 +295,17 @@ const ProfilePage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="fullName">Nome completo</Label>
-                      <Input id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Seu nome completo" />
+                      <CountedInput maxLength={100} inline id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Seu nome completo" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="displayName">Nome de exibição</Label>
-                      <Input id="displayName" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Como quer ser chamado" />
+                      <CountedInput maxLength={50} inline id="displayName" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Como quer ser chamado" />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="bio">Bio</Label>
-                    <Textarea id="bio" value={bio} onChange={e => setBio(e.target.value)} placeholder="Conte um pouco sobre você..." rows={3} />
+                    <CountedTextarea maxLength={300} id="bio" value={bio} onChange={e => setBio(e.target.value)} placeholder="Conte um pouco sobre você..." rows={3} />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
