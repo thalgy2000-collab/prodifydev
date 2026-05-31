@@ -129,9 +129,9 @@ const CreateRoadmapDialog = ({ quarter, objectives, existingThemes = [], onAdd }
       <DialogTrigger asChild>
         <Button className="gap-2"><Plus className="h-4 w-4" />Nova Iniciativa</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Nova Iniciativa — {selectedQuarter}</DialogTitle></DialogHeader>
-        <div className="space-y-4 pt-2">
+      <DialogContent className="sm:max-w-lg p-0 overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+        <DialogHeader className="flex-shrink-0 px-6 py-5 border-b border-border"><DialogTitle>Nova Iniciativa — {selectedQuarter}</DialogTitle></DialogHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-transparent">
           <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} inline placeholder="Ex: Lançar MVP do produto" value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2">
             <Label>Tema</Label>
