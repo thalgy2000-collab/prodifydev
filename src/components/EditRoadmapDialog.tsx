@@ -294,7 +294,10 @@ const EditRoadmapDialog = ({ item, objectives, existingThemes = [], open, onOpen
               )}
             </>
           )}
-          <Button onClick={handleSubmit} disabled={datesInvalid || !title.trim()} className="w-full">Salvar Alterações</Button>
+        </div>
+        <div className="flex-shrink-0 px-6 py-4 border-t border-white/10 flex gap-3 justify-end">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={handleSubmit} disabled={datesInvalid || !title.trim()}>Salvar Alterações</Button>
         </div>
       </DialogContent>
     </Dialog>
