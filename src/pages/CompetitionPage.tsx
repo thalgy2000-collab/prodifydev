@@ -4,6 +4,7 @@ import { useProduct } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CountedInput, CountedTextarea } from '@/components/ui/counted-input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -95,7 +96,10 @@ const TagInput = ({ value, onChange, placeholder }: { value: string[]; onChange:
   return (
     <div className="space-y-2">
       <div className="flex gap-2">
-        <Input
+        <CountedInput
+          maxLength={100}
+          inline
+          containerClassName="flex-1"
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
@@ -430,12 +434,14 @@ const CompetitionPage = () => {
         {/* TABLE TAB */}
         <TabsContent value="table" className="mt-6 space-y-4" id="competition-table">
           <div className="flex flex-col sm:flex-row gap-2">
-            <Input
+            <CountedInput
+              maxLength={50}
+              inline
               placeholder="Novo critério..."
               value={newCriterion}
               onChange={e => setNewCriterion(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') addCriterion(); }}
-              className="sm:max-w-xs"
+              containerClassName="sm:max-w-xs"
             />
             <Button onClick={addCriterion} variant="outline" className="gap-2">
               <Plus className="h-4 w-4" /> Adicionar Critério
@@ -499,7 +505,7 @@ const CompetitionPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Nome do concorrente *</Label>
-                <Input value={form.competitor_name ?? ''} onChange={e => setForm({ ...form, competitor_name: e.target.value })} />
+                <CountedInput maxLength={100} inline value={form.competitor_name ?? ''} onChange={e => setForm({ ...form, competitor_name: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Tipo *</Label>
@@ -525,7 +531,7 @@ const CompetitionPage = () => {
 
             <div className="space-y-2">
               <Label>Proposta de valor</Label>
-              <Textarea rows={2} value={form.value_proposition ?? ''} onChange={e => setForm({ ...form, value_proposition: e.target.value })} />
+              <CountedTextarea maxLength={300} rows={2} value={form.value_proposition ?? ''} onChange={e => setForm({ ...form, value_proposition: e.target.value })} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -562,7 +568,7 @@ const CompetitionPage = () => {
 
             <div className="space-y-2">
               <Label>Observações</Label>
-              <Textarea rows={3} value={form.notes ?? ''} onChange={e => setForm({ ...form, notes: e.target.value })} />
+              <CountedTextarea maxLength={500} rows={3} value={form.notes ?? ''} onChange={e => setForm({ ...form, notes: e.target.value })} />
             </div>
           </div>
           <DialogFooter>
