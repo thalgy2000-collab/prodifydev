@@ -158,6 +158,19 @@
   background-color: hsl(var(--muted-foreground) / 0.4);
 }
 
+.roadmap-dialog-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.roadmap-dialog-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.roadmap-dialog-scroll::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--primary));
+  border-radius: 2px;
+}
+
 /* Hide number input spinners */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
