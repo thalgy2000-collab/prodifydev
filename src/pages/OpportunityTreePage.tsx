@@ -15,7 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-import { Plus, Minus, TreePine, Trash2, Pencil, Maximize2 } from 'lucide-react';
+import { Plus, Minus, TreePine, Trash2, Pencil, Maximize2, Hand } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
