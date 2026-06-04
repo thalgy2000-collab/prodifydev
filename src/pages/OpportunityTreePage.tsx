@@ -427,7 +427,7 @@ const OpportunityTreePage = () => {
               style={{
                 transform: `translate(-50%, 0) translate(${pan.x}px, ${pan.y}px) scale(${zoom / 100})`,
                 transformOrigin: 'center top',
-                transition: panStartRef.current ? 'none' : 'transform 0.15s ease-out',
+                transition: isPanning ? 'none' : 'transform 0.15s ease-out',
                 willChange: 'transform',
               }}
             >
