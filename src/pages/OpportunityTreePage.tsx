@@ -14,8 +14,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Plus, Minus, TreePine, Trash2, Pencil, Maximize2 } from 'lucide-react';
+
+import { Plus, Minus, TreePine, Trash2, Pencil, Maximize2, Hand } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -287,8 +287,11 @@ const OpportunityTreePage = () => {
     });
   };
 
-  // Pinch-to-zoom (mobile)
+  // Miro-style pan + zoom
   const containerRef = useRef<HTMLDivElement>(null);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
   const pinchDistRef = useRef<number | null>(null);
   const pinchStartZoomRef = useRef<number>(100);
 
@@ -297,7 +300,30 @@ const OpportunityTreePage = () => {
       e.preventDefault();
       const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
       setZoomClamped(zoom + delta);
+    } else {
+      // Pan via wheel/trackpad
+      setPan(p => ({ x: p.x - e.deltaX, y: p.y - e.deltaY }));
     }
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    // Only pan when clicking on empty canvas, not on a node
+    if ((e.target as HTMLElement).closest('[data-canvas-node]')) return;
+    panStartRef.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+    setIsPanning(true);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!panStartRef.current) return;
+    setPan({
+      x: panStartRef.current.panX + (e.clientX - panStartRef.current.x),
+      y: panStartRef.current.panY + (e.clientY - panStartRef.current.y),
+    });
+  };
+
+  const endPan = () => {
+    panStartRef.current = null;
+    setIsPanning(false);
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -306,6 +332,8 @@ const OpportunityTreePage = () => {
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       pinchDistRef.current = Math.hypot(dx, dy);
       pinchStartZoomRef.current = zoom;
+    } else if (e.touches.length === 1 && !(e.target as HTMLElement).closest('[data-canvas-node]')) {
+      panStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, panX: pan.x, panY: pan.y };
     }
   };
 
@@ -316,11 +344,22 @@ const OpportunityTreePage = () => {
       const dist = Math.hypot(dx, dy);
       const ratio = dist / pinchDistRef.current;
       setZoomClamped(pinchStartZoomRef.current * ratio);
+    } else if (e.touches.length === 1 && panStartRef.current) {
+      setPan({
+        x: panStartRef.current.panX + (e.touches[0].clientX - panStartRef.current.x),
+        y: panStartRef.current.panY + (e.touches[0].clientY - panStartRef.current.y),
+      });
     }
   };
 
   const onTouchEnd = (e: React.TouchEvent) => {
     if (e.touches.length < 2) pinchDistRef.current = null;
+    if (e.touches.length === 0) panStartRef.current = null;
+  };
+
+  const resetView = () => {
+    setPan({ x: 0, y: 0 });
+    setZoomClamped(100);
   };
 
   const objNodes = (selectedObjective ? getNodesByObjective(selectedObjective) : []).filter(n => n && n.id && n.title);
@@ -334,7 +373,7 @@ const OpportunityTreePage = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Árvore de Oportunidades</h1>
-          <p className="text-sm text-muted-foreground">Mapeie oportunidades, soluções e experimentos</p>
+          <p className="text-sm text-muted-foreground">Mapeie oportunidades, soluções e experimentos · arraste para navegar</p>
         </div>
       </div>
 
@@ -367,39 +406,54 @@ const OpportunityTreePage = () => {
         <div
           ref={containerRef}
           onWheel={onWheel}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={endPan}
+          onMouseLeave={endPan}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
-          className="relative"
+          className="relative overflow-hidden rounded-xl border border-border bg-muted/30 h-[calc(100vh-260px)] min-h-[480px] select-none"
+          style={{
+            cursor: isPanning ? 'grabbing' : 'grab',
+            backgroundImage: 'radial-gradient(circle, hsl(var(--muted-foreground) / 0.25) 1px, transparent 1px)',
+            backgroundSize: `${24 * (zoom / 100)}px ${24 * (zoom / 100)}px`,
+            backgroundPosition: `${pan.x}px ${pan.y}px`,
+          }}
         >
-          <ScrollArea className="w-full">
-            <TreeErrorBoundary>
-              <div
-                style={{
-                  transform: `scale(${zoom / 100})`,
-                  transformOrigin: 'top center',
-                  transition: 'transform 0.2s ease',
-                }}
-              >
-                <div className="flex gap-10 justify-center py-8 px-4 min-w-fit">
-                  {rootNodes.map(node => (
+          <TreeErrorBoundary>
+            <div
+              className="absolute top-1/2 left-1/2"
+              style={{
+                transform: `translate(-50%, 0) translate(${pan.x}px, ${pan.y}px) scale(${zoom / 100})`,
+                transformOrigin: 'center top',
+                transition: panStartRef.current ? 'none' : 'transform 0.15s ease-out',
+                willChange: 'transform',
+              }}
+            >
+              <div className="flex gap-10 justify-center py-8 px-4">
+                {rootNodes.map(node => (
+                  <div key={node.id} data-canvas-node>
                     <TreeNode
-                      key={node.id}
                       node={node}
                       getChildren={getChildren}
                       onAdd={openAddDialog}
                       onEdit={openEditDialog}
                       onDelete={(id) => setDeleteId(id)}
                     />
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            </TreeErrorBoundary>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+            </div>
+          </TreeErrorBoundary>
+
+          {/* Hint */}
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-background/80 backdrop-blur px-3 py-1.5 text-xs text-muted-foreground border border-border shadow-sm pointer-events-none">
+            <Hand className="h-3.5 w-3.5" /> Arraste para navegar · Ctrl + scroll para zoom
+          </div>
 
           {/* Zoom controls */}
-          <div className="fixed bottom-6 right-6 z-40 flex items-center gap-1 rounded-full border border-border bg-background/80 backdrop-blur px-2 py-1 shadow-lg">
+          <div className="absolute bottom-4 right-4 z-40 flex items-center gap-1 rounded-full border border-border bg-background/90 backdrop-blur px-2 py-1 shadow-lg">
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setZoomClamped(zoom - ZOOM_STEP)} title="Diminuir zoom">
               <Minus className="h-4 w-4" />
             </Button>
@@ -407,12 +461,14 @@ const OpportunityTreePage = () => {
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setZoomClamped(zoom + ZOOM_STEP)} title="Aumentar zoom">
               <Plus className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => setZoomClamped(100)} title="Resetar zoom">
+            <div className="w-px h-5 bg-border mx-1" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={resetView} title="Centralizar">
               <Maximize2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
       )}
+
 
       {/* Create dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
