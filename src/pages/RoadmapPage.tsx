@@ -295,7 +295,8 @@ const RoadmapPage = () => {
                 })}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
