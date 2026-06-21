@@ -171,6 +171,25 @@
   border-radius: 2px;
 }
 
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #6366f1;
+  border-radius: 2px;
+}
+
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 transparent;
+}
+
+
 /* Hide number input spinners */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
