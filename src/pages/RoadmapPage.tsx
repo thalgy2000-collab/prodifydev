@@ -189,12 +189,17 @@ const RoadmapPage = () => {
             </div>
 
             {/* Theme groups */}
-            {themeOrder.map((themeName) => (
+            {themeOrder.map((themeName) => {
+              const themeColor = grouped[themeName][0]?.color || '#6366f1';
+              return (
               <div key={themeName} className="flex border-b border-border/50 last:border-b-0">
                 {/* Theme Sidebar Cell */}
-                <div className="w-48 shrink-0 p-4 border-r border-border/50 bg-muted/5 flex flex-col justify-center">
+                <div
+                  className="w-48 shrink-0 p-4 border-r border-border/50 bg-muted/5 flex flex-col justify-center border-l-2"
+                  style={{ borderLeftColor: themeColor }}
+                >
                   <div className="flex items-center gap-2 mb-1.5">
-                    <div className="h-2 w-2 rounded-full bg-primary/70 shrink-0" />
+                    <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: themeColor }} />
                     <h3 className="text-sm font-semibold tracking-tight truncate" title={themeName}>
                       {themeName}
                     </h3>
@@ -290,7 +295,8 @@ const RoadmapPage = () => {
                 })}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
