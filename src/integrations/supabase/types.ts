@@ -427,6 +427,53 @@ export type Database = {
         }
         Relationships: []
       }
+      hypotheses: {
+        Row: {
+          assumption: string | null
+          confidence: number | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          product_id: string
+          statement: string
+          status: string | null
+          user_id: string
+          validation_method: string | null
+        }
+        Insert: {
+          assumption?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          product_id: string
+          statement: string
+          status?: string | null
+          user_id: string
+          validation_method?: string | null
+        }
+        Update: {
+          assumption?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          product_id?: string
+          statement?: string
+          status?: string | null
+          user_id?: string
+          validation_method?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hypotheses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_tokens: {
         Row: {
           config: Json | null
@@ -701,6 +748,59 @@ export type Database = {
           },
           {
             foreignKeyName: "opportunity_nodes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personas: {
+        Row: {
+          age_range: string | null
+          avatar_emoji: string | null
+          behaviors: string[] | null
+          bio: string | null
+          created_at: string | null
+          frustrations: string[] | null
+          goals: string[] | null
+          id: string
+          name: string
+          product_id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          age_range?: string | null
+          avatar_emoji?: string | null
+          behaviors?: string[] | null
+          bio?: string | null
+          created_at?: string | null
+          frustrations?: string[] | null
+          goals?: string[] | null
+          id?: string
+          name: string
+          product_id: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          age_range?: string | null
+          avatar_emoji?: string | null
+          behaviors?: string[] | null
+          bio?: string | null
+          created_at?: string | null
+          frustrations?: string[] | null
+          goals?: string[] | null
+          id?: string
+          name?: string
+          product_id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personas_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
@@ -1489,6 +1589,103 @@ export type Database = {
           },
           {
             foreignKeyName: "swot_analyses_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usability_tests: {
+        Row: {
+          created_at: string | null
+          date: string | null
+          findings: string[] | null
+          id: string
+          improvements: string[] | null
+          objective: string | null
+          participants: number | null
+          product_id: string
+          status: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string | null
+          findings?: string[] | null
+          id?: string
+          improvements?: string[] | null
+          objective?: string | null
+          participants?: number | null
+          product_id: string
+          status?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string | null
+          findings?: string[] | null
+          id?: string
+          improvements?: string[] | null
+          objective?: string | null
+          participants?: number | null
+          product_id?: string
+          status?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usability_tests_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_interviews: {
+        Row: {
+          created_at: string | null
+          date: string | null
+          id: string
+          interviewee_name: string
+          interviewee_role: string | null
+          key_insights: string[] | null
+          notes: string | null
+          pain_points: string[] | null
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          interviewee_name: string
+          interviewee_role?: string | null
+          key_insights?: string[] | null
+          notes?: string | null
+          pain_points?: string[] | null
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string | null
+          id?: string
+          interviewee_name?: string
+          interviewee_role?: string | null
+          key_insights?: string[] | null
+          notes?: string | null
+          pain_points?: string[] | null
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interviews_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"

@@ -43,6 +43,11 @@ import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import CategoryPage from "./pages/CategoryPage";
+import DiscoveryPage from "./pages/DiscoveryPage";
+import UserInterviewsPage from "./pages/discovery/UserInterviewsPage";
+import PersonasPage from "./pages/discovery/PersonasPage";
+import HypothesesPage from "./pages/discovery/HypothesesPage";
+import UsabilityTestsPage from "./pages/discovery/UsabilityTestsPage";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +93,11 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/oportunidades" element={<OpportunityTreePage />} />
         <Route path="/swot" element={<SwotPage />} />
         <Route path="/concorrencia" element={<CompetitionPage />} />
+        <Route path="/discovery" element={<DiscoveryPage />} />
+        <Route path="/discovery/entrevistas" element={<UserInterviewsPage />} />
+        <Route path="/discovery/personas" element={<PersonasPage />} />
+        <Route path="/discovery/hipoteses" element={<HypothesesPage />} />
+        <Route path="/discovery/testes" element={<UsabilityTestsPage />} />
         <Route path="/roadmap" element={<RoadmapPage />} />
         <Route path="/backlog" element={<BacklogPage />} />
         <Route path="/sprints" element={<SprintsPage />} />
