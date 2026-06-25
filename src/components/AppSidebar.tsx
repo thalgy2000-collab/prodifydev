@@ -36,9 +36,13 @@ const groups: Group[] = [
     tourKey: 'discovery',
     slug: 'discovery',
     items: [
-      { title: 'Oportunidades', url: '/oportunidades' },
-      { title: 'Concorrência', url: '/concorrencia' },
-      { title: 'SWOT', url: '/swot' },
+      { title: '🎤 Entrevistas', url: '/discovery/entrevistas' },
+      { title: '👤 Personas', url: '/discovery/personas' },
+      { title: '🏆 Concorrência', url: '/concorrencia' },
+      { title: '📊 SWOT', url: '/swot' },
+      { title: '🌳 Oportunidades', url: '/oportunidades' },
+      { title: '🧪 Hipóteses', url: '/discovery/hipoteses' },
+      { title: '🖥️ Testes', url: '/discovery/testes' },
     ],
   },
   {
@@ -216,7 +220,7 @@ export function AppSidebar() {
               <HoverCard key={group.label} openDelay={80} closeDelay={120}>
                 <HoverCardTrigger asChild>
                   <button
-                    onClick={() => navigate(`/categoria/${group.slug}`)}
+                    onClick={() => navigate(group.slug === 'discovery' ? '/discovery' : `/categoria/${group.slug}`)}
                     data-tour={group.items.find(i => i.tourId)?.tourId}
                     data-tour-int={group.tourKey}
                     className={cn(
@@ -241,7 +245,7 @@ export function AppSidebar() {
                     {group.label}
                   </p>
                   <div className="flex flex-col">
-                    {group.items.slice(0, 3).map(item => (
+                    {(group.slug === 'discovery' ? group.items : group.items.slice(0, 3)).map(item => (
                       <button
                         key={item.url}
                         onClick={() => navigate(item.url)}
@@ -259,7 +263,7 @@ export function AppSidebar() {
                   </div>
                   <div className="mt-1 pt-1 border-t border-border/60">
                     <button
-                      onClick={() => navigate(`/categoria/${group.slug}`)}
+                      onClick={() => navigate(group.slug === 'discovery' ? '/discovery' : `/categoria/${group.slug}`)}
                       className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm text-primary hover:text-primary/80 hover:underline transition-colors"
                     >
                       <span>Ver mais</span>
