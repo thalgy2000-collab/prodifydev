@@ -1,10 +1,12 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { CATEGORIES, CategorySlug } from '@/lib/categories';
 import NotFound from './NotFound';
 
 export default function CategoryPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+
+  if (slug === 'discovery') return <Navigate to="/discovery" replace />;
 
   const category = slug ? CATEGORIES[slug as CategorySlug] : null;
   if (!category) return <NotFound />;
