@@ -118,7 +118,9 @@ export function AppSidebar() {
   }, [user, activeProduct]);
 
   const isGroupActive = (g: Group) =>
-    location.pathname === `/categoria/${g.slug}` || g.items.some(i => location.pathname === i.url);
+    location.pathname === `/categoria/${g.slug}` ||
+    (g.slug === 'discovery' && location.pathname.startsWith('/discovery')) ||
+    g.items.some(i => location.pathname === i.url);
   const isActive = (path: string) => location.pathname === path;
 
   const renderGroupIcon = (group: Group, active: boolean) => {
