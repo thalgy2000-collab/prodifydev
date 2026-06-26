@@ -44,6 +44,8 @@ import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import CategoryPage from "./pages/CategoryPage";
 import DiscoveryPage from "./pages/DiscoveryPage";
+import DiscoveryProblemPage from "./pages/discovery/DiscoveryProblemPage";
+import DiscoverySolutionPage from "./pages/discovery/DiscoverySolutionPage";
 import UserInterviewsPage from "./pages/discovery/UserInterviewsPage";
 import PersonasPage from "./pages/discovery/PersonasPage";
 import HypothesesPage from "./pages/discovery/HypothesesPage";
