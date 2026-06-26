@@ -96,6 +96,8 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/swot" element={<SwotPage />} />
         <Route path="/concorrencia" element={<CompetitionPage />} />
         <Route path="/discovery" element={<DiscoveryPage />} />
+        <Route path="/discovery/problema" element={<DiscoveryProblemPage />} />
+        <Route path="/discovery/solucao" element={<DiscoverySolutionPage />} />
         <Route path="/discovery/entrevistas" element={<UserInterviewsPage />} />
         <Route path="/discovery/personas" element={<PersonasPage />} />
         <Route path="/discovery/hipoteses" element={<HypothesesPage />} />
