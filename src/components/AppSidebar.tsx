@@ -36,13 +36,8 @@ const groups: Group[] = [
     tourKey: 'discovery',
     slug: 'discovery',
     items: [
-      { title: '🎤 Entrevistas', url: '/discovery/entrevistas' },
-      { title: '👤 Personas', url: '/discovery/personas' },
-      { title: '🏆 Concorrência', url: '/concorrencia' },
-      { title: '📊 SWOT', url: '/swot' },
-      { title: '🌳 Oportunidades', url: '/oportunidades' },
-      { title: '🧪 Hipóteses', url: '/discovery/hipoteses' },
-      { title: '🖥️ Testes', url: '/discovery/testes' },
+      { title: '💎 Problema', url: '/discovery/problema' },
+      { title: '💎 Solução', url: '/discovery/solucao' },
     ],
   },
   {
