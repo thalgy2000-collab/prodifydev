@@ -31,6 +31,7 @@ import ReleasePlanningPage from "./pages/ReleasePlanningPage";
 import SwotPage from "./pages/SwotPage";
 import CompetitionPage from "./pages/CompetitionPage";
 import PrdPage from "./pages/PrdPage";
+import ResearchesPage from "./pages/ResearchesPage";
 import MembersPage from "./pages/MembersPage";
 import ProductAgendaPage from "./pages/ProductAgendaPage";
 import ProductOverviewPage from "./pages/ProductOverviewPage";
@@ -46,7 +47,6 @@ import CategoryPage from "./pages/CategoryPage";
 import DiscoveryPage from "./pages/DiscoveryPage";
 import DiscoveryProblemPage from "./pages/discovery/DiscoveryProblemPage";
 import DiscoverySolutionPage from "./pages/discovery/DiscoverySolutionPage";
-import UserInterviewsPage from "./pages/discovery/UserInterviewsPage";
 import PersonasPage from "./pages/discovery/PersonasPage";
 import HypothesesPage from "./pages/discovery/HypothesesPage";
 import UsabilityTestsPage from "./pages/discovery/UsabilityTestsPage";
@@ -98,10 +98,10 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/discovery" element={<DiscoveryPage />} />
         <Route path="/discovery/problema" element={<DiscoveryProblemPage />} />
         <Route path="/discovery/solucao" element={<DiscoverySolutionPage />} />
-        <Route path="/discovery/entrevistas" element={<UserInterviewsPage />} />
         <Route path="/discovery/personas" element={<PersonasPage />} />
         <Route path="/discovery/hipoteses" element={<HypothesesPage />} />
         <Route path="/discovery/testes" element={<UsabilityTestsPage />} />
+        <Route path="/discovery/pesquisas" element={<ResearchesPage />} />
         <Route path="/roadmap" element={<RoadmapPage />} />
         <Route path="/backlog" element={<BacklogPage />} />
         <Route path="/sprints" element={<SprintsPage />} />

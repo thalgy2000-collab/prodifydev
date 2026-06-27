@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import FrameworkCard, { FrameworkCardData } from '@/components/discovery/FrameworkCard';
+import ResearchesPreviewCard from '@/components/discovery/ResearchesPreviewCard';
 import { useDiscoveryCounts } from '@/hooks/useDiscoveryCounts';
 
 export default function DiscoveryProblemPage() {
@@ -8,14 +9,6 @@ export default function DiscoveryProblemPage() {
   const { data: counts } = useDiscoveryCounts();
 
   const descobrir: FrameworkCardData[] = [
-    {
-      icon: '🎤',
-      title: 'Entrevistas com Usuários',
-      desc: 'Registre insights de conversas com usuários reais.',
-      route: '/discovery/entrevistas',
-      count: counts?.interviews,
-      countLabel: (n) => `${n} ${n === 1 ? 'entrevista' : 'entrevistas'}`,
-    },
     {
       icon: '🏆',
       title: 'Análise de Concorrência',
@@ -83,6 +76,7 @@ export default function DiscoveryProblemPage() {
             </p>
           </header>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ResearchesPreviewCard />
             {descobrir.map((c) => (
               <FrameworkCard key={c.route} data={c} accent="hover:border-blue-500/60" />
             ))}
