@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import ProductIcon from '@/components/ProductIcon';
+import { useFrequentPages } from '@/hooks/useFrequentPages';
 
 type Item = { title: string; url: string; tourId?: string };
 type Group = { label: string; icon?: typeof Target; emoji?: string; items: Item[]; tourKey: string; slug: string };
@@ -73,6 +74,70 @@ const groups: Group[] = [
     items: [{ title: 'Membros', url: '/membros' }],
   },
 ];
+
+function FrequentSection({
+  expanded,
+  navigate,
+  isActive,
+}: {
+  expanded: boolean;
+  navigate: (path: string) => void;
+  isActive: (path: string) => boolean;
+}) {
+  const { pages, loading } = useFrequentPages(3);
+
+  if (loading || pages.length === 0) return null;
+
+  return (
+    <>
+      {expanded && (
+        <p className="px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+          ⚡ Frequentes
+        </p>
+      )}
+      <div className={cn('flex flex-col gap-0.5', expanded ? 'px-2' : 'items-center')}>
+        {pages.map((item) => {
+          const active = isActive(item.page);
+          return expanded ? (
+            <button
+              key={item.page}
+              onClick={() => navigate(item.page)}
+              className={cn(
+                'h-8 rounded-lg flex items-center gap-2 px-2 text-sm transition-colors',
+                active
+                  ? 'bg-primary/10 text-primary font-medium'
+                  : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+              )}
+            >
+              <span className="text-base leading-none shrink-0">{item.icon}</span>
+              <span className="truncate">{item.label}</span>
+            </button>
+          ) : (
+            <Tooltip key={item.page}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => navigate(item.page)}
+                  className={cn(
+                    'w-10 h-8 rounded-lg flex items-center justify-center transition-colors',
+                    active
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                  )}
+                >
+                  <span className="text-base leading-none">{item.icon}</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {item.label} ({item.count} {item.count === 1 ? 'visita' : 'visitas'})
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </div>
+      <div className={cn('h-px bg-border my-1', expanded ? 'mx-2' : 'mx-3')} />
+    </>
+  );
+}
 
 export function AppSidebar() {
   const { signOut, user } = useAuth();
@@ -208,6 +273,9 @@ export function AppSidebar() {
             {!expanded && <TooltipContent side="right">Visão Geral</TooltipContent>}
           </Tooltip>
         </div>
+
+        {/* Frequentes */}
+        <FrequentSection expanded={expanded} navigate={navigate} isActive={isActive} />
 
         {/* Groups with hover flyouts */}
         <nav className={cn('flex-1 flex flex-col gap-1 mt-1', expanded ? 'px-2' : 'items-center')}>

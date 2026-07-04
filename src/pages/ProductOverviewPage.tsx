@@ -8,6 +8,7 @@ import { TrendingUp, ListTodo, Map, AlertTriangle, CheckCircle2, CalendarDays, A
 import { cn, getQuarterDates } from '@/lib/utils';
 import ProductHealthScore from '@/components/ProductHealthScore';
 import OKRsAtRiskCard from '@/components/OKRsAtRiskCard';
+import QuickAccess from '@/components/QuickAccess';
 import ProductIcon from '@/components/ProductIcon';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -391,6 +392,8 @@ const ProductOverviewPage = () => {
       <ProductHealthScore productId={activeProduct.id} selectedQuarter={selectedQuarter} />
 
       <OKRsAtRiskCard productId={activeProduct.id} selectedQuarter={selectedQuarter} />
+
+      <QuickAccess />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className={cn('transition-colors', sprintBorder)}>
