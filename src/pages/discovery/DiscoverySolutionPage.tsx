@@ -9,6 +9,14 @@ export default function DiscoverySolutionPage() {
 
   const desenvolver: FrameworkCardData[] = [
     {
+      icon: '🧩',
+      title: 'Matriz CSD',
+      desc: 'Mapeie certezas, suposições e dúvidas sobre a solução.',
+      route: '/discovery/csd',
+      count: counts?.csd,
+      countLabel: (n) => `${n} ${n === 1 ? 'item' : 'itens'}`,
+    },
+    {
       icon: '🧪',
       title: 'Hipóteses de Solução',
       desc: 'Formule e valide hipóteses para o problema.',

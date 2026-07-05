@@ -28,6 +28,7 @@ const routeMap: Record<string, { label: string; icon: string; category: string }
   '/discovery/pesquisas': { label: 'Pesquisas',     icon: '🔍', category: 'Discovery' },
   '/discovery/personas':  { label: 'Personas',      icon: '👤', category: 'Discovery' },
   '/discovery/hipoteses': { label: 'Hipóteses',     icon: '🧪', category: 'Discovery' },
+  '/discovery/csd':       { label: 'Matriz CSD',    icon: '🧩', category: 'Discovery' },
   '/historico':           { label: 'Histórico',     icon: '📜', category: 'Delivery' },
 };
 

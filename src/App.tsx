@@ -49,6 +49,7 @@ import DiscoveryProblemPage from "./pages/discovery/DiscoveryProblemPage";
 import DiscoverySolutionPage from "./pages/discovery/DiscoverySolutionPage";
 import PersonasPage from "./pages/discovery/PersonasPage";
 import HypothesesPage from "./pages/discovery/HypothesesPage";
+import CsdMatrixPage from "./pages/discovery/CsdMatrixPage";
 import UsabilityTestsPage from "./pages/discovery/UsabilityTestsPage";
 
 const queryClient = new QueryClient();
@@ -99,6 +100,7 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/discovery/problema" element={<DiscoveryProblemPage />} />
         <Route path="/discovery/solucao" element={<DiscoverySolutionPage />} />
         <Route path="/discovery/personas" element={<PersonasPage />} />
+        <Route path="/discovery/csd" element={<CsdMatrixPage />} />
         <Route path="/discovery/hipoteses" element={<HypothesesPage />} />
         <Route path="/discovery/testes" element={<UsabilityTestsPage />} />
         <Route path="/discovery/pesquisas" element={<ResearchesPage />} />

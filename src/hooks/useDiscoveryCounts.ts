@@ -10,6 +10,7 @@ export type DiscoveryCounts = {
   opportunities: number;
   hypotheses: number;
   usabilityTests: number;
+  csd: number;
 };
 
 const ZERO: DiscoveryCounts = {
@@ -20,6 +21,7 @@ const ZERO: DiscoveryCounts = {
   opportunities: 0,
   hypotheses: 0,
   usabilityTests: 0,
+  csd: 0,
 };
 
 export function useDiscoveryCounts() {
@@ -38,7 +40,7 @@ export function useDiscoveryCounts() {
           .eq('product_id', productId)
           .then((r: any) => r.count ?? 0);
 
-      const [interviews, personas, competition, swot, opportunities, hypotheses, usabilityTests] =
+      const [interviews, personas, competition, swot, opportunities, hypotheses, usabilityTests, csd] =
         await Promise.all([
           count('user_interviews'),
           count('personas'),
@@ -47,9 +49,10 @@ export function useDiscoveryCounts() {
           count('opportunity_nodes'),
           count('hypotheses'),
           count('usability_tests'),
+          count('csd_matrix'),
         ]);
 
-      return { interviews, personas, competition, swot, opportunities, hypotheses, usabilityTests };
+      return { interviews, personas, competition, swot, opportunities, hypotheses, usabilityTests, csd };
     },
   });
 }
