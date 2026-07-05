@@ -715,7 +715,7 @@ const BacklogPage = () => {
         </div>
       )}
       {activeSprints.map(sprint => {
-        const sprintTasks = getBySprint(sprint.id).filter(matchesSearch);
+        const sprintTasks = getBySprint(sprint.id).filter(matchesEpic).filter(matchesSearch);
         const totalPoints = sprintTasks.reduce((s, t) => s + (t.storyPoints || 0), 0);
         const sCfg = getSprintStatusConfig(sprint.status);
         const isCollapsed = collapsedSprints[sprint.id] ?? (sprint.status !== 'active');
