@@ -273,10 +273,10 @@ export default function CsdMatrixPage() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
       <button
-        onClick={() => navigate('/discovery/solucao')}
+        onClick={() => navigate('/discovery/problema')}
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
       >
-        <ArrowLeft className="h-4 w-4" /> Voltar ao Diamante 2
+        <ArrowLeft className="h-4 w-4" /> Voltar ao Diamante 1
       </button>
 
       <header className="mb-6">

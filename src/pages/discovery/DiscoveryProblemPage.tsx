@@ -10,6 +10,14 @@ export default function DiscoveryProblemPage() {
 
   const descobrir: FrameworkCardData[] = [
     {
+      icon: '🧩',
+      title: 'Matriz CSD',
+      desc: 'Mapeie certezas, suposições e dúvidas sobre o problema.',
+      route: '/discovery/csd',
+      count: counts?.csd,
+      countLabel: (n) => `${n} ${n === 1 ? 'item' : 'itens'}`,
+    },
+    {
       icon: '🏆',
       title: 'Análise de Concorrência',
       desc: 'Mapeie alternativas e concorrentes do mercado.',
