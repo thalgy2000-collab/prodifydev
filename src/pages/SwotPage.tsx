@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ProblemStatementBanner from '@/components/discovery/ProblemStatementBanner';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -61,6 +62,7 @@ const SwotPage = () => {
 
   return (
     <div data-tour-feature="swot-grid" className="space-y-6">
+      <ProblemStatementBanner />
       {TourElement}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Análise SWOT</h1>
