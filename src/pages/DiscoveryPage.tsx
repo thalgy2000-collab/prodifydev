@@ -16,6 +16,10 @@ export default function DiscoveryPage() {
         </p>
       </header>
 
+      <div className="mb-6">
+        <ProblemStatementCard variant="compact" />
+      </div>
+
       {/* Diamonds visual */}
       <div className="mb-10 rounded-2xl border border-border bg-card p-6 md:p-10 overflow-x-auto">
         <DiamondsSVG />
