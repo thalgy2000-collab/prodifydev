@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import ProblemStatementBanner from '@/components/discovery/ProblemStatementBanner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useProduct } from '@/contexts/ProductContext';
@@ -105,6 +106,7 @@ export default function UsabilityTestsPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto w-full">
+      <ProblemStatementBanner />
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <button onClick={() => navigate('/discovery')} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">

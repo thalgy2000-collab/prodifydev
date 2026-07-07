@@ -337,6 +337,178 @@ export type Database = {
           },
         ]
       }
+      csd_matrix: {
+        Row: {
+          category: string
+          created_at: string | null
+          hypothesis_id: string | null
+          id: string
+          impact_level: string | null
+          notes: string | null
+          position: number | null
+          product_id: string
+          statement: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          validation_method: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          hypothesis_id?: string | null
+          id?: string
+          impact_level?: string | null
+          notes?: string | null
+          position?: number | null
+          product_id: string
+          statement: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          validation_method?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          hypothesis_id?: string | null
+          id?: string
+          impact_level?: string | null
+          notes?: string | null
+          position?: number | null
+          product_id?: string
+          statement?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          validation_method?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csd_matrix_hypothesis_id_fkey"
+            columns: ["hypothesis_id"]
+            isOneToOne: false
+            referencedRelation: "hypotheses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csd_matrix_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_analysis: {
+        Row: {
+          analysis_type: string | null
+          conclusions: string | null
+          created_at: string | null
+          findings: string[] | null
+          id: string
+          key_metrics: Json | null
+          link: string | null
+          period_end: string | null
+          period_start: string | null
+          product_id: string
+          source: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          analysis_type?: string | null
+          conclusions?: string | null
+          created_at?: string | null
+          findings?: string[] | null
+          id?: string
+          key_metrics?: Json | null
+          link?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          product_id: string
+          source?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          analysis_type?: string | null
+          conclusions?: string | null
+          created_at?: string | null
+          findings?: string[] | null
+          id?: string
+          key_metrics?: Json | null
+          link?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          product_id?: string
+          source?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_analysis_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      desk_research: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          key_insights: string[] | null
+          notes: string | null
+          product_id: string
+          published_date: string | null
+          relevance: string | null
+          source: string | null
+          title: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          key_insights?: string[] | null
+          notes?: string | null
+          product_id: string
+          published_date?: string | null
+          relevance?: string | null
+          source?: string | null
+          title: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          key_insights?: string[] | null
+          notes?: string | null
+          product_id?: string
+          published_date?: string | null
+          relevance?: string | null
+          source?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "desk_research_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       epics: {
         Row: {
           color: string
@@ -949,10 +1121,55 @@ export type Database = {
           },
         ]
       }
+      product_problem_statements: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_current: boolean | null
+          objective: string
+          problem: string
+          product_id: string
+          target_audience: string | null
+          user_id: string
+          version: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_current?: boolean | null
+          objective: string
+          problem: string
+          product_id: string
+          target_audience?: string | null
+          user_id: string
+          version?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_current?: boolean | null
+          objective?: string
+          problem?: string
+          product_id?: string
+          target_audience?: string | null
+          user_id?: string
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_problem_statements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           color: string
           created_at: string
+          current_problem_statement_id: string | null
           description: string
           emoji: string
           id: string
@@ -965,6 +1182,7 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
+          current_problem_statement_id?: string | null
           description?: string
           emoji?: string
           id?: string
@@ -977,6 +1195,7 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
+          current_problem_statement_id?: string | null
           description?: string
           emoji?: string
           id?: string
@@ -986,7 +1205,15 @@ export type Database = {
           owner_id?: string
           public_token?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_current_problem_statement_id_fkey"
+            columns: ["current_problem_statement_id"]
+            isOneToOne: false
+            referencedRelation: "product_problem_statements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1059,6 +1286,136 @@ export type Database = {
           terms_accepted_at?: string | null
         }
         Relationships: []
+      }
+      qualitative_research: {
+        Row: {
+          created_at: string | null
+          date: string | null
+          desires: string[] | null
+          duration_minutes: number | null
+          id: string
+          insights: string[] | null
+          interviewee_company: string | null
+          interviewee_name: string
+          interviewee_role: string | null
+          key_quotes: string[] | null
+          method: string | null
+          notes: string | null
+          pain_points: string[] | null
+          product_id: string
+          recording_url: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string | null
+          desires?: string[] | null
+          duration_minutes?: number | null
+          id?: string
+          insights?: string[] | null
+          interviewee_company?: string | null
+          interviewee_name: string
+          interviewee_role?: string | null
+          key_quotes?: string[] | null
+          method?: string | null
+          notes?: string | null
+          pain_points?: string[] | null
+          product_id: string
+          recording_url?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string | null
+          desires?: string[] | null
+          duration_minutes?: number | null
+          id?: string
+          insights?: string[] | null
+          interviewee_company?: string | null
+          interviewee_name?: string
+          interviewee_role?: string | null
+          key_quotes?: string[] | null
+          method?: string | null
+          notes?: string | null
+          pain_points?: string[] | null
+          product_id?: string
+          recording_url?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualitative_research_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quantitative_research: {
+        Row: {
+          created_at: string | null
+          end_date: string | null
+          id: string
+          key_findings: string[] | null
+          link: string | null
+          metrics: Json | null
+          notes: string | null
+          objective: string | null
+          product_id: string
+          start_date: string | null
+          status: string | null
+          title: string
+          tool: string | null
+          total_responses: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          key_findings?: string[] | null
+          link?: string | null
+          metrics?: Json | null
+          notes?: string | null
+          objective?: string | null
+          product_id: string
+          start_date?: string | null
+          status?: string | null
+          title: string
+          tool?: string | null
+          total_responses?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          key_findings?: string[] | null
+          link?: string | null
+          metrics?: Json | null
+          notes?: string | null
+          objective?: string | null
+          product_id?: string
+          start_date?: string | null
+          status?: string | null
+          title?: string
+          tool?: string | null
+          total_responses?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quantitative_research_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       release_items: {
         Row: {

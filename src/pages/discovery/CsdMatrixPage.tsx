@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import ProblemStatementBanner from '@/components/discovery/ProblemStatementBanner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useProduct } from '@/contexts/ProductContext';
@@ -272,6 +273,7 @@ export default function CsdMatrixPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+      <ProblemStatementBanner />
       <button
         onClick={() => navigate('/discovery/problema')}
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"

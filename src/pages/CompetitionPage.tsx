@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import ProblemStatementBanner from '@/components/discovery/ProblemStatementBanner';
 import { supabase } from '@/integrations/supabase/client';
 import { useProduct } from '@/contexts/ProductContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -327,6 +328,7 @@ const CompetitionPage = () => {
 
   return (
     <div id="competition-map" data-tour-feature="comp-map" className="space-y-6">
+      <ProblemStatementBanner />
       {TourElement}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

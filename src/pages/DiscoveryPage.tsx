@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star } from 'lucide-react';
+import ProblemStatementCard from '@/components/discovery/ProblemStatementCard';
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
@@ -14,6 +15,10 @@ export default function DiscoveryPage() {
           Do entendimento do problema à solução validada
         </p>
       </header>
+
+      <div className="mb-6">
+        <ProblemStatementCard variant="compact" />
+      </div>
 
       {/* Diamonds visual */}
       <div className="mb-10 rounded-2xl border border-border bg-card p-6 md:p-10 overflow-x-auto">

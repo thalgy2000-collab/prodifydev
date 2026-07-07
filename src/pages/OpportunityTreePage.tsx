@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, Component, ReactNode } from 'react';
+import ProblemStatementBanner from '@/components/discovery/ProblemStatementBanner';
 import { useSearchParams } from 'react-router-dom';
 import { useOpportunityTreeStore } from '@/hooks/useOpportunityTreeStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
@@ -369,6 +370,7 @@ const OpportunityTreePage = () => {
 
   return (
     <div data-tour-feature="opp-tree" className="space-y-6 relative">
+      <ProblemStatementBanner />
       {TourElement}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
