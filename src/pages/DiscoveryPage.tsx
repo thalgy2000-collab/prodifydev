@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star } from 'lucide-react';
+import ProblemStatementCard from '@/components/discovery/ProblemStatementCard';
 
 export default function DiscoveryPage() {
   const navigate = useNavigate();
