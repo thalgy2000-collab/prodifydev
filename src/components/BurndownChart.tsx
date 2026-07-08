@@ -15,7 +15,10 @@ interface BurndownChartProps {
 }
 
 const parseDate = (s: string) => {
-  const d = new Date(s);
+  // YYYY-MM-DD strings are interpreted as UTC by `new Date`, which shifts the
+  // day by one in negative-offset timezones (e.g. UTC-3). Force local midnight.
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T00:00:00' : s;
+  const d = new Date(iso);
   return isNaN(d.getTime()) ? null : d;
 };
 
