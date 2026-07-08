@@ -33,7 +33,7 @@ export default function DeskResearchTab({ onUpdate }: { onUpdate: () => void }) 
       .eq('product_id', activeProduct.id)
       .order('created_at', { ascending: false });
     
-    if (!error && res) setData(res as DeskResearch[]);
+    if (!error && res) setData(res as unknown as DeskResearch[]);
     setLoading(false);
   };
 
