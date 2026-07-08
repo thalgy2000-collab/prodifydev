@@ -33,7 +33,7 @@ export default function DataAnalysisTab({ onUpdate }: { onUpdate: () => void }) 
       .eq('product_id', activeProduct.id)
       .order('created_at', { ascending: false });
     
-    if (!error && res) setData(res as DataAnalysis[]);
+    if (!error && res) setData(res as unknown as DataAnalysis[]);
     setLoading(false);
   };
 
@@ -171,8 +171,9 @@ export default function DataAnalysisTab({ onUpdate }: { onUpdate: () => void }) 
               </p>
               
               <div className="flex items-center justify-between pt-4 border-t border-border">
-                {item.reportLink ? (
-                  <a href={item.reportLink} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm flex items-center gap-1 w-full justify-end">
+                {item.report_link ? (
+                  <a href={item.report_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm flex items-center gap-1 w-full justify-end">
+
                     Abrir Dashboard <Link2 className="h-3 w-3" />
                   </a>
                 ) : (

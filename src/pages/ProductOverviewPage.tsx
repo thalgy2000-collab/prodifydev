@@ -91,8 +91,8 @@ const ProductOverviewPage = () => {
       const progress = total > 0 ? Math.round((done / total) * 100) : 0;
 
       const today = new Date(); today.setHours(0, 0, 0, 0);
-      const end = new Date(sprint.end_date); end.setHours(0, 0, 0, 0);
-      const start = new Date(sprint.start_date); start.setHours(0, 0, 0, 0);
+      const end = new Date(sprint.end_date + 'T00:00:00'); end.setHours(0, 0, 0, 0);
+      const start = new Date(sprint.start_date + 'T00:00:00'); start.setHours(0, 0, 0, 0);
       const daysLeft = Math.ceil((end.getTime() - today.getTime()) / 86400000);
       const totalMs = end.getTime() - start.getTime();
       const elapsedMs = today.getTime() - start.getTime();

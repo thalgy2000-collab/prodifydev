@@ -34,7 +34,7 @@ export default function QuantitativeTab({ onUpdate }: { onUpdate: () => void }) 
       .eq('product_id', activeProduct.id)
       .order('created_at', { ascending: false });
     
-    if (!error && res) setData(res as QuantitativeResearch[]);
+    if (!error && res) setData(res as unknown as QuantitativeResearch[]);
     setLoading(false);
   };
 
