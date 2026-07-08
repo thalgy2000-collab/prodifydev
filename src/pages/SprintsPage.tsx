@@ -246,7 +246,7 @@ const SprintsPage = () => {
     const sprintOverdue = selectedSprint && isOverdue(selectedSprint) && task.status !== 'done';
     const progress = getProgress(task.id);
     const assignee = task.assigneeId ? members.find(m => m.id === task.assigneeId) : null;
-    const taskOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done';
+    const taskOverdue = task.dueDate && new Date(task.dueDate + 'T23:59:59') < new Date() && task.status !== 'done';
 
     return (
       <div
