@@ -33,7 +33,7 @@ export default function DataAnalysisTab({ onUpdate }: { onUpdate: () => void }) 
       .eq('product_id', activeProduct.id)
       .order('created_at', { ascending: false });
     
-    if (!error && res) setData(res as DataAnalysis[]);
+    if (!error && res) setData(res as unknown as DataAnalysis[]);
     setLoading(false);
   };
 
