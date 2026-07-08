@@ -142,7 +142,7 @@ export default function UsabilityTestsPage() {
                 {it.objective && <p className="text-xs text-muted-foreground mb-3 line-clamp-2 whitespace-pre-wrap">{it.objective}</p>}
                 <div className="flex flex-wrap items-center gap-3 text-xs mb-3">
                   <span className={`px-2 py-1 rounded border ${status.color}`}>{status.label}</span>
-                  {it.date && <span className="text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(it.date).toLocaleDateString('pt-BR')}</span>}
+                  {it.date && <span className="text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(it.date + 'T00:00:00').toLocaleDateString('pt-BR')}</span>}
                   {!!it.participants && <span className="text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> {it.participants} participantes</span>}
                 </div>
                 {it.findings && it.findings.length > 0 && (
