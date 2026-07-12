@@ -202,10 +202,19 @@ const BacklogPage = () => {
     return task.title.toLowerCase().includes(q) || (task.description?.toLowerCase().includes(q) ?? false);
   }, [searchQuery]);
 
-  const filtered = unassigned
-    .filter(t => filterStatus === 'all' || t.status === filterStatus)
-    .filter(matchesEpic)
-    .filter(matchesSearch);
+  const sortByDueDate = <T extends { dueDate?: string | null }>(list: T[]) =>
+    [...list].sort((a, b) => {
+      const ad = a.dueDate ? new Date(a.dueDate + 'T00:00:00').getTime() : Infinity;
+      const bd = b.dueDate ? new Date(b.dueDate + 'T00:00:00').getTime() : Infinity;
+      return ad - bd;
+    });
+
+  const filtered = sortByDueDate(
+    unassigned
+      .filter(t => filterStatus === 'all' || t.status === filterStatus)
+      .filter(matchesEpic)
+      .filter(matchesSearch)
+  );
 
   // Collapsed state per sprint, persisted in localStorage
   const getInitialCollapsed = (sprintId: string, status: SprintStatus) => {
