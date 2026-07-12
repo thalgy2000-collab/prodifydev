@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
 import { useUndo } from '@/contexts/UndoContext';
+import { formatDateBR } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
@@ -280,12 +281,12 @@ const SprintsPage = () => {
               <div className={`flex items-center gap-1 text-xs ${taskOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {taskOverdue && <AlertTriangle className="h-3 w-3" />}
                 <Calendar className="h-3 w-3" />
-                <span>{task.dueDate}</span>
+                <span>{formatDateBR(task.dueDate)}</span>
               </div>
             ) : selectedSprint ? (
               <div className={`flex items-center gap-1 text-xs ${sprintOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {sprintOverdue && <AlertTriangle className="h-3 w-3" />}
-                <span>{selectedSprint.endDate}</span>
+                <span>{formatDateBR(selectedSprint.endDate)}</span>
               </div>
             ) : null}
             <div className="flex items-center gap-1" title={pCfg.label}>
@@ -360,7 +361,7 @@ const SprintsPage = () => {
             {SPRINT_STATUS_CONFIG[selectedSprint.status].label}
           </Badge>
           {selectedSprint.goal && <span className="text-sm text-muted-foreground">— {selectedSprint.goal}</span>}
-          <span className="ml-auto font-mono text-xs text-muted-foreground">{selectedSprint.startDate} → {selectedSprint.endDate}</span>
+          <span className="ml-auto font-mono text-xs text-muted-foreground">{formatDateBR(selectedSprint.startDate)} → {formatDateBR(selectedSprint.endDate)}</span>
           <Select value={selectedSprint.status} onValueChange={v => updateSprint(selectedSprint.id, { status: v as SprintStatus })}>
             <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>{Object.entries(SPRINT_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>

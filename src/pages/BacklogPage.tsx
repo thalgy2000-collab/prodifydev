@@ -23,6 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast } from 'sonner';
 import type { DragEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatDateBR } from '@/lib/utils';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { backlogTourSteps } from '@/lib/featureTours';
 import { useUndoStack } from '@/hooks/useUndoStack';
@@ -745,7 +746,7 @@ const BacklogPage = () => {
                 <Zap className="h-4 w-4 text-primary shrink-0" />
                 <h2 className="text-lg font-semibold">{sprint.name}</h2>
                 <Badge variant="secondary" style={{ backgroundColor: `hsl(${sCfg.color} / 0.15)`, color: `hsl(${sCfg.color})` }}>{sCfg.label}</Badge>
-                <span className="font-mono text-xs text-muted-foreground">{sprint.startDate} → {sprint.endDate}</span>
+                <span className="font-mono text-xs text-muted-foreground">{formatDateBR(sprint.startDate)} → {formatDateBR(sprint.endDate)}</span>
                 <span className="font-mono text-xs text-muted-foreground">({sprintTasks.length} {sprintTasks.length === 1 ? 'tarefa' : 'tarefas'} • {totalPoints} pts)</span>
               </button>
               <div className="flex items-center gap-1">

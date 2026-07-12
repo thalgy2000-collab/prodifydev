@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { History } from 'lucide-react';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { historyTourSteps } from '@/lib/featureTours';
+import { formatDateBR } from '@/lib/utils';
 
 const SprintHistoryPage = () => {
   const { sprints } = useSprintStore();
@@ -40,7 +41,7 @@ const SprintHistoryPage = () => {
                   <div>
                     <h2 className="text-lg font-semibold">{sprint.name}</h2>
                     {sprint.goal && <p className="mt-1 text-sm text-muted-foreground">{sprint.goal}</p>}
-                    <p className="mt-1 font-mono text-xs text-muted-foreground">{sprint.startDate} → {sprint.endDate}</p>
+                    <p className="mt-1 font-mono text-xs text-muted-foreground">{formatDateBR(sprint.startDate)} → {formatDateBR(sprint.endDate)}</p>
                   </div>
                   <Badge variant="secondary">{done}/{total} concluídas</Badge>
                 </div>
