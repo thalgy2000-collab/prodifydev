@@ -161,7 +161,13 @@ const SprintsPage = () => {
   };
 
   const getTasksForColumn = (col: KanbanColumn) => {
-    return sprintTasks.filter(t => col.statusMap.includes(t.status));
+    return sprintTasks
+      .filter(t => col.statusMap.includes(t.status))
+      .sort((a, b) => {
+        const ad = a.dueDate ? new Date(a.dueDate + 'T00:00:00').getTime() : Infinity;
+        const bd = b.dueDate ? new Date(b.dueDate + 'T00:00:00').getTime() : Infinity;
+        return ad - bd;
+      });
   };
 
   const isOverdue = (sprint: Sprint) => {
