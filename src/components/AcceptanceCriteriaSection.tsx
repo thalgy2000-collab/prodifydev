@@ -36,6 +36,25 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
   const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
   const [editingCriterionTitle, setEditingCriterionTitle] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  const handleDrop = (targetId: string) => {
+    if (!draggingId || !reorderCriteria || draggingId === targetId) {
+      setDraggingId(null);
+      setDragOverId(null);
+      return;
+    }
+    const ordered = [...criteria].sort((a, b) => a.sortOrder - b.sortOrder);
+    const fromIdx = ordered.findIndex(c => c.id === draggingId);
+    const toIdx = ordered.findIndex(c => c.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = ordered.splice(fromIdx, 1);
+    ordered.splice(toIdx, 0, moved);
+    reorderCriteria(taskId, ordered.map(c => c.id));
+    setDraggingId(null);
+    setDragOverId(null);
+  };
 
   const handleGenerateAI = async () => {
     const title = (taskTitle || '').trim();
