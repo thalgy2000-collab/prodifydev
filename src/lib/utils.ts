@@ -5,6 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Formata "YYYY-MM-DD" para "DD/MM/YYYY" (pt-BR). */
+export function formatDateBR(s?: string | null): string {
+  if (!s) return '';
+  const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return String(s);
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
+
 export function getQuarterDates(quarterStr: string) {
   const match = quarterStr.match(/Q([1-4])\s+(\d{4})/);
   if (!match) return null;
