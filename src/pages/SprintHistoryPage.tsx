@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { History } from 'lucide-react';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { historyTourSteps } from '@/lib/featureTours';
+import { formatDateBR } from '@/lib/utils';
 
 const SprintHistoryPage = () => {
   const { sprints } = useSprintStore();
