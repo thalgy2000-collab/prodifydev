@@ -6,6 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Sprint } from '@/types/sprint';
 import { BacklogTask } from '@/types/backlog';
 import { TrendingDown } from 'lucide-react';
+import { formatDateBR } from '@/lib/utils';
 
 interface BurndownChartProps {
   sprints: Sprint[];
