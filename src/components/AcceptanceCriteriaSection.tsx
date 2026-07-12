@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { CountedInput } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, Pencil, Check, X, ClipboardCheck, Sparkles, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, Check, X, ClipboardCheck, Sparkles, Loader2, GripVertical } from 'lucide-react';
 import CriterionSchedulePopover from '@/components/CriterionSchedulePopover';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -22,11 +22,12 @@ interface AcceptanceCriteriaSectionProps {
   addCriterion: (taskId: string, title: string) => Promise<void>;
   updateCriterion: (id: string, patch: any, taskId: string) => Promise<void>;
   deleteCriterion: (id: string, taskId: string) => Promise<void>;
+  reorderCriteria?: (taskId: string, orderedIds: string[]) => Promise<void>;
   taskTitle?: string;
   taskDescription?: string;
 }
 
-const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion, taskTitle, taskDescription }: AcceptanceCriteriaSectionProps) => {
+const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion, reorderCriteria, taskTitle, taskDescription }: AcceptanceCriteriaSectionProps) => {
   const { user } = useAuth();
   const { activeProduct } = useProduct();
   const { addActivity } = useScheduleStore();
@@ -35,6 +36,25 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
   const [editingCriterionId, setEditingCriterionId] = useState<string | null>(null);
   const [editingCriterionTitle, setEditingCriterionTitle] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  const handleDrop = (targetId: string) => {
+    if (!draggingId || !reorderCriteria || draggingId === targetId) {
+      setDraggingId(null);
+      setDragOverId(null);
+      return;
+    }
+    const ordered = [...criteria].sort((a, b) => a.sortOrder - b.sortOrder);
+    const fromIdx = ordered.findIndex(c => c.id === draggingId);
+    const toIdx = ordered.findIndex(c => c.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = ordered.splice(fromIdx, 1);
+    ordered.splice(toIdx, 0, moved);
+    reorderCriteria(taskId, ordered.map(c => c.id));
+    setDraggingId(null);
+    setDragOverId(null);
+  };
 
   const handleGenerateAI = async () => {
     const title = (taskTitle || '').trim();
@@ -160,13 +180,37 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
       )}
 
       <div className="space-y-1">
-        {criteria.map(criterion => (
-          <div key={criterion.id}>
-            <div className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/50 group">
+        {[...criteria].sort((a, b) => a.sortOrder - b.sortOrder).map(criterion => (
+          <div
+            key={criterion.id}
+            onDragOver={e => { if (draggingId && reorderCriteria) { e.preventDefault(); setDragOverId(criterion.id); } }}
+            onDragLeave={() => { if (dragOverId === criterion.id) setDragOverId(null); }}
+            onDrop={e => { e.preventDefault(); handleDrop(criterion.id); }}
+            className={cn(
+              'transition-colors',
+              draggingId === criterion.id && 'opacity-40',
+              dragOverId === criterion.id && draggingId !== criterion.id && 'border-t-2 border-primary'
+            )}
+          >
+            <div className="flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-muted/50 group">
+              {reorderCriteria && (
+                <button
+                  type="button"
+                  draggable
+                  onDragStart={() => setDraggingId(criterion.id)}
+                  onDragEnd={() => { setDraggingId(null); setDragOverId(null); }}
+                  className="cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity shrink-0"
+                  title="Arraste para reordenar"
+                  aria-label="Reordenar critério"
+                >
+                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
               <Checkbox
                 checked={criterion.completed}
                 onCheckedChange={() => handleToggle(criterion.id, criterion.completed)}
               />
+
               {editingCriterionId === criterion.id ? (
                 <div className="flex-1 flex items-center gap-1">
                   <CountedInput

@@ -30,7 +30,7 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
   const [assigneeId, setAssigneeId] = useState('none');
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
-  const { fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
+  const { fetchByTask, addCriterion, updateCriterion, deleteCriterion, reorderCriteria, getCriteriaForTask } = useAcceptanceCriteriaStore();
 
   useEffect(() => {
     if (task) {
@@ -88,6 +88,7 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
                 addCriterion={addCriterion}
                 updateCriterion={updateCriterion}
                 deleteCriterion={deleteCriterion}
+                reorderCriteria={reorderCriteria}
                 taskTitle={title}
                 taskDescription={description}
               />

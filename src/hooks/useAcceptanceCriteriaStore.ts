@@ -65,6 +65,23 @@ export const useAcceptanceCriteriaStore = () => {
     await fetchByTask(taskId);
   }, [fetchByTask]);
 
+  const reorderCriteria = useCallback(async (taskId: string, orderedIds: string[]) => {
+    // Optimistic update
+    setCriteria(prev => {
+      const orderMap = new Map(orderedIds.map((id, idx) => [id, idx]));
+      return prev.map(c =>
+        c.taskId === taskId && orderMap.has(c.id)
+          ? { ...c, sortOrder: orderMap.get(c.id)! }
+          : c
+      );
+    });
+    await Promise.all(
+      orderedIds.map((id, idx) =>
+        (supabase.from('acceptance_criteria') as any).update({ sort_order: idx }).eq('id', id)
+      )
+    );
+  }, []);
+
   const getCriteriaForTask = useCallback((taskId: string) => {
     return criteria.filter(c => c.taskId === taskId);
   }, [criteria]);
@@ -90,5 +107,5 @@ export const useAcceptanceCriteriaStore = () => {
     if (data) setCriteria(data.map(mapRow));
   }, []);
 
-  return { criteria, loading, fetchByTask, fetchByTasks, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask, allCompleted, getProgress };
+  return { criteria, loading, fetchByTask, fetchByTasks, addCriterion, updateCriterion, deleteCriterion, reorderCriteria, getCriteriaForTask, allCompleted, getProgress };
 };

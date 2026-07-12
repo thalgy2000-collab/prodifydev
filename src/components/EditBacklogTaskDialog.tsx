@@ -89,7 +89,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     confidence: number;
   }>(null);
 
-  const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask } = useAcceptanceCriteriaStore();
+  const { criteria, fetchByTask, addCriterion, updateCriterion, deleteCriterion, reorderCriteria, getCriteriaForTask } = useAcceptanceCriteriaStore();
 
   const fetchMembers = useCallback(async () => {
     if (!activeProduct) return;
@@ -551,6 +551,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               addCriterion={addCriterion}
               updateCriterion={updateCriterion}
               deleteCriterion={deleteCriterion}
+              reorderCriteria={reorderCriteria}
               taskTitle={title}
               taskDescription={description}
             />
