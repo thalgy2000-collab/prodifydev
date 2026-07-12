@@ -361,7 +361,7 @@ const SprintsPage = () => {
             {SPRINT_STATUS_CONFIG[selectedSprint.status].label}
           </Badge>
           {selectedSprint.goal && <span className="text-sm text-muted-foreground">— {selectedSprint.goal}</span>}
-          <span className="ml-auto font-mono text-xs text-muted-foreground">{selectedSprint.startDate} → {selectedSprint.endDate}</span>
+          <span className="ml-auto font-mono text-xs text-muted-foreground">{formatDateBR(selectedSprint.startDate)} → {formatDateBR(selectedSprint.endDate)}</span>
           <Select value={selectedSprint.status} onValueChange={v => updateSprint(selectedSprint.id, { status: v as SprintStatus })}>
             <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>{Object.entries(SPRINT_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
