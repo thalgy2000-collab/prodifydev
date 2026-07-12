@@ -113,25 +113,22 @@ const ProductAgendaPage = () => {
 
     if (syncGoogle) {
       const activityId = editingActivity ? editingActivity.id : savedActivity?.id;
-      const { data: token } = await supabase
-        .from('integration_tokens')
-        .select('token_encrypted')
-        .eq('product_id', activeProduct?.id)
-        .eq('provider', 'google_calendar')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (token && activityId) {
-        await supabase.functions.invoke('sync-google-calendar', {
-          body: {
-            action: 'push_one',
-            activity_id: activityId,
-            access_token: token.token_encrypted
+      if (activityId) {
+        try {
+          const { data, error } = await supabase.functions.invoke('google-calendar-push', {
+            body: { activity_id: activityId },
+          });
+          if (error) throw error;
+          if (data?.error === 'scope_upgrade_required') {
+            toast.error('Reconecte o Google Calendar nas Configurações para enviar eventos.');
+          } else if (data?.error) {
+            toast.error('Erro: ' + data.error);
+          } else {
+            toast.success('Evento enviado ao Google Calendar!');
           }
-        });
-        toast.success('Evento enviado ao Google Calendar!');
-      } else {
-        toast.error('Google Calendar não está conectado.');
+        } catch (e: any) {
+          toast.error('Google Calendar não está conectado ou houve um erro.');
+        }
       }
     }
 
@@ -140,28 +137,8 @@ const ProductAgendaPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const act = activities.find(a => a.id === id);
-    if (act?.google_event_id) {
-      const deleteBoth = window.confirm('Excluir também do Google Calendar?\n\n[OK] = Excluir dos dois\n[Cancelar] = Excluir só do Prodify');
-      if (deleteBoth) {
-        const { data: token } = await supabase
-          .from('integration_tokens')
-          .select('token_encrypted')
-          .eq('product_id', activeProduct?.id)
-          .eq('provider', 'google_calendar')
-          .eq('is_active', true)
-          .maybeSingle();
-        if (token) {
-          await supabase.functions.invoke('sync-google-calendar', {
-            body: {
-              action: 'delete',
-              activity_id: id,
-              access_token: token.token_encrypted
-            }
-          });
-        }
-      }
-    }
+    // Note: Google Calendar event deletion not yet implemented in edge function.
+    // For now, just delete locally. The google_event_id will be orphaned on Google side.
     await deleteActivity(id);
   };
 

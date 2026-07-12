@@ -49,7 +49,8 @@ const ProductSettingsPage = () => {
 
   // Google Calendar states
   const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false);
-  const [googleCalendarToken, setGoogleCalendarToken] = useState<string | null>(null);
+  const [googleCalendarEmail, setGoogleCalendarEmail] = useState<string | null>(null);
+  const [needsScopeUpgrade, setNeedsScopeUpgrade] = useState(false);
   const [syncingGoogle, setSyncingGoogle] = useState(false);
 
   useEffect(() => {
@@ -100,36 +101,30 @@ const ProductSettingsPage = () => {
         } catch (e) {}
       }
 
-      // Google Calendar check
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData?.session;
-      if (session?.provider_token && session?.user?.app_metadata?.provider === 'google') {
-        await supabase.from('integration_tokens').upsert({
-          user_id: profile.id,
-          product_id: activeProduct.id,
-          provider: 'google_calendar',
-          token_encrypted: session.provider_token,
-          is_active: true
-        }, { onConflict: 'user_id,product_id,provider' });
-        
-        // Update URL to remove access_token from hash if possible
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-      }
-
-      const { data: gData } = await supabase
-        .from('integration_tokens')
-        .select('is_active, token_encrypted')
-        .eq('product_id', activeProduct.id)
-        .eq('user_id', profile.id)
-        .eq('provider', 'google_calendar')
-        .maybeSingle();
-
-      if (gData?.is_active && gData?.token_encrypted) {
-        setGoogleCalendarConnected(true);
-        setGoogleCalendarToken(gData.token_encrypted);
-      } else {
+      // Google Calendar check — use google_calendar_tokens table
+      try {
+        const { data: gcalData } = await supabase.functions.invoke('google-calendar-events');
+        if (gcalData?.connected) {
+          setGoogleCalendarConnected(true);
+          setGoogleCalendarEmail(gcalData.email || null);
+          // Check scope: fetch token row to see if scope includes calendar.events
+          const { data: tokenRow } = await (supabase as any)
+            .from('google_calendar_tokens')
+            .select('scope')
+            .eq('user_id', profile.id)
+            .maybeSingle();
+          if (tokenRow?.scope && !tokenRow.scope.includes('calendar.events')) {
+            setNeedsScopeUpgrade(true);
+          } else {
+            setNeedsScopeUpgrade(false);
+          }
+        } else {
+          setGoogleCalendarConnected(false);
+          setGoogleCalendarEmail(null);
+          setNeedsScopeUpgrade(false);
+        }
+      } catch {
         setGoogleCalendarConnected(false);
-        setGoogleCalendarToken(null);
       }
     };
     if (activeSection === 'integrations') {
@@ -309,28 +304,27 @@ const ProductSettingsPage = () => {
   };
 
   const handleConnectGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        scopes: 'https://www.googleapis.com/auth/calendar.events',
-        redirectTo: `${window.location.origin}/configuracoes?tab=integrations`,
-        queryParams: { access_type: 'offline', prompt: 'consent' }
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+        body: { returnUrl: `${window.location.origin}/configuracoes?tab=integrations` },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank', 'noopener,noreferrer');
+        toast.info('Autorize no Google e volte para esta aba.');
       }
-    });
-    if (error) toast.error('Erro ao conectar Google: ' + error.message);
+    } catch (e: any) {
+      toast.error('Erro ao conectar Google: ' + (e.message || 'erro'));
+    }
   };
 
   const handleDisconnectGoogle = async () => {
-    if (!activeProduct || !profile) return;
     try {
-      await supabase
-        .from('integration_tokens')
-        .update({ is_active: false })
-        .eq('product_id', activeProduct.id)
-        .eq('user_id', profile.id)
-        .eq('provider', 'google_calendar');
+      const { error } = await supabase.functions.invoke('google-calendar-disconnect');
+      if (error) throw error;
       setGoogleCalendarConnected(false);
-      setGoogleCalendarToken(null);
+      setGoogleCalendarEmail(null);
+      setNeedsScopeUpgrade(false);
       toast.success('Google Calendar desconectado.');
     } catch (e: any) {
       toast.error('Erro ao desconectar: ' + e.message);
@@ -338,25 +332,42 @@ const ProductSettingsPage = () => {
   };
 
   const handleSyncGoogle = async () => {
-    if (!activeProduct || !googleCalendarToken) return;
+    if (!activeProduct) return;
     setSyncingGoogle(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-google-calendar', {
-        body: {
-          action: 'push_all',
-          product_id: activeProduct.id,
-          access_token: googleCalendarToken
-        }
-      });
-      if (error) throw error;
-      toast.success(`✅ ${data?.synced_count || 0} eventos enviados ao Google Calendar`);
-    } catch (e: any) {
-      if (e.message?.includes('401')) {
-         toast.error('Sessão do Google expirada. Reconecte sua conta.');
-         setGoogleCalendarConnected(false);
-      } else {
-         toast.error('Erro na sincronização: ' + e.message);
+      // Fetch all activities without google_event_id for this product
+      const { data: pending, error: fetchErr } = await (supabase as any)
+        .from('schedule_activities')
+        .select('id')
+        .eq('product_id', activeProduct.id)
+        .is('google_event_id', null);
+      if (fetchErr) throw fetchErr;
+
+      if (!pending || pending.length === 0) {
+        toast.info('Nenhum evento pendente para sincronizar.');
+        return;
       }
+
+      let synced = 0;
+      let errors = 0;
+      for (const act of pending) {
+        const { data, error } = await supabase.functions.invoke('google-calendar-push', {
+          body: { activity_id: act.id },
+        });
+        if (error || data?.error) {
+          if (data?.error === 'scope_upgrade_required') {
+            setNeedsScopeUpgrade(true);
+            toast.error('Reconecte o Google Calendar para obter permissão de escrita.');
+            return;
+          }
+          errors++;
+        } else {
+          synced++;
+        }
+      }
+      toast.success(`✅ ${synced} evento(s) enviado(s) ao Google Calendar${errors > 0 ? ` (${errors} erro(s))` : ''}`);
+    } catch (e: any) {
+      toast.error('Erro na sincronização: ' + e.message);
     } finally {
       setSyncingGoogle(false);
     }
@@ -480,14 +491,29 @@ const ProductSettingsPage = () => {
                       <h3 className="font-medium text-lg flex items-center gap-2">
                         📅 Google Calendar
                       </h3>
-                      {googleCalendarConnected && (
+                      {googleCalendarConnected && !needsScopeUpgrade && (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-green-500/10 text-green-600 dark:text-green-400 rounded-full border border-green-500/20">
                           <CheckCircle2 className="h-3.5 w-3.5" />
-                          Conectado
+                          Conectado{googleCalendarEmail ? ` · ${googleCalendarEmail}` : ''}
+                        </span>
+                      )}
+                      {googleCalendarConnected && needsScopeUpgrade && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-amber-500/10 text-amber-500 rounded-full border border-amber-500/20">
+                          ⚠️ Atualização necessária
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">Envie eventos do Prodify para sua agenda pessoal.</p>
+                    <p className="text-sm text-muted-foreground mb-3">Envie eventos do Prodify para sua agenda pessoal.</p>
+
+                    {needsScopeUpgrade && (
+                      <div className="mb-4 p-3 rounded-lg border border-amber-500/30 bg-amber-500/5 text-sm">
+                        <p className="text-amber-400 font-medium mb-1">⚠️ Atualizamos as permissões do Google Calendar.</p>
+                        <p className="text-muted-foreground">Reconecte sua conta para poder enviar eventos do Prodify para o Google Calendar.</p>
+                        <Button onClick={handleConnectGoogle} variant="outline" size="sm" className="mt-2">
+                          Reconectar Google Calendar
+                        </Button>
+                      </div>
+                    )}
                     
                     {!googleCalendarConnected ? (
                       <Button onClick={handleConnectGoogle} variant="outline" className="w-full sm:w-auto">
@@ -495,7 +521,7 @@ const ProductSettingsPage = () => {
                       </Button>
                     ) : (
                       <div className="flex flex-wrap gap-2">
-                        <Button onClick={handleSyncGoogle} disabled={syncingGoogle} className="w-full sm:w-auto">
+                        <Button onClick={handleSyncGoogle} disabled={syncingGoogle || needsScopeUpgrade} className="w-full sm:w-auto">
                           {syncingGoogle ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                           Sincronizar eventos pendentes →
                         </Button>
