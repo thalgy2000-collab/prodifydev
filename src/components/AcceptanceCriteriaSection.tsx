@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { CountedInput } from '@/components/ui/counted-input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2, Pencil, Check, X, ClipboardCheck, Sparkles, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, Check, X, ClipboardCheck, Sparkles, Loader2, GripVertical } from 'lucide-react';
 import CriterionSchedulePopover from '@/components/CriterionSchedulePopover';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
