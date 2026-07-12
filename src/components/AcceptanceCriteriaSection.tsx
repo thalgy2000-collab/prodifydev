@@ -180,13 +180,37 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
       )}
 
       <div className="space-y-1">
-        {criteria.map(criterion => (
-          <div key={criterion.id}>
-            <div className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/50 group">
+        {[...criteria].sort((a, b) => a.sortOrder - b.sortOrder).map(criterion => (
+          <div
+            key={criterion.id}
+            onDragOver={e => { if (draggingId && reorderCriteria) { e.preventDefault(); setDragOverId(criterion.id); } }}
+            onDragLeave={() => { if (dragOverId === criterion.id) setDragOverId(null); }}
+            onDrop={e => { e.preventDefault(); handleDrop(criterion.id); }}
+            className={cn(
+              'transition-colors',
+              draggingId === criterion.id && 'opacity-40',
+              dragOverId === criterion.id && draggingId !== criterion.id && 'border-t-2 border-primary'
+            )}
+          >
+            <div className="flex items-center gap-1 rounded-md px-2 py-1.5 hover:bg-muted/50 group">
+              {reorderCriteria && (
+                <button
+                  type="button"
+                  draggable
+                  onDragStart={() => setDraggingId(criterion.id)}
+                  onDragEnd={() => { setDraggingId(null); setDragOverId(null); }}
+                  className="cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity shrink-0"
+                  title="Arraste para reordenar"
+                  aria-label="Reordenar critério"
+                >
+                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
               <Checkbox
                 checked={criterion.completed}
                 onCheckedChange={() => handleToggle(criterion.id, criterion.completed)}
               />
+
               {editingCriterionId === criterion.id ? (
                 <div className="flex-1 flex items-center gap-1">
                   <CountedInput
