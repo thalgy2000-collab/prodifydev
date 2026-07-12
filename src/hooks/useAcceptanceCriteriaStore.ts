@@ -107,5 +107,5 @@ export const useAcceptanceCriteriaStore = () => {
     if (data) setCriteria(data.map(mapRow));
   }, []);
 
-  return { criteria, loading, fetchByTask, fetchByTasks, addCriterion, updateCriterion, deleteCriterion, getCriteriaForTask, allCompleted, getProgress };
+  return { criteria, loading, fetchByTask, fetchByTasks, addCriterion, updateCriterion, deleteCriterion, reorderCriteria, getCriteriaForTask, allCompleted, getProgress };
 };
