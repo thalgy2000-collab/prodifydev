@@ -287,7 +287,7 @@ export default function CsdMatrixPage() {
           O que você sabe, assume ou tem dúvida sobre a solução?
         </h1>
         <div className="flex items-center gap-3 mt-3">
-          <Button onClick={() => openCreate('assumption')} className="gap-2">
+          <Button type="button" onClick={() => openCreate('assumption')} className="gap-2">
             <Plus className="h-4 w-4" /> Novo item
           </Button>
         </div>
@@ -444,6 +444,7 @@ export default function CsdMatrixPage() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => openCreate(col.key)}
                   className={cn(
                     'mt-3 w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed py-2 text-xs font-medium transition-colors',
