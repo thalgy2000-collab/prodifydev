@@ -281,12 +281,12 @@ const SprintsPage = () => {
               <div className={`flex items-center gap-1 text-xs ${taskOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {taskOverdue && <AlertTriangle className="h-3 w-3" />}
                 <Calendar className="h-3 w-3" />
-                <span>{task.dueDate}</span>
+                <span>{formatDateBR(task.dueDate)}</span>
               </div>
             ) : selectedSprint ? (
               <div className={`flex items-center gap-1 text-xs ${sprintOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {sprintOverdue && <AlertTriangle className="h-3 w-3" />}
-                <span>{selectedSprint.endDate}</span>
+                <span>{formatDateBR(selectedSprint.endDate)}</span>
               </div>
             ) : null}
             <div className="flex items-center gap-1" title={pCfg.label}>
