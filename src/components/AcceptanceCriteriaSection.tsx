@@ -22,11 +22,12 @@ interface AcceptanceCriteriaSectionProps {
   addCriterion: (taskId: string, title: string) => Promise<void>;
   updateCriterion: (id: string, patch: any, taskId: string) => Promise<void>;
   deleteCriterion: (id: string, taskId: string) => Promise<void>;
+  reorderCriteria?: (taskId: string, orderedIds: string[]) => Promise<void>;
   taskTitle?: string;
   taskDescription?: string;
 }
 
-const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion, taskTitle, taskDescription }: AcceptanceCriteriaSectionProps) => {
+const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion, reorderCriteria, taskTitle, taskDescription }: AcceptanceCriteriaSectionProps) => {
   const { user } = useAuth();
   const { activeProduct } = useProduct();
   const { addActivity } = useScheduleStore();
