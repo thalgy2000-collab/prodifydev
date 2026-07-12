@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
 import { useUndo } from '@/contexts/UndoContext';
+import { formatDateBR } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
