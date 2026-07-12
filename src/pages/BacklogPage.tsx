@@ -23,6 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast } from 'sonner';
 import type { DragEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatDateBR } from '@/lib/utils';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { backlogTourSteps } from '@/lib/featureTours';
 import { useUndoStack } from '@/hooks/useUndoStack';
