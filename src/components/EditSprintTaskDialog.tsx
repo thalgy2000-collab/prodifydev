@@ -88,6 +88,7 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
                 addCriterion={addCriterion}
                 updateCriterion={updateCriterion}
                 deleteCriterion={deleteCriterion}
+                reorderCriteria={reorderCriteria}
                 taskTitle={title}
                 taskDescription={description}
               />
