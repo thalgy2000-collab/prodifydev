@@ -551,6 +551,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
               addCriterion={addCriterion}
               updateCriterion={updateCriterion}
               deleteCriterion={deleteCriterion}
+              reorderCriteria={reorderCriteria}
               taskTitle={title}
               taskDescription={description}
             />
