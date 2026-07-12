@@ -47,6 +47,11 @@ const ProductSettingsPage = () => {
   const [lastJiraSync, setLastJiraSync] = useState<{timestamp: string, results: any} | null>(null);
   const [isJiraActive, setIsJiraActive] = useState(false);
 
+  // Google Calendar states
+  const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false);
+  const [googleCalendarToken, setGoogleCalendarToken] = useState<string | null>(null);
+  const [syncingGoogle, setSyncingGoogle] = useState(false);
+
   useEffect(() => {
     if (tabQuery) {
       setActiveSection(tabQuery);
@@ -93,6 +98,38 @@ const ProductSettingsPage = () => {
         try {
           setLastJiraSync(JSON.parse(lastSync));
         } catch (e) {}
+      }
+
+      // Google Calendar check
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (session?.provider_token && session?.user?.app_metadata?.provider === 'google') {
+        await supabase.from('integration_tokens').upsert({
+          user_id: profile.id,
+          product_id: activeProduct.id,
+          provider: 'google_calendar',
+          token_encrypted: session.provider_token,
+          is_active: true
+        }, { onConflict: 'user_id,product_id,provider' });
+        
+        // Update URL to remove access_token from hash if possible
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      }
+
+      const { data: gData } = await supabase
+        .from('integration_tokens')
+        .select('is_active, token_encrypted')
+        .eq('product_id', activeProduct.id)
+        .eq('user_id', profile.id)
+        .eq('provider', 'google_calendar')
+        .maybeSingle();
+
+      if (gData?.is_active && gData?.token_encrypted) {
+        setGoogleCalendarConnected(true);
+        setGoogleCalendarToken(gData.token_encrypted);
+      } else {
+        setGoogleCalendarConnected(false);
+        setGoogleCalendarToken(null);
       }
     };
     if (activeSection === 'integrations') {
@@ -271,6 +308,60 @@ const ProductSettingsPage = () => {
     }
   };
 
+  const handleConnectGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        scopes: 'https://www.googleapis.com/auth/calendar.events',
+        redirectTo: `${window.location.origin}/configuracoes?tab=integrations`,
+        queryParams: { access_type: 'offline', prompt: 'consent' }
+      }
+    });
+    if (error) toast.error('Erro ao conectar Google: ' + error.message);
+  };
+
+  const handleDisconnectGoogle = async () => {
+    if (!activeProduct || !profile) return;
+    try {
+      await supabase
+        .from('integration_tokens')
+        .update({ is_active: false })
+        .eq('product_id', activeProduct.id)
+        .eq('user_id', profile.id)
+        .eq('provider', 'google_calendar');
+      setGoogleCalendarConnected(false);
+      setGoogleCalendarToken(null);
+      toast.success('Google Calendar desconectado.');
+    } catch (e: any) {
+      toast.error('Erro ao desconectar: ' + e.message);
+    }
+  };
+
+  const handleSyncGoogle = async () => {
+    if (!activeProduct || !googleCalendarToken) return;
+    setSyncingGoogle(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-google-calendar', {
+        body: {
+          action: 'push_all',
+          product_id: activeProduct.id,
+          access_token: googleCalendarToken
+        }
+      });
+      if (error) throw error;
+      toast.success(`✅ ${data?.synced_count || 0} eventos enviados ao Google Calendar`);
+    } catch (e: any) {
+      if (e.message?.includes('401')) {
+         toast.error('Sessão do Google expirada. Reconecte sua conta.');
+         setGoogleCalendarConnected(false);
+      } else {
+         toast.error('Erro na sincronização: ' + e.message);
+      }
+    } finally {
+      setSyncingGoogle(false);
+    }
+  };
+
   const menuItems = [
     { id: 'general', label: 'Geral', icon: Settings },
     { id: 'integrations', label: 'Integrações', icon: LinkIcon },
@@ -383,6 +474,38 @@ const ProductSettingsPage = () => {
                       <span className="text-xl">💡</span> Configure sua integração com Jira ou Linear para sincronizar seu backlog automaticamente
                     </div>
                   )}
+
+                  <div className="border-b border-border pb-6 mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-lg flex items-center gap-2">
+                        📅 Google Calendar
+                      </h3>
+                      {googleCalendarConnected && (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-green-500/10 text-green-600 dark:text-green-400 rounded-full border border-green-500/20">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Conectado
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">Envie eventos do Prodify para sua agenda pessoal.</p>
+                    
+                    {!googleCalendarConnected ? (
+                      <Button onClick={handleConnectGoogle} variant="outline" className="w-full sm:w-auto">
+                        Conectar Google Calendar
+                      </Button>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        <Button onClick={handleSyncGoogle} disabled={syncingGoogle} className="w-full sm:w-auto">
+                          {syncingGoogle ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                          Sincronizar eventos pendentes →
+                        </Button>
+                        <Button variant="destructive" onClick={handleDisconnectGoogle} className="w-full sm:w-auto">
+                          Desconectar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-lg">Jira</h3>

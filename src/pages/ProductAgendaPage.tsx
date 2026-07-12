@@ -20,8 +20,10 @@ import {
   eachDayOfInterval, isSameMonth, isSameDay, isToday,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
+import { useProduct } from '@/contexts/ProductContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   MonthView, WeekView, DayView, EventTooltip,
   getCategory, getEventStyle,
@@ -64,12 +66,15 @@ const ProductAgendaPage = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [sprintId, setSprintId] = useState('none');
+  const [syncGoogle, setSyncGoogle] = useState(false);
+  const { activeProduct } = useProduct();
 
   const resetForm = () => {
     setTitle(''); setDesc('');
     setDate(format(selectedDate, 'yyyy-MM-dd'));
     setStartTime(''); setEndTime('');
     setSprintId('none'); setEditingActivity(null);
+    setSyncGoogle(false);
   };
 
   const openCreate = (dateStr?: string) => {
@@ -84,26 +89,80 @@ const ProductAgendaPage = () => {
     setDate(act.activityDate);
     setStartTime(act.startTime || ''); setEndTime(act.endTime || '');
     setSprintId(act.sprintId || 'none');
+    setSyncGoogle(false);
     setCreateOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim() || !date) return;
+    let savedActivity;
     if (editingActivity) {
-      updateActivity(editingActivity.id, {
+      await updateActivity(editingActivity.id, {
         title, description: desc, activityDate: date,
         startTime: startTime || undefined, endTime: endTime || undefined,
         sprintId: sprintId !== 'none' ? sprintId : undefined,
       });
+      savedActivity = editingActivity;
     } else {
-      addActivity({
+      savedActivity = await addActivity({
         title, description: desc, activityDate: date,
         startTime: startTime || undefined, endTime: endTime || undefined,
         sprintId: sprintId !== 'none' ? sprintId : undefined, status: 'pending',
       });
     }
+
+    if (syncGoogle) {
+      const activityId = editingActivity ? editingActivity.id : savedActivity?.id;
+      const { data: token } = await supabase
+        .from('integration_tokens')
+        .select('token_encrypted')
+        .eq('product_id', activeProduct?.id)
+        .eq('provider', 'google_calendar')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (token && activityId) {
+        await supabase.functions.invoke('sync-google-calendar', {
+          body: {
+            action: 'push_one',
+            activity_id: activityId,
+            access_token: token.token_encrypted
+          }
+        });
+        toast.success('Evento enviado ao Google Calendar!');
+      } else {
+        toast.error('Google Calendar não está conectado.');
+      }
+    }
+
     setCreateOpen(false);
     resetForm();
+  };
+
+  const handleDelete = async (id: string) => {
+    const act = activities.find(a => a.id === id);
+    if (act?.google_event_id) {
+      const deleteBoth = window.confirm('Excluir também do Google Calendar?\n\n[OK] = Excluir dos dois\n[Cancelar] = Excluir só do Prodify');
+      if (deleteBoth) {
+        const { data: token } = await supabase
+          .from('integration_tokens')
+          .select('token_encrypted')
+          .eq('product_id', activeProduct?.id)
+          .eq('provider', 'google_calendar')
+          .eq('is_active', true)
+          .maybeSingle();
+        if (token) {
+          await supabase.functions.invoke('sync-google-calendar', {
+            body: {
+              action: 'delete',
+              activity_id: id,
+              access_token: token.token_encrypted
+            }
+          });
+        }
+      }
+    }
+    await deleteActivity(id);
   };
 
   const toggleStatus = (act: ScheduleActivity) => {
@@ -233,6 +292,16 @@ const ProductAgendaPage = () => {
                     </Select>
                   </div>
                 )}
+                <div className="flex items-center space-x-2 pt-2">
+                  <input 
+                    type="checkbox" 
+                    id="syncGoogle" 
+                    checked={syncGoogle} 
+                    onChange={(e) => setSyncGoogle(e.target.checked)} 
+                    className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" 
+                  />
+                  <Label htmlFor="syncGoogle" className="font-normal cursor-pointer text-sm">Enviar também para o Google Calendar</Label>
+                </div>
                 <Button onClick={handleSave} className="w-full">
                   {editingActivity ? 'Salvar alterações' : 'Criar evento'}
                 </Button>
@@ -335,7 +404,7 @@ const ProductAgendaPage = () => {
                               </p>
                             )}
                           </div>
-                          <button onClick={(e) => { e.stopPropagation(); deleteActivity(act.id); }} className="shrink-0 opacity-60 hover:opacity-100">
+                          <button onClick={(e) => { e.stopPropagation(); handleDelete(act.id); }} className="shrink-0 opacity-60 hover:opacity-100">
                             <Trash2 className="h-3 w-3" />
                           </button>
                         </div>
@@ -386,7 +455,7 @@ const ProductAgendaPage = () => {
               onCreateEvent={() => openCreate(format(selectedDate, 'yyyy-MM-dd'))}
               onEditEvent={openEdit}
               onToggleStatus={toggleStatus}
-              onDeleteEvent={deleteActivity}
+              onDeleteEvent={handleDelete}
               getProductInfo={getProductInfo}
               isTaskActivity={isTaskActivity}
               getDisplayTitle={getDisplayTitle}

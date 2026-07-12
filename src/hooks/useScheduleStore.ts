@@ -25,6 +25,9 @@ export const useScheduleStore = () => {
         endTime: d.end_time ?? undefined, sprintId: d.sprint_id ?? undefined,
         productId: d.product_id ?? undefined,
         status: d.status as ScheduleActivity['status'], createdAt: d.created_at,
+        sync_source: d.sync_source ?? undefined,
+        google_event_id: d.google_event_id ?? undefined,
+        last_synced_at: d.last_synced_at ?? undefined,
       })));
     }
   }, [user, activeProduct]);

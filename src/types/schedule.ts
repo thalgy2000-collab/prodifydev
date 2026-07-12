@@ -11,6 +11,9 @@ export interface ScheduleActivity {
   productId?: string;
   status: ActivityStatus;
   createdAt: string;
+  sync_source?: 'prodify' | 'google' | 'both';
+  google_event_id?: string;
+  last_synced_at?: string;
 }
 
 export const ACTIVITY_STATUS_CONFIG: Record<ActivityStatus, { label: string; color: string }> = {

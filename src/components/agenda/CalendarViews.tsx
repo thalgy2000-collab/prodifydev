@@ -3,7 +3,7 @@ import { format, isSameDay, isSameMonth, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Clock, CheckCircle2, Circle, Pencil, Trash2, CalendarDays } from 'lucide-react';
+import { Plus, Clock, CheckCircle2, Circle, Pencil, Trash2, CalendarDays, CalendarCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
 import { ScheduleActivity } from '@/types/schedule';
@@ -86,6 +86,7 @@ export const EventTooltip = ({ act, category, productLabel, isTask, displayTitle
         <div className="flex items-center gap-1.5">
           <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: `hsl(${CATEGORY_COLORS[category].hsl})` }} />
           <p className="font-semibold text-xs">{displayTitle ?? act.title}</p>
+          {act.sync_source === 'both' && <CalendarCheck className="h-3.5 w-3.5 text-green-500" title="Sincronizado com Google Calendar" />}
         </div>
         <p className="text-[10px] text-muted-foreground capitalize">
           {CATEGORY_COLORS[category].label.replace(/s$/, '')}
@@ -178,6 +179,9 @@ export const MonthView = ({ days, currentDate, selectedDate, activities, onSelec
                       >
                         {act.startTime && <span className="mr-1 opacity-70">{act.startTime}</span>}
                         {getDisplayTitle(act)}
+                        {act.sync_source === 'both' && (
+                          <CalendarCheck className="h-3 w-3 text-green-500 ml-1 inline-block shrink-0" title="Sincronizado com Google Calendar" />
+                        )}
                       </button>
                     </EventTooltip>
                   );
@@ -266,7 +270,10 @@ export const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreat
                           act.status === 'done' && 'opacity-50'
                         )}
                       >
-                        <p className="truncate font-semibold">{getDisplayTitle(act)}</p>
+                        <div className="truncate font-semibold flex items-center gap-1">
+                          <span className="truncate">{getDisplayTitle(act)}</span>
+                          {act.sync_source === 'both' && <CalendarCheck className="h-3 w-3 text-green-500 shrink-0" />}
+                        </div>
                         {height > 30 && act.startTime && !dense && (
                           <p className="truncate opacity-70 text-[9px]">
                             {act.startTime}{act.endTime && ` – ${act.endTime}`}
@@ -345,13 +352,14 @@ export const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggle
                             : <Circle className="h-5 w-5 text-muted-foreground" />}
                         </button>
                         <div className="flex-1 min-w-0">
-                          <p className={cn(
-                            'font-semibold text-foreground',
+                          <div className={cn(
+                            'font-semibold text-foreground flex items-center gap-1 flex-wrap',
                             dense ? 'text-xs' : 'text-sm',
                             act.status === 'done' && 'line-through text-muted-foreground'
                           )}>
-                            {getDisplayTitle(act)}
-                          </p>
+                            <span>{getDisplayTitle(act)}</span>
+                            {act.sync_source === 'both' && <CalendarCheck className="h-3.5 w-3.5 text-green-500 shrink-0" />}
+                          </div>
                           {act.startTime && (
                             <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
                               <Clock className="h-3 w-3" />
