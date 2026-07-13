@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useParentTaskTitles } from '@/hooks/useParentTaskTitles';
@@ -24,6 +24,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   MonthView, WeekView, DayView, EventTooltip,
   getCategory, getEventStyle,
@@ -68,6 +69,25 @@ const ProductAgendaPage = () => {
   const [sprintId, setSprintId] = useState('none');
   const [syncGoogle, setSyncGoogle] = useState(false);
   const { activeProduct } = useProduct();
+  const { user } = useAuth();
+  const [hasGoogleToken, setHasGoogleToken] = useState(false);
+
+  // Check if user has Google Calendar connected
+  const checkGoogleToken = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data } = await (supabase as any)
+        .from('google_calendar_tokens')
+        .select('id, scope')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      setHasGoogleToken(!!data && (!data.scope || data.scope.includes('calendar.events')));
+    } catch {
+      setHasGoogleToken(false);
+    }
+  }, [user]);
+
+  useEffect(() => { checkGoogleToken(); }, [checkGoogleToken]);
 
   const resetForm = () => {
     setTitle(''); setDesc('');
@@ -120,16 +140,25 @@ const ProductAgendaPage = () => {
           });
           if (error) throw error;
           if (data?.error === 'scope_upgrade_required') {
-            toast.error('Reconecte o Google Calendar nas Configurações para enviar eventos.');
+            toast.error('Reconecte o Google Calendar nas Configurações para enviar eventos.', {
+              action: { label: 'Configurações', onClick: () => window.location.href = '/configuracoes?tab=integrations' },
+            });
           } else if (data?.error) {
-            toast.error('Erro: ' + data.error);
+            toast.error('Erro: ' + (data.message || data.error));
           } else {
-            toast.success('Evento enviado ao Google Calendar!');
+            toast.success('Evento sincronizado com o Google Calendar ✓');
           }
-        } catch (e: any) {
+        } catch {
           toast.error('Google Calendar não está conectado ou houve um erro.');
         }
       }
+    } else if (editingActivity?.google_event_id) {
+      // Auto-sync: event was previously synced, keep it updated
+      try {
+        await supabase.functions.invoke('google-calendar-push', {
+          body: { activity_id: editingActivity.id },
+        });
+      } catch { /* silent — best effort auto-sync */ }
     }
 
     setCreateOpen(false);
@@ -269,16 +298,18 @@ const ProductAgendaPage = () => {
                     </Select>
                   </div>
                 )}
-                <div className="flex items-center space-x-2 pt-2">
-                  <input 
-                    type="checkbox" 
-                    id="syncGoogle" 
-                    checked={syncGoogle} 
-                    onChange={(e) => setSyncGoogle(e.target.checked)} 
-                    className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" 
-                  />
-                  <Label htmlFor="syncGoogle" className="font-normal cursor-pointer text-sm">Enviar também para o Google Calendar</Label>
-                </div>
+                {hasGoogleToken && (
+                  <div className="flex items-center space-x-2 pt-2">
+                    <input 
+                      type="checkbox" 
+                      id="syncGoogle" 
+                      checked={syncGoogle} 
+                      onChange={(e) => setSyncGoogle(e.target.checked)} 
+                      className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" 
+                    />
+                    <Label htmlFor="syncGoogle" className="font-normal cursor-pointer text-sm">📅 Também enviar para o Google Calendar</Label>
+                  </div>
+                )}
                 <Button onClick={handleSave} className="w-full">
                   {editingActivity ? 'Salvar alterações' : 'Criar evento'}
                 </Button>
@@ -373,7 +404,12 @@ const ProductAgendaPage = () => {
                             {act.status === 'done' ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Circle className="h-3.5 w-3.5" />}
                           </button>
                           <div className="flex-1 min-w-0">
-                            <p className={cn('text-xs font-semibold', act.status === 'done' && 'line-through')}>{getDisplayTitle(act)}</p>
+                            <p className={cn('text-xs font-semibold flex items-center gap-1', act.status === 'done' && 'line-through')}>
+                              {getDisplayTitle(act)}
+                              {act.google_event_id && (
+                                <span title="Sincronizado com Google Calendar" className="shrink-0 text-[10px]">📅✅</span>
+                              )}
+                            </p>
                             {act.startTime && (
                               <p className="text-[10px] opacity-80 flex items-center gap-1 mt-0.5">
                                 <Clock className="h-2.5 w-2.5" />

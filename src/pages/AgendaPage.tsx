@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useScheduleStore } from '@/hooks/useScheduleStore';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
@@ -20,6 +20,8 @@ import {
   Clock, CalendarDays, LayoutGrid, List, Pencil, Link2, Unlink, RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, isSameMonth, isSameDay, isToday, addDays,
@@ -200,6 +202,26 @@ const AgendaPage = () => {
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [sprintId, setSprintId] = useState('none');
+  const [syncGoogle, setSyncGoogle] = useState(false);
+  const [hasGoogleToken, setHasGoogleToken] = useState(false);
+  const { user } = useAuth();
+
+  // Check if user has Google Calendar connected
+  const checkGoogleToken = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data } = await (supabase as any)
+        .from('google_calendar_tokens')
+        .select('id, scope')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      setHasGoogleToken(!!data && (!data.scope || data.scope.includes('calendar.events')));
+    } catch {
+      setHasGoogleToken(false);
+    }
+  }, [user]);
+
+  useEffect(() => { checkGoogleToken(); }, [checkGoogleToken]);
 
   const resetForm = () => {
     setTitle('');
@@ -209,6 +231,7 @@ const AgendaPage = () => {
     setEndTime('');
     setSprintId('none');
     setEditingActivity(null);
+    setSyncGoogle(false);
   };
 
   const openCreate = (dateStr?: string) => {
@@ -229,24 +252,50 @@ const AgendaPage = () => {
     setStartTime(act.startTime || '');
     setEndTime(act.endTime || '');
     setSprintId(act.sprintId || 'none');
+    setSyncGoogle(false);
     setCreateOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim() || !date) return;
+    let savedActivity;
     if (editingActivity) {
-      updateActivity(editingActivity.id, {
+      await updateActivity(editingActivity.id, {
         title, description: desc, activityDate: date,
         startTime: startTime || undefined, endTime: endTime || undefined,
         sprintId: sprintId !== 'none' ? sprintId : undefined,
       });
+      savedActivity = editingActivity;
     } else {
-      addActivity({
+      savedActivity = await addActivity({
         title, description: desc, activityDate: date,
         startTime: startTime || undefined, endTime: endTime || undefined,
         sprintId: sprintId !== 'none' ? sprintId : undefined, status: 'pending',
       });
     }
+
+    // Push to Google Calendar if checkbox is checked OR if event was already synced
+    const activityId = editingActivity ? editingActivity.id : savedActivity?.id;
+    if (activityId && (syncGoogle || editingActivity?.google_event_id)) {
+      try {
+        const { data, error } = await supabase.functions.invoke('google-calendar-push', {
+          body: { activity_id: activityId },
+        });
+        if (error) throw error;
+        if (data?.error === 'scope_upgrade_required') {
+          toast.error('Reconecte o Google Calendar nas Configurações para enviar eventos.', {
+            action: { label: 'Configurações', onClick: () => window.location.href = '/configuracoes?tab=integrations' },
+          });
+        } else if (data?.error) {
+          toast.error('Erro ao sincronizar: ' + (data.message || data.error));
+        } else {
+          toast.success('Evento sincronizado com o Google Calendar ✓');
+        }
+      } catch {
+        toast.error('Google Calendar não está conectado ou houve um erro.');
+      }
+    }
+
     setCreateOpen(false);
     resetForm();
   };
@@ -410,6 +459,18 @@ const AgendaPage = () => {
                     </Select>
                   </div>
                 )}
+                {hasGoogleToken && (
+                  <div className="flex items-center space-x-2 pt-2">
+                    <input 
+                      type="checkbox" 
+                      id="syncGoogleGeneral" 
+                      checked={syncGoogle} 
+                      onChange={(e) => setSyncGoogle(e.target.checked)} 
+                      className="rounded border-border bg-background text-primary focus:ring-primary h-4 w-4" 
+                    />
+                    <Label htmlFor="syncGoogleGeneral" className="font-normal cursor-pointer text-sm">📅 Também enviar para o Google Calendar</Label>
+                  </div>
+                )}
                 <Button onClick={handleSave} className="w-full">
                   {editingActivity ? 'Salvar alterações' : 'Criar atividade'}
                 </Button>
@@ -523,8 +584,11 @@ const AgendaPage = () => {
                               : <Circle className="h-3.5 w-3.5" />}
                           </button>
                           <div className="flex-1 min-w-0">
-                            <p className={cn('text-xs font-semibold text-foreground truncate', act.status === 'done' && 'line-through')}>
+                            <p className={cn('text-xs font-semibold text-foreground truncate flex items-center gap-1', act.status === 'done' && 'line-through')}>
                               {dt}
+                              {act.google_event_id && (
+                                <span title="Sincronizado com Google Calendar" className="shrink-0 text-[10px]">📅✅</span>
+                              )}
                             </p>
                             {act.startTime && (
                               <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -685,6 +749,7 @@ const MonthView = ({ days, currentDate, selectedDate, activities, onSelectDate, 
                     >
                       {act.startTime && <span className="mr-1 opacity-70">{act.startTime}</span>}
                       {getDisplayTitle(act)}
+                      {act.google_event_id && <span className="ml-1 text-[8px]" title="Sincronizado com Google Calendar">📅✅</span>}
                     </button>
                   </EventTooltip>
                 );
@@ -786,7 +851,10 @@ const WeekView = ({ days, activities, selectedDate, onSelectDate, onCreateEvent,
                         act.status === 'done' && 'opacity-50'
                       )}
                     >
-                      <p className="truncate font-semibold">{getDisplayTitle(act)}</p>
+                      <p className="truncate font-semibold flex items-center gap-1">
+                        <span className="truncate">{getDisplayTitle(act)}</span>
+                        {act.google_event_id && <span className="shrink-0 text-[8px]" title="Sincronizado com Google Calendar">📅✅</span>}
+                      </p>
                       {height > 30 && act.startTime && !dense && (
                         <p className="truncate opacity-70 text-[9px]">
                           {act.startTime}{act.endTime && ` – ${act.endTime}`}
@@ -880,11 +948,12 @@ const DayView = ({ date, activities, onCreateEvent, onEditEvent, onToggleStatus,
                       </button>
                       <div className="flex-1 min-w-0">
                         <p className={cn(
-                          'font-semibold text-foreground',
+                          'font-semibold text-foreground flex items-center gap-1 flex-wrap',
                           dense ? 'text-xs' : 'text-sm',
                           act.status === 'done' && 'line-through text-muted-foreground'
                         )}>
-                          {getDisplayTitle(act)}
+                          <span>{getDisplayTitle(act)}</span>
+                          {act.google_event_id && <span className="shrink-0 text-[10px]" title="Sincronizado com Google Calendar">📅✅</span>}
                         </p>
                         {act.startTime && (
                           <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
