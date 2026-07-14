@@ -167,8 +167,23 @@ const ProductAgendaPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    // Note: Google Calendar event deletion not yet implemented in edge function.
-    // For now, just delete locally. The google_event_id will be orphaned on Google side.
+    const act = activities.find(a => a.id === id);
+    if (act?.google_event_id) {
+      const deleteBoth = window.confirm('Excluir também do Google Calendar?\n\n[OK] = Excluir dos dois\n[Cancelar] = Excluir só do Prodify');
+      if (deleteBoth) {
+        try {
+          const { data, error } = await supabase.functions.invoke('google-calendar-delete', {
+            body: { google_event_id: act.google_event_id }
+          });
+          if (error) throw error;
+          if (data?.error === 'scope_upgrade_required') {
+            toast.error('Reconecte o Google Calendar para excluir da agenda.');
+          }
+        } catch {
+          toast.error('Não foi possível excluir do Google Calendar.');
+        }
+      }
+    }
     await deleteActivity(id);
   };
 
