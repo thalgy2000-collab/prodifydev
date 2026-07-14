@@ -86,7 +86,7 @@ export const EventTooltip = ({ act, category, productLabel, isTask, displayTitle
         <div className="flex items-center gap-1.5">
           <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: `hsl(${CATEGORY_COLORS[category].hsl})` }} />
           <p className="font-semibold text-xs">{displayTitle ?? act.title}</p>
-          {act.sync_source === 'both' && <CalendarCheck className="h-3.5 w-3.5 text-green-500" title="Sincronizado com Google Calendar" />}
+          {act.sync_source === 'both' && <CalendarCheck className="h-3.5 w-3.5 text-green-500" aria-label="Sincronizado com Google Calendar" />}
         </div>
         <p className="text-[10px] text-muted-foreground capitalize">
           {CATEGORY_COLORS[category].label.replace(/s$/, '')}
@@ -180,7 +180,7 @@ export const MonthView = ({ days, currentDate, selectedDate, activities, onSelec
                         {act.startTime && <span className="mr-1 opacity-70">{act.startTime}</span>}
                         {getDisplayTitle(act)}
                         {act.sync_source === 'both' && (
-                          <CalendarCheck className="h-3 w-3 text-green-500 ml-1 inline-block shrink-0" title="Sincronizado com Google Calendar" />
+                          <CalendarCheck className="h-3 w-3 text-green-500 ml-1 inline-block shrink-0" aria-label="Sincronizado com Google Calendar" />
                         )}
                       </button>
                     </EventTooltip>
