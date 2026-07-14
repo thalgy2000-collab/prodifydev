@@ -34,6 +34,14 @@ export const useScheduleStore = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  const pushToGoogle = useCallback(async (activityId: string) => {
+    try {
+      await supabase.functions.invoke('google-calendar-push', { body: { activity_id: activityId } });
+    } catch (e) {
+      console.warn('[gcal push] skipped', e);
+    }
+  }, []);
+
   const addActivity = useCallback(async (data: Omit<ScheduleActivity, 'id' | 'createdAt'>): Promise<ScheduleActivity> => {
     if (!user) throw new Error('No user');
     const insertData: any = {
@@ -43,15 +51,16 @@ export const useScheduleStore = () => {
       end_time: data.endTime || null, sprint_id: data.sprintId || null, status: data.status,
     };
     const { data: inserted } = await supabase.from('schedule_activities' as any).insert(insertData as any).select().single();
-    await fetchAll();
     const d = inserted as any;
+    if (d?.id) pushToGoogle(d.id);
+    await fetchAll();
     return {
       id: d.id, title: d.title, description: d.description,
       activityDate: d.activity_date, startTime: d.start_time ?? undefined,
       endTime: d.end_time ?? undefined, sprintId: d.sprint_id ?? undefined,
       productId: d.product_id ?? undefined, status: d.status, createdAt: d.created_at,
     };
-  }, [user, activeProduct, fetchAll]);
+  }, [user, activeProduct, fetchAll, pushToGoogle]);
 
   const updateActivity = useCallback(async (id: string, patch: Partial<ScheduleActivity>) => {
     const dbPatch: any = {};
@@ -63,11 +72,22 @@ export const useScheduleStore = () => {
     if (patch.sprintId !== undefined) dbPatch.sprint_id = patch.sprintId || null;
     if (patch.status !== undefined) dbPatch.status = patch.status;
     await (supabase.from('schedule_activities' as any) as any).update(dbPatch).eq('id', id);
+    pushToGoogle(id);
     await fetchAll();
-  }, [fetchAll]);
+  }, [fetchAll, pushToGoogle]);
 
   const deleteActivity = useCallback(async (id: string) => {
+    const { data: row } = await (supabase.from('schedule_activities' as any) as any)
+      .select('google_event_id').eq('id', id).maybeSingle();
+    const gid = (row as any)?.google_event_id;
     await (supabase.from('schedule_activities' as any) as any).delete().eq('id', id);
+    if (gid) {
+      try {
+        await supabase.functions.invoke('google-calendar-delete', { body: { google_event_id: gid } });
+      } catch (e) {
+        console.warn('[gcal delete] skipped', e);
+      }
+    }
     await fetchAll();
   }, [fetchAll]);
 

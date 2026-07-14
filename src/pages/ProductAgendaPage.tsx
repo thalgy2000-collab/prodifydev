@@ -23,6 +23,7 @@ import { ptBR } from 'date-fns/locale';
 import { useTheme } from '@/hooks/useTheme';
 import { useProduct } from '@/contexts/ProductContext';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import {

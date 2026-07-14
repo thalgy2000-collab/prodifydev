@@ -82,6 +82,7 @@ export type Database = {
           id: string
           initiative_id: string | null
           key_result_id: string | null
+          kr_impact: number | null
           objective_id: string | null
           priority: string
           product_id: string | null
@@ -112,6 +113,7 @@ export type Database = {
           id?: string
           initiative_id?: string | null
           key_result_id?: string | null
+          kr_impact?: number | null
           objective_id?: string | null
           priority?: string
           product_id?: string | null
@@ -142,6 +144,7 @@ export type Database = {
           id?: string
           initiative_id?: string | null
           key_result_id?: string | null
+          kr_impact?: number | null
           objective_id?: string | null
           priority?: string
           product_id?: string | null
@@ -1813,11 +1816,14 @@ export type Database = {
           created_at: string
           description: string
           end_time: string | null
+          google_event_id: string | null
           id: string
+          last_synced_at: string | null
           product_id: string | null
           sprint_id: string | null
           start_time: string | null
           status: string
+          sync_source: string | null
           title: string
           user_id: string
         }
@@ -1826,11 +1832,14 @@ export type Database = {
           created_at?: string
           description?: string
           end_time?: string | null
+          google_event_id?: string | null
           id?: string
+          last_synced_at?: string | null
           product_id?: string | null
           sprint_id?: string | null
           start_time?: string | null
           status?: string
+          sync_source?: string | null
           title: string
           user_id: string
         }
@@ -1839,11 +1848,14 @@ export type Database = {
           created_at?: string
           description?: string
           end_time?: string | null
+          google_event_id?: string | null
           id?: string
+          last_synced_at?: string | null
           product_id?: string | null
           sprint_id?: string | null
           start_time?: string | null
           status?: string
+          sync_source?: string | null
           title?: string
           user_id?: string
         }
