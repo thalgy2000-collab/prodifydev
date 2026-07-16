@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
@@ -10,6 +11,7 @@ import { getCurrentQuarter, getQuarterMonths } from '@/types/okr';
 import { RoadmapItem, parseDateOnly } from '@/types/roadmap';
 import QuarterSelector from '@/components/QuarterSelector';
 import { Map, Trash2, Link2, Pencil } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { roadmapTourSteps } from '@/lib/featureTours';
@@ -50,7 +52,34 @@ const getProgressColor = (p: number) => {
 };
 
 const RoadmapPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlQuarter = searchParams.get('quarter');
+  const highlightId = searchParams.get('highlight');
+  
   const [selectedQuarter, setSelectedQuarter] = usePersistedState('roadmap_filter', getCurrentQuarter());
+  
+  useEffect(() => {
+    if (urlQuarter && urlQuarter !== selectedQuarter) {
+      setSelectedQuarter(urlQuarter);
+    }
+  }, [urlQuarter, selectedQuarter, setSelectedQuarter]);
+
+  const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (highlightId) {
+      setHighlightedItem(highlightId);
+      const timer = setTimeout(() => {
+        setHighlightedItem(null);
+        setSearchParams(prev => {
+          prev.delete('highlight');
+          return prev;
+        });
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightId, setSearchParams]);
+
   const months = getQuarterMonths(selectedQuarter);
 
   const { items, addItem, updateItem, deleteItem, getByQuarter, refresh } = useRoadmapStore();
@@ -62,6 +91,12 @@ const RoadmapPage = () => {
 
   const handleQuarterChange = (val: string) => {
     setSelectedQuarter(val);
+    if (urlQuarter) {
+      setSearchParams(prev => {
+        prev.delete('quarter');
+        return prev;
+      });
+    }
   };
 
   // Ctrl+Z is handled globally by UndoProvider
@@ -239,7 +274,12 @@ const RoadmapPage = () => {
                           <TooltipTrigger asChild>
                             <div
                               data-tour-feature="roadmap-card"
-                              className="pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 hover:shadow-md relative overflow-hidden"
+                              className={cn(
+                                "pointer-events-auto mx-1 my-2 h-8 w-full rounded-md flex items-center gap-1.5 px-3 cursor-pointer transition-all hover:brightness-110 relative overflow-hidden",
+                                highlightedItem === item.id 
+                                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background animate-pulse shadow-lg z-10 scale-[1.02]" 
+                                  : "hover:shadow-md"
+                              )}
                               style={{
                                 backgroundColor: item.color,
                                 opacity: 0.85,

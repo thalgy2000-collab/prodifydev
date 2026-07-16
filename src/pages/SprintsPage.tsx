@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { sprintsTourSteps } from '@/lib/featureTours';
+import { RoadmapProgressPopup, InitiativeProgress } from '@/components/sprints/RoadmapProgressPopup';
 
 interface KanbanColumn {
   id: string;
@@ -108,6 +109,46 @@ const SprintsPage = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [members, setMembers] = useState<{ id: string; displayName: string }[]>([]);
 
+  // Roadmap Progress Celebration Queue
+  const [celebrationQueue, setCelebrationQueue] = useState<InitiativeProgress[]>([]);
+  const currentCelebration = celebrationQueue[0] || null;
+
+  const handleCloseCelebration = () => {
+    setCelebrationQueue(prev => prev.slice(1));
+  };
+
+  const checkRoadmapProgress = async (taskId: string) => {
+    try {
+      const { data: link } = await (supabase as any)
+        .from('roadmap_item_tasks')
+        .select('roadmap_item_id, roadmap_items(id, title, progress, quarter)')
+        .eq('task_id', taskId)
+        .maybeSingle();
+
+      if (!link || !link.roadmap_items) return;
+
+      // Wait a moment for DB trigger to recalculate progress
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const { data: updatedInitiative } = await (supabase as any)
+        .from('roadmap_items')
+        .select('id, title, progress, quarter')
+        .eq('id', link.roadmap_item_id)
+        .single();
+
+      if (updatedInitiative) {
+        setCelebrationQueue(prev => {
+          if (prev.length > 0 && prev[prev.length - 1].id === updatedInitiative.id) {
+            return prev;
+          }
+          return [...prev, updatedInitiative];
+        });
+      }
+    } catch (error) {
+      console.error('Failed to check roadmap progress', error);
+    }
+  };
+
   const activeSprint = getActiveSprint();
   const activeSprints = sprints.filter(s => s.status !== 'completed');
   const selectedSprint = activeSprint || activeSprints[0];
@@ -188,17 +229,31 @@ const SprintsPage = () => {
       setPendingDoneProgress(progress);
       setConfirmDoneOpen(true);
     } else {
-      updateTask(taskId, { status: 'done' });
+      const task = sprintTasks.find(t => t.id === taskId);
+      const wasAlreadyDone = task?.status === 'done';
+      
+      await updateTask(taskId, { status: 'done', completionPercentage: 100 });
       const { error } = await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId).eq('item_type', 'task');
       if (!error) toast('Tarefa removida do RICE Score');
+
+      if (!wasAlreadyDone && task) {
+        checkRoadmapProgress(taskId);
+      }
     }
   };
 
   const confirmMoveToDone = async () => {
     if (pendingDoneTaskId) {
-      updateTask(pendingDoneTaskId, { status: 'done' });
+      const task = sprintTasks.find(t => t.id === pendingDoneTaskId);
+      const wasAlreadyDone = task?.status === 'done';
+
+      await updateTask(pendingDoneTaskId, { status: 'done', completionPercentage: 100 });
       const { error } = await (supabase.from('rice_scores') as any).delete().eq('item_id', pendingDoneTaskId).eq('item_type', 'task');
       if (!error) toast('Tarefa removida do RICE Score');
+
+      if (!wasAlreadyDone && task) {
+        checkRoadmapProgress(pendingDoneTaskId);
+      }
     }
     setPendingDoneTaskId(null);
     setPendingDoneProgress(null);
@@ -552,6 +607,11 @@ const SprintsPage = () => {
         onSave={handleEditSave}
         onDelete={handleEditDelete}
         members={members}
+      />
+      
+      <RoadmapProgressPopup
+        initiative={currentCelebration}
+        onClose={handleCloseCelebration}
       />
     </div>
   );
