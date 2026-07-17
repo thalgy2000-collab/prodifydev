@@ -241,8 +241,7 @@ const SprintsPage = () => {
       const wasAlreadyDone = task?.status === 'done';
       
       await updateTask(taskId, { status: 'done', completionPercentage: 100 });
-      const { error } = await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId).eq('item_type', 'task');
-      if (!error) toast('Tarefa removida do RICE Score');
+      await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId).eq('item_type', 'task');
 
       if (!wasAlreadyDone && task) {
         checkRoadmapProgress(taskId);
@@ -256,8 +255,7 @@ const SprintsPage = () => {
       const wasAlreadyDone = task?.status === 'done';
 
       await updateTask(pendingDoneTaskId, { status: 'done', completionPercentage: 100 });
-      const { error } = await (supabase.from('rice_scores') as any).delete().eq('item_id', pendingDoneTaskId).eq('item_type', 'task');
-      if (!error) toast('Tarefa removida do RICE Score');
+      await (supabase.from('rice_scores') as any).delete().eq('item_id', pendingDoneTaskId).eq('item_type', 'task');
 
       if (!wasAlreadyDone && task) {
         checkRoadmapProgress(pendingDoneTaskId);
