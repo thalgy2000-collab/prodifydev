@@ -181,32 +181,46 @@ const SprintsPage = () => {
 
   const checkOKRProgress = async (taskId: string) => {
     try {
-      const { data: task, error: taskError } = await (supabase as any)
-        .from('backlog_tasks')
-        .select('key_result_id, kr_impact')
-        .eq('id', taskId)
-        .single();
+      // 1. Find the initiative linked to this task
+      const { data: link, error: linkError } = await (supabase as any)
+        .from('roadmap_item_tasks')
+        .select('roadmap_item_id')
+        .eq('task_id', taskId)
+        .maybeSingle();
 
-      if (taskError) console.error('Error fetching task okr link:', taskError);
-      if (!task?.key_result_id || !task.kr_impact) return;
+      if (linkError) console.error('Error fetching task okr link:', linkError);
+      if (!link?.roadmap_item_id) return;
 
-      // Wait for trigger
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // 2. Find KRs linked to this initiative
+      const { data: krLinks, error: krLinksError } = await (supabase as any)
+        .from('roadmap_item_key_results')
+        .select('key_result_id')
+        .eq('roadmap_item_id', link.roadmap_item_id);
 
-      const { data: updatedKR, error: krError } = await (supabase as any)
+      if (krLinksError) console.error('Error fetching kr links:', krLinksError);
+      if (!krLinks || krLinks.length === 0) return;
+
+      // Wait for cascade triggers (task -> initiative -> kr)
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const krIds = krLinks.map((k: any) => k.key_result_id);
+
+      const { data: updatedKRs, error: krError } = await (supabase as any)
         .from('key_results')
         .select('id, title, current_value, target_value, unit, objective_id, objectives(title, quarter)')
-        .eq('id', task.key_result_id)
-        .single();
+        .in('id', krIds);
 
-      if (krError) console.error('Error fetching updated KR:', krError);
+      if (krError) console.error('Error fetching updated KRs:', krError);
 
-      if (updatedKR) {
+      if (updatedKRs && updatedKRs.length > 0) {
         setCelebrationQueue(prev => {
-          if (prev.some(p => p.type === 'okr' && p.data.id === updatedKR.id)) {
-            return prev;
+          let next = [...prev];
+          for (const updatedKR of updatedKRs) {
+            if (!next.some(p => p.type === 'okr' && p.data.id === updatedKR.id)) {
+              next.push({ type: 'okr', data: updatedKR });
+            }
           }
-          return [...prev, { type: 'okr', data: updatedKR }];
+          return next;
         });
       }
     } catch (error) {

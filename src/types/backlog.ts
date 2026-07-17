@@ -24,7 +24,6 @@ export interface BacklogTask {
   epicId?: string;
   completionPercentage?: number;
   roadmapImpact?: number;
-  krImpact?: number;
   sortOrder?: number;
   externalId?: string;
   externalUrl?: string;
