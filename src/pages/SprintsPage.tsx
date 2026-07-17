@@ -119,22 +119,30 @@ const SprintsPage = () => {
 
   const checkRoadmapProgress = async (taskId: string) => {
     try {
-      const { data: link } = await (supabase as any)
+      const { data: link, error: linkError } = await (supabase as any)
         .from('roadmap_item_tasks')
-        .select('roadmap_item_id, roadmap_items(id, title, progress, quarter)')
+        .select('roadmap_item_id')
         .eq('task_id', taskId)
         .maybeSingle();
 
-      if (!link || !link.roadmap_items) return;
+      if (linkError) {
+        console.error('Error fetching roadmap link:', linkError);
+      }
+
+      if (!link) return;
 
       // Wait a moment for DB trigger to recalculate progress
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const { data: updatedInitiative } = await (supabase as any)
+      const { data: updatedInitiative, error: initError } = await (supabase as any)
         .from('roadmap_items')
         .select('id, title, progress, quarter')
         .eq('id', link.roadmap_item_id)
         .single();
+
+      if (initError) {
+        console.error('Error fetching updated initiative:', initError);
+      }
 
       if (updatedInitiative) {
         setCelebrationQueue(prev => {
