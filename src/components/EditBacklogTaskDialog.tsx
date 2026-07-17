@@ -59,8 +59,9 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
   const [dueDate, setDueDate] = useState<string>('');
   const [dueTime, setDueTime] = useState<string>('');
   const [dueEndTime, setDueEndTime] = useState<string>('');
-  const [completionPercentage, setCompletionPercentage] = useState<number>(0);
-  const [roadmapImpact, setRoadmapImpact] = useState<number>(0);
+  const [completionPercentage, setCompletionPercentage] = useState<number>(task?.completionPercentage ?? 0);
+  const [roadmapImpact, setRoadmapImpact] = useState<number>(task?.roadmapImpact ?? 0);
+  const [krImpact, setKrImpact] = useState<number>(task?.krImpact ?? 0);
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [sprintOptions, setSprintOptions] = useState<SprintOption[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState<string>('none');
@@ -171,6 +172,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       setDueEndTime(task.dueEndTime || '');
       setCompletionPercentage(task.completionPercentage ?? 0);
       setRoadmapImpact(task.roadmapImpact ?? 0);
+      setKrImpact(task.krImpact ?? 0);
       setSelectedSprintId('none');
       setObjectiveId(task.objectiveId);
       setKeyResultId(task.keyResultId);
@@ -306,6 +308,7 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
       dueEndTime: dueEndTime || undefined,
       completionPercentage: Math.max(0, Math.min(100, completionPercentage || 0)),
       roadmapImpact: Math.max(0, Math.min(100, roadmapImpact || 0)),
+      krImpact: Math.max(0, Math.min(100, krImpact || 0)),
       epicId: epicId !== 'none' ? epicId : undefined,
     };
 
@@ -541,6 +544,34 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
               </div>
             </div>
+            
+            {keyResultId && keyResultId !== 'none' && (
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <Label>Impacto no Key Result</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <p>% que essa tarefa representa no progresso do Key Result vinculado</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </div>
+                <div className="relative">
+                  <Input
+                    type="number" min={0} max={100} placeholder="Ex: 25"
+                    value={krImpact === 0 ? '' : krImpact}
+                    onChange={e => setKrImpact(e.target.value === '' ? 0 : Math.max(0, Math.min(100, Number(e.target.value))))}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">%</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Acceptance Criteria Section */}

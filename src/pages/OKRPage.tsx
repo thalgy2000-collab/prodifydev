@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +24,41 @@ const OKRPage = () => {
   const { user } = useAuth();
   const { activeProduct } = useProduct();
   const { push, undoLast } = useUndoStack(5);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlQuarter = searchParams.get('quarter');
+  const highlightId = searchParams.get('highlight');
+
   const [selectedQuarter, setSelectedQuarter] = usePersistedState('okr_quarter', getCurrentQuarter());
+
+  useEffect(() => {
+    if (urlQuarter && urlQuarter !== selectedQuarter) {
+      setSelectedQuarter(urlQuarter);
+      setSearchParams(prev => {
+        prev.delete('quarter');
+        return prev;
+      });
+    }
+  }, [urlQuarter, selectedQuarter, setSelectedQuarter, setSearchParams]);
+
+  const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (highlightId) {
+      setHighlightedItem(highlightId);
+      const element = document.getElementById(`okr-${highlightId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      const timer = setTimeout(() => {
+        setHighlightedItem(null);
+        setSearchParams(prev => {
+          prev.delete('highlight');
+          return prev;
+        });
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightId, setSearchParams]);
   const [searchText, setSearchText] = useState('');
   const [progressFilter, setProgressFilter] = useState<'all' | 'low' | 'medium' | 'high'>('all');
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -244,41 +279,46 @@ const OKRPage = () => {
             return grouped.map(({ category, items }) => (
               <div key={category.value} className="space-y-4">
                 {items.map(obj => (
-                  <OKRCard
-                    key={obj.id}
-                    objective={obj}
-                    progress={getObjectiveProgress(obj)}
-                    onUpdateKR={handleUpdateKR}
-                    onDelete={handleDeleteObjective}
-                    onEdit={handleUpdateObjective}
-                    dragHandlers={dragEnabled ? {
-                      draggable: true,
-                      isDragging: draggingId === obj.id,
-                      isDragOver: dragOverId === obj.id && draggingId !== obj.id,
-                      onDragStart: (e) => {
-                        setDraggingId(obj.id);
-                        dragSourceCategory.current = category.value;
-                        e.dataTransfer.effectAllowed = 'move';
-                      },
-                      onDragOver: (e) => {
-                        if (dragSourceCategory.current === category.value && draggingId && draggingId !== obj.id) {
+                  <div 
+                    key={obj.id} 
+                    id={`okr-${obj.id}`}
+                    className={highlightedItem === obj.id ? 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-xl animate-pulse-border' : ''}
+                  >
+                    <OKRCard
+                      objective={obj}
+                      progress={getObjectiveProgress(obj)}
+                      onUpdateKR={handleUpdateKR}
+                      onDelete={handleDeleteObjective}
+                      onEdit={handleUpdateObjective}
+                      dragHandlers={dragEnabled ? {
+                        draggable: true,
+                        isDragging: draggingId === obj.id,
+                        isDragOver: dragOverId === obj.id && draggingId !== obj.id,
+                        onDragStart: (e) => {
+                          setDraggingId(obj.id);
+                          dragSourceCategory.current = category.value;
+                          e.dataTransfer.effectAllowed = 'move';
+                        },
+                        onDragOver: (e) => {
+                          if (dragSourceCategory.current === category.value && draggingId && draggingId !== obj.id) {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                            setDragOverId(obj.id);
+                          }
+                        },
+                        onDrop: (e) => {
                           e.preventDefault();
-                          e.dataTransfer.dropEffect = 'move';
-                          setDragOverId(obj.id);
-                        }
-                      },
-                      onDrop: (e) => {
-                        e.preventDefault();
-                        handleDrop(category.value, obj.id, items);
-                        setDragOverId(null);
-                      },
-                      onDragEnd: () => {
-                        setDraggingId(null);
-                        setDragOverId(null);
-                        dragSourceCategory.current = null;
-                      },
-                    } : undefined}
-                  />
+                          handleDrop(category.value, obj.id, items);
+                          setDragOverId(null);
+                        },
+                        onDragEnd: () => {
+                          setDraggingId(null);
+                          setDragOverId(null);
+                          dragSourceCategory.current = null;
+                        },
+                      } : undefined}
+                    />
+                  </div>
                 ))}
               </div>
             ));

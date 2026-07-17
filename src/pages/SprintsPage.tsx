@@ -15,6 +15,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, Zap, Trash2, AlertTriangle, ArrowUp, ArrowDown, Minus, CircleAlert, User, ClipboardCheck, Calendar, CheckCircle2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
+import { useState, useRef, useEffect, DragEvent } from 'react';
+import { useSprintStore } from '@/hooks/useSprintStore';
+import { useBacklogStore } from '@/hooks/useBacklogStore';
+import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
+import { Sprint, SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
+import { BacklogTask, PRIORITY_CONFIG, TaskStatus } from '@/types/backlog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { CountedInput } from '@/components/ui/counted-input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Zap, Trash2, AlertTriangle, ArrowUp, ArrowDown, Minus, CircleAlert, User, ClipboardCheck, Calendar, CheckCircle2 } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
 import { useUndo } from '@/contexts/UndoContext';
@@ -24,6 +41,11 @@ import EditSprintTaskDialog from '@/components/EditSprintTaskDialog';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
 import { sprintsTourSteps } from '@/lib/featureTours';
 import { RoadmapProgressPopup, InitiativeProgress } from '@/components/sprints/RoadmapProgressPopup';
+import { OKRProgressPopup, KRProgress } from '@/components/sprints/OKRProgressPopup';
+
+type Celebration = 
+  | { type: 'roadmap'; data: InitiativeProgress }
+  | { type: 'okr'; data: KRProgress };
 
 interface KanbanColumn {
   id: string;
@@ -109,8 +131,8 @@ const SprintsPage = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [members, setMembers] = useState<{ id: string; displayName: string }[]>([]);
 
-  // Roadmap Progress Celebration Queue
-  const [celebrationQueue, setCelebrationQueue] = useState<InitiativeProgress[]>([]);
+  // Roadmap and OKR Progress Celebration Queue
+  const [celebrationQueue, setCelebrationQueue] = useState<Celebration[]>([]);
   const currentCelebration = celebrationQueue[0] || null;
 
   const handleCloseCelebration = () => {
@@ -146,14 +168,49 @@ const SprintsPage = () => {
 
       if (updatedInitiative) {
         setCelebrationQueue(prev => {
-          if (prev.length > 0 && prev[prev.length - 1].id === updatedInitiative.id) {
+          if (prev.some(p => p.type === 'roadmap' && p.data.id === updatedInitiative.id)) {
             return prev;
           }
-          return [...prev, updatedInitiative];
+          return [...prev, { type: 'roadmap', data: updatedInitiative }];
         });
       }
     } catch (error) {
       console.error('Failed to check roadmap progress', error);
+    }
+  };
+
+  const checkOKRProgress = async (taskId: string) => {
+    try {
+      const { data: task, error: taskError } = await (supabase as any)
+        .from('backlog_tasks')
+        .select('key_result_id, kr_impact')
+        .eq('id', taskId)
+        .single();
+
+      if (taskError) console.error('Error fetching task okr link:', taskError);
+      if (!task?.key_result_id || !task.kr_impact) return;
+
+      // Wait for trigger
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const { data: updatedKR, error: krError } = await (supabase as any)
+        .from('key_results')
+        .select('id, title, current_value, target_value, unit, objective_id, objectives(title, quarter)')
+        .eq('id', task.key_result_id)
+        .single();
+
+      if (krError) console.error('Error fetching updated KR:', krError);
+
+      if (updatedKR) {
+        setCelebrationQueue(prev => {
+          if (prev.some(p => p.type === 'okr' && p.data.id === updatedKR.id)) {
+            return prev;
+          }
+          return [...prev, { type: 'okr', data: updatedKR }];
+        });
+      }
+    } catch (error) {
+      console.error('Failed to check OKR progress', error);
     }
   };
 
@@ -245,6 +302,7 @@ const SprintsPage = () => {
 
       if (!wasAlreadyDone && task) {
         checkRoadmapProgress(taskId);
+        checkOKRProgress(taskId);
       }
     }
   };
@@ -259,6 +317,7 @@ const SprintsPage = () => {
 
       if (!wasAlreadyDone && task) {
         checkRoadmapProgress(pendingDoneTaskId);
+        checkOKRProgress(pendingDoneTaskId);
       }
     }
     setPendingDoneTaskId(null);
@@ -615,10 +674,19 @@ const SprintsPage = () => {
         members={members}
       />
       
-      <RoadmapProgressPopup
-        initiative={currentCelebration}
-        onClose={handleCloseCelebration}
-      />
+      {currentCelebration?.type === 'roadmap' && (
+        <RoadmapProgressPopup
+          initiative={currentCelebration.data}
+          onClose={handleCloseCelebration}
+        />
+      )}
+      
+      {currentCelebration?.type === 'okr' && (
+        <OKRProgressPopup
+          kr={currentCelebration.data}
+          onClose={handleCloseCelebration}
+        />
+      )}
     </div>
   );
 };

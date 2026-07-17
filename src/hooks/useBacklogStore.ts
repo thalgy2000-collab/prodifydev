@@ -30,6 +30,7 @@ export const useBacklogStore = () => {
         epicId: d.epic_id ?? undefined,
         completionPercentage: d.completion_percentage ?? 0,
         roadmapImpact: d.roadmap_impact ?? 0,
+        krImpact: d.kr_impact ?? 0,
         sortOrder: d.sort_order ?? undefined,
         externalId: d.external_id ?? undefined,
         externalUrl: d.external_url ?? undefined,
@@ -53,6 +54,7 @@ export const useBacklogStore = () => {
       epic_id: data.epicId || null,
       completion_percentage: data.completionPercentage ?? 0,
       roadmap_impact: data.roadmapImpact ?? 0,
+      kr_impact: data.krImpact ?? 0,
     });
     trackEvent('task_created', user.id, { page: '/backlog', properties: { title: data.title, priority: data.priority } });
     await fetchAll();
@@ -78,6 +80,7 @@ export const useBacklogStore = () => {
     if (patch.epicId !== undefined) dbPatch.epic_id = patch.epicId || null;
     if (patch.completionPercentage !== undefined) dbPatch.completion_percentage = patch.completionPercentage ?? 0;
     if (patch.roadmapImpact !== undefined) dbPatch.roadmap_impact = patch.roadmapImpact ?? 0;
+    if (patch.krImpact !== undefined) dbPatch.kr_impact = patch.krImpact ?? 0;
     if (patch.externalId !== undefined) dbPatch.external_id = patch.externalId;
     if (patch.externalUrl !== undefined) dbPatch.externalUrl = patch.externalUrl;
     if (patch.externalStatus !== undefined) dbPatch.external_status = patch.externalStatus;
