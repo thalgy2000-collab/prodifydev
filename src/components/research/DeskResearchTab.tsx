@@ -166,7 +166,7 @@ export default function DeskResearchTab({ onUpdate }: { onUpdate: () => void }) 
               </div>
               <h3 className="font-semibold text-lg text-foreground mb-2">{item.title}</h3>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mb-3">
-                <Globe className="h-3.5 w-3.5" /> {item.source_author || 'Fonte desconhecida'}
+                <Globe className="h-3.5 w-3.5" /> {item.source || 'Fonte desconhecida'}
               </div>
               <p className="text-sm text-muted-foreground line-clamp-3 mb-4 min-h-[60px]">
                 {item.relevance || 'Nenhuma nota de relevância adicionada.'}

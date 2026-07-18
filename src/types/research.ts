@@ -29,14 +29,14 @@ export interface QualitativeResearch {
   interviewee_name: string;
   interviewee_role?: string | null;
   interviewee_company?: string | null;
-  interview_date?: string | null;
+  date?: string | null;
   duration_minutes?: number | null;
   method?: QualitativeMethod | null;
-  pains?: string[] | null;
+  pain_points?: string[] | null;
   desires?: string[] | null;
-  quotes?: string[] | null;
+  key_quotes?: string[] | null;
   insights?: string[] | null;
-  recording_link?: string | null;
+  recording_url?: string | null;
   notes?: string | null;
   created_at: string;
   updated_at: string;
@@ -49,14 +49,14 @@ export interface DataAnalysis {
   product_id: string;
   user_id: string;
   title: string;
-  data_source?: string | null;
+  source?: string | null;
   analysis_type?: DataAnalysisType | null;
   period_start?: string | null;
   period_end?: string | null;
   metrics?: any | null; // JSON or array of tags
   findings?: string[] | null;
   conclusions?: string | null;
-  report_link?: string | null;
+  link?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -68,11 +68,11 @@ export interface DeskResearch {
   product_id: string;
   user_id: string;
   title: string;
-  source_author?: string | null;
+  source?: string | null;
   category?: DeskResearchCategory | null;
   url?: string | null;
-  publication_date?: string | null;
-  insights?: string[] | null;
+  published_date?: string | null;
+  key_insights?: string[] | null;
   relevance?: string | null;
   notes?: string | null;
   created_at: string;

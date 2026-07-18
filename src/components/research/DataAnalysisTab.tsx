@@ -166,15 +166,15 @@ export default function DataAnalysisTab({ onUpdate }: { onUpdate: () => void }) 
               </div>
               <h3 className="font-semibold text-lg text-foreground mb-2">{item.title}</h3>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mb-3">
-                <LineChart className="h-3.5 w-3.5" /> {item.data_source || 'Fonte não informada'}
+                <LineChart className="h-3.5 w-3.5" /> {item.source || 'Fonte não informada'}
               </div>
               <p className="text-sm text-muted-foreground line-clamp-3 mb-4 min-h-[60px]">
                 {item.conclusions || 'Nenhuma conclusão adicionada.'}
               </p>
               
               <div className="flex items-center justify-between pt-4 border-t border-border">
-                {item.report_link ? (
-                  <a href={item.report_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm flex items-center gap-1 w-full justify-end">
+                {item.link ? (
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm flex items-center gap-1 w-full justify-end">
 
                     Abrir Dashboard <Link2 className="h-3 w-3" />
                   </a>

@@ -177,9 +177,9 @@ export default function QualitativeTab({ onUpdate }: { onUpdate: () => void }) {
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-500">
                   {item.method}
                 </span>
-                {item.interview_date && (
+                {item.date && (
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Calendar className="h-3 w-3" /> {formatDate(item.interview_date)}
+                    <Calendar className="h-3 w-3" /> {formatDate(item.date)}
                   </span>
                 )}
               </div>
@@ -195,8 +195,8 @@ export default function QualitativeTab({ onUpdate }: { onUpdate: () => void }) {
                 <div className="text-sm text-muted-foreground">
                   {item.duration_minutes ? `${item.duration_minutes} min` : '-- min'}
                 </div>
-                {item.recording_link && (
-                  <a href={item.recording_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm flex items-center gap-1">
+                {item.recording_url && (
+                  <a href={item.recording_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline text-sm flex items-center gap-1">
                     Gravação <Video className="h-3 w-3" />
                   </a>
                 )}
