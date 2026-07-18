@@ -149,9 +149,7 @@ export function EditPrdDialog({ prd, open, onOpenChange, onUpdate, onDelete }: P
               <Label>Cronograma estimado</Label>
               <Textarea rows={3} value={form.estimatedTimeline || ''} onChange={e => set('estimatedTimeline', e.target.value)} />
             </div>
-
           </div>
-        </div>
         <div className="shrink-0 border-t border-border/50 px-6 py-4 flex justify-end gap-2 bg-background">
           <Button variant="destructive" size="sm" onClick={() => { onDelete(prd.id); onOpenChange(false); }}>
             <Trash2 className="h-4 w-4 mr-1" /> Excluir PRD

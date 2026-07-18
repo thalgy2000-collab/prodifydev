@@ -248,7 +248,6 @@ const ImportTasksDialog = ({ mode, onImported, addTask }: Props) => {
               />
             </div>
             </div>
-          </div>
         )}
 
         {step === 'loading' && (

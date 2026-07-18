@@ -198,7 +198,6 @@ const EpicSidePanel = ({ open, onClose, selectedEpicId, onSelectEpic }: EpicSide
                 ))}
               </div>
             </div>
-            </div>
           </div>
           <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background">
             <Button onClick={handleSave} className="w-full">{editing ? 'Salvar' : 'Criar épico'}</Button>

@@ -53,7 +53,6 @@ export default function ProblemStatementHistoryModal({ open, onOpenChange }: Pro
               </div>
             ))}
           </div>
-            </div>
           )}
         </div>
       </DialogContent>

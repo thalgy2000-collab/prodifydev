@@ -204,7 +204,6 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
             </div>
             <Badge variant="secondary" className="shrink-0">Passo {step} de 2</Badge>
           </div>
-          </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
