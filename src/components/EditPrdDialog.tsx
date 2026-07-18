@@ -69,12 +69,11 @@ export function EditPrdDialog({ prd, open, onOpenChange, onUpdate, onDelete }: P
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-2">
+      <DialogContent className="max-w-2xl h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
           <DialogTitle>Editar PRD</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[75vh] px-6 pb-6">
-          <div className="space-y-4 pr-2">
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
             {/* Title + Version + Status row */}
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-1">
@@ -151,13 +150,13 @@ export function EditPrdDialog({ prd, open, onOpenChange, onUpdate, onDelete }: P
               <Textarea rows={3} value={form.estimatedTimeline || ''} onChange={e => set('estimatedTimeline', e.target.value)} />
             </div>
 
-            <div className="pt-2 flex justify-end">
-              <Button variant="destructive" size="sm" onClick={() => { onDelete(prd.id); onOpenChange(false); }}>
-                <Trash2 className="h-4 w-4 mr-1" /> Excluir PRD
-              </Button>
-            </div>
           </div>
-        </ScrollArea>
+        </div>
+        <div className="shrink-0 border-t border-border/50 px-6 py-4 flex justify-end gap-2 bg-background">
+          <Button variant="destructive" size="sm" onClick={() => { onDelete(prd.id); onOpenChange(false); }}>
+            <Trash2 className="h-4 w-4 mr-1" /> Excluir PRD
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

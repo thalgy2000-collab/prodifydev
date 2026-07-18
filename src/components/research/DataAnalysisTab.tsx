@@ -6,7 +6,7 @@ import { DataAnalysis, DataAnalysisType } from '@/types/research';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Plus, Loader2, Link2, Trash2, LineChart } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -91,11 +91,11 @@ export default function DataAnalysisTab({ onUpdate }: { onUpdate: () => void }) 
           <DialogTrigger asChild>
             <Button className="gap-2"><Plus className="h-4 w-4" /> Nova Análise</Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
+          <DialogContent className="sm:max-w-md h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+            <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
               <DialogTitle>Nova Análise de Dados</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4 mt-2">
+            <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
               <div className="space-y-2">
                 <Label>Título / Foco da Análise</Label>
                 <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Queda no funil de checkout" />
@@ -130,11 +130,13 @@ export default function DataAnalysisTab({ onUpdate }: { onUpdate: () => void }) 
                 />
               </div>
               <div className="space-y-2">
-                <Label>Link do Dashboard/Relatório</Label>
+                <Label>Link para o Dashboard / Relatório</Label>
                 <Input value={reportLink} onChange={e => setReportLink(e.target.value)} placeholder="https://..." />
               </div>
-              <Button onClick={handleSubmit} className="w-full mt-4" disabled={!title}>Salvar Análise</Button>
             </div>
+            <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background">
+              <Button onClick={handleSubmit} className="w-full" disabled={!title}>Salvar Análise</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

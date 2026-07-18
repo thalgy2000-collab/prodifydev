@@ -23,11 +23,12 @@ export default function ProblemStatementHistoryModal({ open, onOpenChange }: Pro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
           <DialogTitle>Histórico de versões</DialogTitle>
         </DialogHeader>
-        {loading ? (
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
+          {loading ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
         ) : items.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhuma versão registrada ainda.</p>
@@ -52,7 +53,9 @@ export default function ProblemStatementHistoryModal({ open, onOpenChange }: Pro
               </div>
             ))}
           </div>
-        )}
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

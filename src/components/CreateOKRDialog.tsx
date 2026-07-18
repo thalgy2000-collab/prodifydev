@@ -40,11 +40,11 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
       <DialogTrigger asChild>
         <Button className="gap-2"><Plus className="h-4 w-4" />Novo Objetivo</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg !p-0 !gap-0 !flex !flex-col !max-h-[95vh] sm:!max-h-[90vh] !overflow-hidden">
-        <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border">
+      <DialogContent className="sm:max-w-lg h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
           <DialogTitle>Criar Objetivo — {quarter}</DialogTitle>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Objetivo</Label>
@@ -78,9 +78,9 @@ const CreateOKRDialog = ({ quarter, onAdd }: Props) => {
             </div>
           </div>
         </div>
-        <div className="flex-shrink-0 px-6 py-4 border-t border-border">
+        <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background flex justify-end">
           <Button onClick={handleSubmit} className="w-full">Criar Objetivo</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

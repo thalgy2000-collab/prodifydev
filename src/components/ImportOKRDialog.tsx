@@ -231,8 +231,8 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
           Importar arquivo
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-lg h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
           <DialogTitle>Importar OKRs com IA</DialogTitle>
           <DialogDescription>
             {step === 'upload' && `Envie um arquivo ou cole o conteúdo. Trimestre alvo: ${targetQuarter}.`}
@@ -240,6 +240,8 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
             {step === 'preview' && 'Revise os OKRs extraídos antes de importar.'}
           </DialogDescription>
         </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
 
         {errorMsg && step !== 'preview' && (
           <Alert variant="destructive">
@@ -301,7 +303,13 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
                 ))}
               </div>
             </ScrollArea>
-            <div className="flex justify-end gap-2 pt-2">
+          </>
+        )}
+        </div>
+
+        {step === 'preview' && (
+          <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background">
+            <div className="flex justify-end gap-2 w-full">
               <Button variant="ghost" onClick={() => { setOpen(false); reset(); }}>
                 <X className="h-4 w-4 mr-1" /> Cancelar
               </Button>
@@ -310,7 +318,7 @@ const ImportOKRDialog = ({ onImported, quarter }: ImportOKRDialogProps) => {
                 Confirmar e Importar
               </Button>
             </div>
-          </>
+          </DialogFooter>
         )}
       </DialogContent>
     </Dialog>

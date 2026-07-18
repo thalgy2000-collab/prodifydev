@@ -169,11 +169,11 @@ const EpicSidePanel = ({ open, onClose, selectedEpicId, onSelectEpic }: EpicSide
       </aside>
 
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
             <DialogTitle>{editing ? 'Editar épico' : 'Novo épico'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
+          <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
             <div className="space-y-2">
               <Label>Nome</Label>
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Onboarding" />
@@ -198,8 +198,11 @@ const EpicSidePanel = ({ open, onClose, selectedEpicId, onSelectEpic }: EpicSide
                 ))}
               </div>
             </div>
-            <Button onClick={handleSave} className="w-full">{editing ? 'Salvar' : 'Criar épico'}</Button>
+            </div>
           </div>
+          <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background">
+            <Button onClick={handleSave} className="w-full">{editing ? 'Salvar' : 'Criar épico'}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

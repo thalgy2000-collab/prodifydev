@@ -189,8 +189,8 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-3xl h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
           <div className="flex items-center justify-between gap-3">
             <div>
               <DialogTitle>
@@ -204,10 +204,12 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
             </div>
             <Badge variant="secondary" className="shrink-0">Passo {step} de 2</Badge>
           </div>
+          </div>
         </DialogHeader>
 
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
         {step === 1 && (
-          <div className="mt-2">
+          <div>
             {loadingTpl ? (
               <div className="flex items-center justify-center py-12 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" /> Carregando templates...
@@ -304,19 +306,27 @@ const ProductTemplateDialog = ({ open, onOpenChange }: Props) => {
               </div>
             </div>
 
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2 pt-2">
+          </div>
+        )}
+        </div>
+
+        {step === 2 && selected && (
+          <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2 w-full">
               <Button variant="outline" onClick={() => setStep(1)} disabled={creating}>
                 <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
               </Button>
-              <Button onClick={handleCreate} disabled={creating || !name.trim()}>
-                {creating ? (
-                  <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Criando produto e OKRs...</>
-                ) : (
-                  <><Rocket className="h-4 w-4 mr-1" /> Criar Produto</>
-                )}
-              </Button>
+              <div className="flex justify-end w-full">
+                <Button onClick={handleCreate} disabled={creating || !name.trim()}>
+                  {creating ? (
+                    <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Criando produto e OKRs...</>
+                  ) : (
+                    <><Rocket className="h-4 w-4 mr-1" /> Criar Produto</>
+                  )}
+                </Button>
+              </div>
             </div>
-          </div>
+          </DialogFooter>
         )}
       </DialogContent>
     </Dialog>

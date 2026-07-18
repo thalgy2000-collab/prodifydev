@@ -191,8 +191,8 @@ const ImportTasksDialog = ({ mode, onImported, addTask }: Props) => {
   return (
     <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) reset(); }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-lg h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
           <DialogTitle>
             {step === 'preview' ? 'Tarefas extraídas — revise antes de importar' : titles.title}
           </DialogTitle>
@@ -202,6 +202,8 @@ const ImportTasksDialog = ({ mode, onImported, addTask }: Props) => {
             {step === 'preview' && 'Selecione quais tarefas deseja importar.'}
           </DialogDescription>
         </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
 
         {errorMsg && step !== 'preview' && (
           <Alert variant="destructive">
@@ -245,9 +247,7 @@ const ImportTasksDialog = ({ mode, onImported, addTask }: Props) => {
                 placeholder="Ex: Projeto em React com Supabase, usuários são PMs e designers"
               />
             </div>
-            <Button onClick={handleGenerate} disabled={!descricao.trim()} className="w-full gap-2">
-              <Sparkles className="h-4 w-4" /> Gerar Tarefas
-            </Button>
+            </div>
           </div>
         )}
 
@@ -296,22 +296,36 @@ const ImportTasksDialog = ({ mode, onImported, addTask }: Props) => {
                 })}
               </div>
             </ScrollArea>
-            <div className="flex items-center justify-between pt-2 border-t border-border/50">
-              <span className="text-xs text-muted-foreground">
-                {selected.size} de {tasks.length} tarefas selecionadas
-              </span>
-              <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => { setOpen(false); reset(); }}>
-                  <X className="h-4 w-4 mr-1" /> Cancelar
-                </Button>
-                <Button onClick={handleConfirm} disabled={saving || selected.size === 0}>
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  ✅ Importar Selecionadas
-                </Button>
-              </div>
-            </div>
           </>
         )}
+        </div>
+
+        {(step === 'input' && mode === 'ai') || step === 'preview' ? (
+          <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background flex flex-row items-center justify-between w-full">
+            {step === 'preview' ? (
+              <>
+                <span className="text-xs text-muted-foreground mr-auto">
+                  {selected.size} de {tasks.length} tarefas selecionadas
+                </span>
+                <div className="flex gap-2 ml-auto">
+                  <Button variant="ghost" onClick={() => { setOpen(false); reset(); }}>
+                    <X className="h-4 w-4 mr-1" /> Cancelar
+                  </Button>
+                  <Button onClick={handleConfirm} disabled={saving || selected.size === 0}>
+                    {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    ✅ Importar Selecionadas
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex justify-end w-full">
+                <Button onClick={handleGenerate} disabled={!descricao.trim()} className="w-full gap-2">
+                  <Sparkles className="h-4 w-4" /> Gerar Tarefas
+                </Button>
+              </div>
+            )}
+          </DialogFooter>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

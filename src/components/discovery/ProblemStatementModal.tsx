@@ -49,15 +49,15 @@ export default function ProblemStatementModal({ open, onOpenChange, initial, onS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-xl h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
           <DialogTitle>Problema e Objetivo do Produto</DialogTitle>
           <DialogDescription>
             Em uma frase clara: qual problema vocês resolvem e o que querem alcançar?
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
           <div>
             <Label>Problema *</Label>
             <Textarea
@@ -100,9 +100,11 @@ export default function ProblemStatementModal({ open, onOpenChange, initial, onS
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={save} disabled={saving}>Salvar nova versão</Button>
+        <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background">
+          <div className="flex justify-end gap-2 w-full">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancelar</Button>
+            <Button onClick={save} disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

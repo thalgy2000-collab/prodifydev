@@ -137,9 +137,11 @@ const EditRoadmapDialog = ({ item, objectives, existingThemes = [], open, onOpen
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg !p-0 !flex !flex-col !max-h-[95vh] sm:!max-h-[90vh] !overflow-hidden">
-        <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-border"><DialogTitle>Editar Iniciativa</DialogTitle></DialogHeader>
-        <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-4 roadmap-dialog-scroll">
+      <DialogContent className="sm:max-w-lg h-[90vh] sm:h-[85vh] max-h-[95vh] flex flex-col p-0 gap-0 overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0 border-b border-border/50">
+          <DialogTitle>Editar Iniciativa</DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0 space-y-4">
           <div className="space-y-2"><Label>Título</Label><CountedInput maxLength={100} inline value={title} onChange={e => setTitle(e.target.value)} /></div>
           <div className="space-y-2">
             <Label>Tema</Label>
@@ -295,10 +297,10 @@ const EditRoadmapDialog = ({ item, objectives, existingThemes = [], open, onOpen
             </>
           )}
         </div>
-        <div className="flex-shrink-0 px-6 py-4 border-t border-border flex gap-2 justify-end">
+        <DialogFooter className="px-6 py-4 shrink-0 border-t border-border/50 bg-background flex justify-end gap-2 w-full">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={handleSubmit} disabled={datesInvalid || !title.trim()}>Salvar Alterações</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
