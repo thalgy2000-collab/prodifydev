@@ -53,9 +53,9 @@ export default function QualitativeTab({ onUpdate }: { onUpdate: () => void }) {
       interviewee_name: intervieweeName,
       interviewee_role: intervieweeRole,
       method,
-      interview_date: interviewDate || null,
+      date: interviewDate || null,
       duration_minutes: parseInt(duration) || null,
-      recording_link: recordingLink,
+      recording_url: recordingLink,
     });
 
     if (error) {

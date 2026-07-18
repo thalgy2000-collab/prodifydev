@@ -48,7 +48,7 @@ export default function DeskResearchTab({ onUpdate }: { onUpdate: () => void }) 
       product_id: activeProduct.id,
       user_id: user.id,
       title,
-      source_author: sourceAuthor,
+      source: sourceAuthor,
       category,
       url,
       relevance,

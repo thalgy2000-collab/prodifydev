@@ -48,10 +48,10 @@ export default function DataAnalysisTab({ onUpdate }: { onUpdate: () => void }) 
       product_id: activeProduct.id,
       user_id: user.id,
       title,
-      data_source: dataSource,
+      source: dataSource,
       analysis_type: analysisType,
       conclusions,
-      report_link: reportLink,
+      link: reportLink,
     });
 
     if (error) {
