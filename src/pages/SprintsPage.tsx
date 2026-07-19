@@ -117,7 +117,7 @@ const SprintsPage = () => {
     const pendingTasks = sprintTasks.filter(t => t.status !== 'done');
     for (const task of pendingTasks) {
       if (resolveTargetSprintId === 'backlog') {
-        await updateTask(task.id, { sprintId: undefined });
+        await updateTask(task.id, { sprintId: '' });
       } else {
         await updateTask(task.id, { sprintId: resolveTargetSprintId });
       }
