@@ -128,7 +128,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </header>
           <PendingInviteBanner />
           <CategoryBreadcrumb />
-          <main className="flex-1 p-4 sm:p-6 max-w-5xl mx-auto w-full">
+          <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full">
             {children}
           </main>
         </div>
