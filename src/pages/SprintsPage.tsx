@@ -115,78 +115,6 @@ const SprintsPage = () => {
   const [allResolvedMessage, setAllResolvedMessage] = useState(false);
   const [nextAvailableSprint, setNextAvailableSprint] = useState<{ id: string; name: string } | null>(null);
 
-  // Fetch next available sprint when viewing a completed sprint's report
-  useEffect(() => {
-    if (!selectedSprint || selectedSprint.status !== 'completed' || !activeProduct) {
-      setNextAvailableSprint(null);
-      return;
-    }
-    const fetchNextSprint = async () => {
-      const { data } = await (supabase.from('sprints') as any)
-        .select('id, name')
-        .eq('product_id', activeProduct.id)
-        .in('status', ['planning', 'active'])
-        .neq('id', selectedSprint.id)
-        .order('start_date', { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      setNextAvailableSprint(data || null);
-    };
-    fetchNextSprint();
-  }, [selectedSprint, activeProduct]);
-
-  // Check if all pending tasks are resolved and show celebration
-  useEffect(() => {
-    if (!selectedSprint || selectedSprint.status !== 'completed') return;
-    const pending = sprintTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled');
-    if (pending.length === 0 && sprintTasks.length > 0 && !allResolvedMessage) {
-      // Only show if there were tasks initially done
-      const doneCount = sprintTasks.filter(t => t.status === 'done').length;
-      if (doneCount > 0 || sprintTasks.filter(t => t.status === 'cancelled').length > 0) {
-        setAllResolvedMessage(true);
-      }
-    }
-  }, [sprintTasks, selectedSprint, allResolvedMessage]);
-
-  // Reset celebration when switching sprints
-  useEffect(() => {
-    setAllResolvedMessage(false);
-  }, [selectedSprint?.id]);
-
-  const handleMoveToBacklog = useCallback(async (taskId: string) => {
-    await updateTask(taskId, { sprintId: '' });
-    toast.success('Tarefa movida para o Backlog');
-  }, [updateTask]);
-
-  const handleMoveToNextSprint = useCallback(async (taskId: string) => {
-    if (!nextAvailableSprint) return;
-    await updateTask(taskId, { sprintId: nextAvailableSprint.id });
-    toast.success(`Tarefa movida para ${nextAvailableSprint.name}`);
-  }, [updateTask, nextAvailableSprint]);
-
-  const handleMarkAsDone = useCallback(async (taskId: string) => {
-    await updateTask(taskId, { status: 'done', completionPercentage: 100 });
-    await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId).eq('item_type', 'task');
-    checkRoadmapProgress(taskId);
-    checkOKRProgress(taskId);
-    toast.success('Tarefa marcada como concluída ✓');
-  }, [updateTask, checkRoadmapProgress, checkOKRProgress]);
-
-  const handleConfirmCancel = useCallback(async () => {
-    if (!cancelConfirmTaskId) return;
-    await updateTask(cancelConfirmTaskId, { status: 'cancelled' as any });
-    setCancelConfirmTaskId(null);
-    toast.success('Tarefa cancelada');
-  }, [updateTask, cancelConfirmTaskId]);
-
-  const handleMoveAllToBacklog = useCallback(async () => {
-    const pending = sprintTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled');
-    for (const task of pending) {
-      await updateTask(task.id, { sprintId: '' });
-    }
-    toast.success(`${pending.length} tarefa(s) movida(s) para o Backlog`);
-  }, [sprintTasks, updateTask]);
-
   // Close sprint confirmation
   const [confirmCloseSprintOpen, setConfirmCloseSprintOpen] = useState(false);
 
@@ -300,6 +228,77 @@ const SprintsPage = () => {
   const selectedSprint = sprints.find(s => s.id === selectedSprintIdOverride) || activeSprint || activeSprints[0];
 
   const sprintTasks = selectedSprint ? tasks.filter(t => t.sprintId === selectedSprint.id) : [];
+
+  // Fetch next available sprint when viewing a completed sprint's report
+  useEffect(() => {
+    if (!selectedSprint || selectedSprint.status !== 'completed' || !activeProduct) {
+      setNextAvailableSprint(null);
+      return;
+    }
+    const fetchNextSprint = async () => {
+      const { data } = await (supabase.from('sprints') as any)
+        .select('id, name')
+        .eq('product_id', activeProduct.id)
+        .in('status', ['planning', 'active'])
+        .neq('id', selectedSprint.id)
+        .order('start_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      setNextAvailableSprint(data || null);
+    };
+    fetchNextSprint();
+  }, [selectedSprint, activeProduct]);
+
+  // Check if all pending tasks are resolved and show celebration
+  useEffect(() => {
+    if (!selectedSprint || selectedSprint.status !== 'completed') return;
+    const pending = sprintTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled');
+    if (pending.length === 0 && sprintTasks.length > 0 && !allResolvedMessage) {
+      const doneCount = sprintTasks.filter(t => t.status === 'done').length;
+      if (doneCount > 0 || sprintTasks.filter(t => t.status === 'cancelled').length > 0) {
+        setAllResolvedMessage(true);
+      }
+    }
+  }, [sprintTasks, selectedSprint, allResolvedMessage]);
+
+  // Reset celebration when switching sprints
+  useEffect(() => {
+    setAllResolvedMessage(false);
+  }, [selectedSprint?.id]);
+
+  const handleMoveToBacklog = useCallback(async (taskId: string) => {
+    await updateTask(taskId, { sprintId: '' });
+    toast.success('Tarefa movida para o Backlog');
+  }, [updateTask]);
+
+  const handleMoveToNextSprint = useCallback(async (taskId: string) => {
+    if (!nextAvailableSprint) return;
+    await updateTask(taskId, { sprintId: nextAvailableSprint.id });
+    toast.success(`Tarefa movida para ${nextAvailableSprint.name}`);
+  }, [updateTask, nextAvailableSprint]);
+
+  const handleMarkAsDone = useCallback(async (taskId: string) => {
+    await updateTask(taskId, { status: 'done', completionPercentage: 100 });
+    await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId).eq('item_type', 'task');
+    checkRoadmapProgress(taskId);
+    checkOKRProgress(taskId);
+    toast.success('Tarefa marcada como concluída ✓');
+  }, [updateTask]);
+
+  const handleConfirmCancel = useCallback(async () => {
+    if (!cancelConfirmTaskId) return;
+    await updateTask(cancelConfirmTaskId, { status: 'cancelled' as any });
+    setCancelConfirmTaskId(null);
+    toast.success('Tarefa cancelada');
+  }, [updateTask, cancelConfirmTaskId]);
+
+  const handleMoveAllToBacklog = useCallback(async () => {
+    const pending = sprintTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled');
+    for (const task of pending) {
+      await updateTask(task.id, { sprintId: '' });
+    }
+    toast.success(`${pending.length} tarefa(s) movida(s) para o Backlog`);
+  }, [sprintTasks, updateTask]);
 
   // Fetch criteria for sprint tasks
   useEffect(() => {
