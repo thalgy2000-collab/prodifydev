@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, DragEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, DragEvent } from 'react';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
@@ -13,9 +13,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectGroup, SelectLabel, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Zap, Trash2, AlertTriangle, ArrowUp, ArrowDown, Minus, CircleAlert, User, ClipboardCheck, Calendar, CheckCircle2, PieChart } from 'lucide-react';
+import { Plus, Zap, Trash2, AlertTriangle, ArrowUp, ArrowDown, Minus, CircleAlert, User, ClipboardCheck, Calendar, CheckCircle2, PieChart, MoreVertical, ArrowRight, Archive, XCircle } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { useProduct } from '@/contexts/ProductContext';
 import { useUndo } from '@/contexts/UndoContext';
@@ -108,23 +110,82 @@ const SprintsPage = () => {
   const [pendingDoneProgress, setPendingDoneProgress] = useState<{ done: number; total: number } | null>(null);
 
   
-  // Resolve pending tasks modal
-  const [resolvePendingOpen, setResolvePendingOpen] = useState(false);
-  const [resolveTargetSprintId, setResolveTargetSprintId] = useState<string>('backlog');
+  // Individual pending task actions
+  const [cancelConfirmTaskId, setCancelConfirmTaskId] = useState<string | null>(null);
+  const [allResolvedMessage, setAllResolvedMessage] = useState(false);
+  const [nextAvailableSprint, setNextAvailableSprint] = useState<{ id: string; name: string } | null>(null);
 
-  const handleResolvePending = async () => {
-    if (!selectedSprint) return;
-    const pendingTasks = sprintTasks.filter(t => t.status !== 'done');
-    for (const task of pendingTasks) {
-      if (resolveTargetSprintId === 'backlog') {
-        await updateTask(task.id, { sprintId: '' });
-      } else {
-        await updateTask(task.id, { sprintId: resolveTargetSprintId });
+  // Fetch next available sprint when viewing a completed sprint's report
+  useEffect(() => {
+    if (!selectedSprint || selectedSprint.status !== 'completed' || !activeProduct) {
+      setNextAvailableSprint(null);
+      return;
+    }
+    const fetchNextSprint = async () => {
+      const { data } = await (supabase.from('sprints') as any)
+        .select('id, name')
+        .eq('product_id', activeProduct.id)
+        .in('status', ['planning', 'active'])
+        .neq('id', selectedSprint.id)
+        .order('start_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      setNextAvailableSprint(data || null);
+    };
+    fetchNextSprint();
+  }, [selectedSprint, activeProduct]);
+
+  // Check if all pending tasks are resolved and show celebration
+  useEffect(() => {
+    if (!selectedSprint || selectedSprint.status !== 'completed') return;
+    const pending = sprintTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled');
+    if (pending.length === 0 && sprintTasks.length > 0 && !allResolvedMessage) {
+      // Only show if there were tasks initially done
+      const doneCount = sprintTasks.filter(t => t.status === 'done').length;
+      if (doneCount > 0 || sprintTasks.filter(t => t.status === 'cancelled').length > 0) {
+        setAllResolvedMessage(true);
       }
     }
-    setResolvePendingOpen(false);
-    toast.success(`${pendingTasks.length} tarefa(s) movida(s) com sucesso.`);
-  };
+  }, [sprintTasks, selectedSprint, allResolvedMessage]);
+
+  // Reset celebration when switching sprints
+  useEffect(() => {
+    setAllResolvedMessage(false);
+  }, [selectedSprint?.id]);
+
+  const handleMoveToBacklog = useCallback(async (taskId: string) => {
+    await updateTask(taskId, { sprintId: '' });
+    toast.success('Tarefa movida para o Backlog');
+  }, [updateTask]);
+
+  const handleMoveToNextSprint = useCallback(async (taskId: string) => {
+    if (!nextAvailableSprint) return;
+    await updateTask(taskId, { sprintId: nextAvailableSprint.id });
+    toast.success(`Tarefa movida para ${nextAvailableSprint.name}`);
+  }, [updateTask, nextAvailableSprint]);
+
+  const handleMarkAsDone = useCallback(async (taskId: string) => {
+    await updateTask(taskId, { status: 'done', completionPercentage: 100 });
+    await (supabase.from('rice_scores') as any).delete().eq('item_id', taskId).eq('item_type', 'task');
+    checkRoadmapProgress(taskId);
+    checkOKRProgress(taskId);
+    toast.success('Tarefa marcada como concluída ✓');
+  }, [updateTask, checkRoadmapProgress, checkOKRProgress]);
+
+  const handleConfirmCancel = useCallback(async () => {
+    if (!cancelConfirmTaskId) return;
+    await updateTask(cancelConfirmTaskId, { status: 'cancelled' as any });
+    setCancelConfirmTaskId(null);
+    toast.success('Tarefa cancelada');
+  }, [updateTask, cancelConfirmTaskId]);
+
+  const handleMoveAllToBacklog = useCallback(async () => {
+    const pending = sprintTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled');
+    for (const task of pending) {
+      await updateTask(task.id, { sprintId: '' });
+    }
+    toast.success(`${pending.length} tarefa(s) movida(s) para o Backlog`);
+  }, [sprintTasks, updateTask]);
 
   // Close sprint confirmation
   const [confirmCloseSprintOpen, setConfirmCloseSprintOpen] = useState(false);
@@ -585,7 +646,8 @@ const SprintsPage = () => {
             {(() => {
               const total = sprintTasks.length;
               const done = sprintTasks.filter(t => t.status === 'done').length;
-              const pending = total - done;
+              const cancelled = sprintTasks.filter(t => t.status === 'cancelled').length;
+              const pending = total - done - cancelled;
               const percent = total > 0 ? Math.round((done / total) * 100) : 0;
               
               return (
@@ -613,6 +675,13 @@ const SprintsPage = () => {
                     <Progress value={percent} className="h-3" />
                   </div>
 
+                  {allResolvedMessage && pending === 0 && (
+                    <div className="mt-6 p-4 rounded-lg border border-primary/30 bg-primary/5 text-center animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+                      <p className="text-lg font-semibold">🎉 Todas as pendências foram resolvidas!</p>
+                      <p className="text-sm text-muted-foreground mt-1">Você pode fechar o relatório normalmente.</p>
+                    </div>
+                  )}
+
                   {pending > 0 && (
                     <div className="mt-8 pt-6 border-t border-border">
                       <div className="flex items-center justify-between mb-4">
@@ -620,15 +689,89 @@ const SprintsPage = () => {
                           <AlertTriangle className="h-5 w-5 text-destructive" />
                           Tarefas Pendentes ({pending})
                         </h3>
-                        <Button onClick={() => setResolvePendingOpen(true)}>Resolver Pendências</Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5"
+                          onClick={handleMoveAllToBacklog}
+                        >
+                          <Archive className="h-4 w-4" />
+                          Mover todas para o Backlog
+                        </Button>
                       </div>
                       <div className="space-y-3">
-                        {sprintTasks.filter(t => t.status !== 'done').map(task => (
-                          <div key={task.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-background">
-                            <span className="font-medium text-sm">{task.title}</span>
-                            <Badge variant="outline">{task.status}</Badge>
-                          </div>
-                        ))}
+                        <TooltipProvider delayDuration={300}>
+                          {sprintTasks.filter(t => t.status !== 'done' && t.status !== 'cancelled').map(task => (
+                            <div key={task.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-background group hover:border-primary/30 transition-colors">
+                              <span className="font-medium text-sm flex-1 mr-3">{task.title}</span>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline">{task.status === 'in_progress' ? 'em andamento' : task.status}</Badge>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8 opacity-60 group-hover:opacity-100 transition-opacity"
+                                      onClick={e => e.stopPropagation()}
+                                    >
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-64">
+                                    <DropdownMenuItem onClick={() => handleMoveToBacklog(task.id)} className="gap-2 cursor-pointer">
+                                      <Archive className="h-4 w-4 text-muted-foreground" />
+                                      <div>
+                                        <p className="font-medium">Mover para o Backlog</p>
+                                        <p className="text-xs text-muted-foreground">Remove da sprint, volta para tarefas sem sprint</p>
+                                      </div>
+                                    </DropdownMenuItem>
+                                    {nextAvailableSprint ? (
+                                      <DropdownMenuItem onClick={() => handleMoveToNextSprint(task.id)} className="gap-2 cursor-pointer">
+                                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                        <div>
+                                          <p className="font-medium">Mover para próxima Sprint</p>
+                                          <p className="text-xs text-muted-foreground">{nextAvailableSprint.name}</p>
+                                        </div>
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <div>
+                                            <DropdownMenuItem disabled className="gap-2">
+                                              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                                              <div>
+                                                <p className="font-medium">Mover para próxima Sprint</p>
+                                                <p className="text-xs text-muted-foreground">Nenhuma sprint futura disponível</p>
+                                              </div>
+                                            </DropdownMenuItem>
+                                          </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="left">
+                                          <p>Nenhuma sprint futura disponível</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    )}
+                                    <DropdownMenuItem onClick={() => handleMarkAsDone(task.id)} className="gap-2 cursor-pointer">
+                                      <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                                      <div>
+                                        <p className="font-medium">Marcar como Concluída</p>
+                                        <p className="text-xs text-muted-foreground">Status não foi atualizado, mas a tarefa está pronta</p>
+                                      </div>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setCancelConfirmTaskId(task.id)} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+                                      <XCircle className="h-4 w-4" />
+                                      <div>
+                                        <p className="font-medium">Cancelar tarefa</p>
+                                        <p className="text-xs opacity-70">Não conta mais como pendência</p>
+                                      </div>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </div>
+                          ))}
+                        </TooltipProvider>
                       </div>
                     </div>
                   )}
@@ -763,40 +906,24 @@ const SprintsPage = () => {
       </AlertDialog>
 
 
-      {/* Resolve Pending Tasks Dialog */}
-      <Dialog open={resolvePendingOpen} onOpenChange={setResolvePendingOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Resolver Pendências</DialogTitle>
-            <DialogDescription>
-              Escolha o destino das {selectedSprint ? tasks.filter(t => t.sprintId === selectedSprint.id && t.status !== 'done').length : 0} tarefa(s) pendente(s).
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Label className="mb-3 block">Mover tarefas para:</Label>
-            <Select value={resolveTargetSprintId} onValueChange={setResolveTargetSprintId}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="backlog">Backlog (Sem sprint)</SelectItem>
-                {activeSprints.length > 0 && (
-                  <SelectGroup>
-                    <SelectLabel>Sprints Ativas</SelectLabel>
-                    {activeSprints.map(s => (
-                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                    ))}
-                  </SelectGroup>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setResolvePendingOpen(false)}>Cancelar</Button>
-            <Button onClick={handleResolvePending}>Confirmar Movimentação</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Cancel Task Confirmation Dialog */}
+      <AlertDialog open={!!cancelConfirmTaskId} onOpenChange={(open) => { if (!open) setCancelConfirmTaskId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-destructive" />
+              Cancelar esta tarefa?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Ela não aparecerá mais como pendência.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCancelConfirmTaskId(null)}>Cancelar ação</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Confirmar cancelamento</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Edit sprint task dialog */}
       <EditSprintTaskDialog

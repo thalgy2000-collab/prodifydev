@@ -1,7 +1,7 @@
 import { OKRCategory } from './okr';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
-export type TaskStatus = 'open' | 'ready' | 'in_progress' | 'done';
+export type TaskStatus = 'open' | 'ready' | 'in_progress' | 'done' | 'cancelled';
 
 export interface BacklogTask {
   id: string;
@@ -44,4 +44,5 @@ export const TASK_STATUS_CONFIG: Record<TaskStatus, { label: string }> = {
   ready: { label: 'Pronta' },
   in_progress: { label: 'Em andamento' },
   done: { label: 'Concluída' },
+  cancelled: { label: 'Cancelada' },
 };
