@@ -45,20 +45,6 @@ export const sprintsTourSteps: TourStep[] = [
   { type: 'spotlight', selector: '[data-tour-feature="sprint-add"]', title: 'Adicionar tarefa', description: 'Adicione tarefas do backlog à sprint atual.' },
 ];
 
-export const releasesTourSteps: TourStep[] = [
-  { type: 'spotlight', selector: '[data-tour-feature="release-list"]', title: 'Lista de releases', description: 'Planeje e gerencie os lançamentos do produto.' },
-  { type: 'spotlight', selector: '[data-tour-feature="release-card"]', title: 'Card de release', description: 'Cada release agrupa iniciativas e tem uma data alvo.' },
-  { type: 'spotlight', selector: '[data-tour-feature="release-items"]', title: 'Itens do release', description: 'Vincule iniciativas do roadmap ao release.' },
-  { type: 'spotlight', selector: '[data-tour-feature="release-create"]', title: 'Nova Release', description: 'Crie um novo marco de lançamento.' },
-];
-
-export const prdTourSteps: TourStep[] = [
-  { type: 'spotlight', selector: '[data-tour-feature="prd-doc"]', title: 'Documento PRD', description: 'Documente o problema, objetivo e requisitos do produto.' },
-  { type: 'spotlight', selector: '[data-tour-feature="prd-sections"]', title: 'Seções do PRD', description: 'Preencha cada seção para ter uma especificação completa.' },
-  { type: 'spotlight', selector: '[data-tour-feature="prd-edit"]', title: 'Edição', description: 'Clique para editar qualquer seção do documento.' },
-  { type: 'spotlight', selector: '[data-tour-feature="prd-export"]', title: 'Exportar', description: 'Exporte o PRD para compartilhar com o time.' },
-];
-
 export const opportunityTourSteps: TourStep[] = [
   { type: 'spotlight', selector: '[data-tour-feature="opp-tree"]', title: 'Árvore de oportunidades', description: 'Mapeie oportunidades conectadas aos seus objetivos.' },
   { type: 'spotlight', selector: '[data-tour-feature="opp-root"]', title: 'Nó raiz', description: 'O nó principal representa o problema central do produto.' },
