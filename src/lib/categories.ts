@@ -22,8 +22,6 @@ export const CATEGORIES: Record<CategorySlug, CategoryDef> = {
     features: [
       { icon: '🎯', title: 'OKRs', desc: 'Gerencie objetivos e key results', route: '/okrs' },
       { icon: '🗺️', title: 'Roadmap', desc: 'Planeje suas iniciativas', route: '/roadmap' },
-      { icon: '🚀', title: 'Release Planning', desc: 'Organize seus lançamentos', route: '/releases' },
-      { icon: '📄', title: 'PRD', desc: 'Documente seus requisitos', route: '/prd' },
       { icon: '📅', title: 'Agenda', desc: 'Gerencie seus eventos', route: '/produto-agenda' },
     ],
   },

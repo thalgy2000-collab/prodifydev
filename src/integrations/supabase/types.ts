@@ -2116,6 +2116,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      recalc_single_kr: { Args: { p_kr_id: string }; Returns: undefined }
       seed_example_data: { Args: { new_user_id: string }; Returns: undefined }
       touch_last_seen: { Args: never; Returns: undefined }
     }

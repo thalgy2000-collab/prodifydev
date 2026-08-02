@@ -21,8 +21,6 @@ const routeMap: Record<string, { label: string; icon: string; category: string }
   '/analises':            { label: 'Análises',      icon: '📊', category: 'Análises' },
   '/concorrencia':        { label: 'Concorrência',  icon: '🏆', category: 'Discovery' },
   '/swot':                { label: 'SWOT',          icon: '📊', category: 'Discovery' },
-  '/releases':            { label: 'Releases',      icon: '🚀', category: 'Planejamento' },
-  '/prd':                 { label: 'PRD',           icon: '📄', category: 'Planejamento' },
   '/membros':             { label: 'Membros',       icon: '👥', category: 'Membros' },
   '/produto-agenda':      { label: 'Agenda',        icon: '📅', category: 'Planejamento' },
   '/discovery/pesquisas': { label: 'Pesquisas',     icon: '🔍', category: 'Discovery' },

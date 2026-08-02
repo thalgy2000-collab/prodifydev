@@ -27,10 +27,8 @@ import AgendaPage from "./pages/AgendaPage";
 import OpportunityTreePage from "./pages/OpportunityTreePage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import RicePage from "./pages/RicePage";
-import ReleasePlanningPage from "./pages/ReleasePlanningPage";
 import SwotPage from "./pages/SwotPage";
 import CompetitionPage from "./pages/CompetitionPage";
-import PrdPage from "./pages/PrdPage";
 import ResearchesPage from "./pages/ResearchesPage";
 import MembersPage from "./pages/MembersPage";
 import ProductAgendaPage from "./pages/ProductAgendaPage";
@@ -110,8 +108,6 @@ const ProductRoutes = ({ searchQuery }: { searchQuery: string }) => {
         <Route path="/historico" element={<SprintHistoryPage />} />
         <Route path="/analises" element={<AnalyticsPage />} />
         <Route path="/rice" element={<RicePage />} />
-        <Route path="/releases" element={<ReleasePlanningPage />} />
-        <Route path="/prd" element={<PrdPage />} />
         <Route path="/produto-agenda" element={<ProductAgendaPage />} />
         <Route path="/membros" element={<MembersPage />} />
         <Route path="/configuracoes" element={<ProductSettingsPage />} />

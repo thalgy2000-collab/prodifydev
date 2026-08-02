@@ -29,8 +29,6 @@ const categories: NavCategory[] = [
     items: [
       { title: 'OKRs', url: '/okrs' },
       { title: 'Roadmap', url: '/roadmap' },
-      { title: 'Release Planning', url: '/releases' },
-      { title: 'PRD', url: '/prd' },
       { title: 'Agenda do produto', url: '/produto-agenda' },
       { title: 'Oportunidades', url: '/oportunidades' },
       { title: 'SWOT', url: '/swot' },

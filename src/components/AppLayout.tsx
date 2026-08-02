@@ -25,7 +25,7 @@ const buildInternalSteps = (): TourStep[] => [
     type: 'spotlight',
     selector: '[data-tour-int="planejamento"]',
     title: 'Planejamento',
-    description: 'Acesse OKRs, Roadmap, Releases, PRD e Agenda do produto.',
+    description: 'Acesse OKRs, Roadmap e Agenda do produto.',
     icon: <Target className="h-5 w-5" />,
   },
   {
