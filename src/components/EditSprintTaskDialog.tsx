@@ -19,9 +19,10 @@ interface EditSprintTaskDialogProps {
   onSave: (id: string, patch: Partial<BacklogTask>) => void;
   onDelete: (id: string) => void;
   members: { id: string; displayName: string }[];
+  onCriterionToggled?: (taskId: string) => void;
 }
 
-const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, members }: EditSprintTaskDialogProps) => {
+const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, members, onCriterionToggled }: EditSprintTaskDialogProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
@@ -91,6 +92,7 @@ const EditSprintTaskDialog = ({ task, open, onOpenChange, onSave, onDelete, memb
                 reorderCriteria={reorderCriteria}
                 taskTitle={title}
                 taskDescription={description}
+                onCriterionToggled={onCriterionToggled}
               />
             )}
 

@@ -25,9 +25,10 @@ interface AcceptanceCriteriaSectionProps {
   reorderCriteria?: (taskId: string, orderedIds: string[]) => Promise<void>;
   taskTitle?: string;
   taskDescription?: string;
+  onCriterionToggled?: (taskId: string) => void;
 }
 
-const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion, reorderCriteria, taskTitle, taskDescription }: AcceptanceCriteriaSectionProps) => {
+const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCriterion, deleteCriterion, reorderCriteria, taskTitle, taskDescription, onCriterionToggled }: AcceptanceCriteriaSectionProps) => {
   const { user } = useAuth();
   const { activeProduct } = useProduct();
   const { addActivity } = useScheduleStore();
@@ -91,6 +92,7 @@ const AcceptanceCriteriaSection = ({ taskId, criteria, addCriterion, updateCrite
 
   const handleToggle = (id: string, completed: boolean) => {
     updateCriterion(id, { completed: !completed }, taskId);
+    onCriterionToggled?.(taskId);
   };
 
   const handleStartEdit = (id: string, title: string) => {

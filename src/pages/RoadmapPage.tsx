@@ -5,6 +5,7 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 import { useRoadmapStore } from '@/hooks/useRoadmapStore';
 import { useOKRStore } from '@/hooks/useOKRStore';
 import { useUndoStack } from '@/hooks/useUndoStack';
+import { useRoadmapEffectiveProgress } from '@/hooks/useRoadmapEffectiveProgress';
 import CreateRoadmapDialog from '@/components/CreateRoadmapDialog';
 import EditRoadmapDialog from '@/components/EditRoadmapDialog';
 import { getCurrentQuarter, getQuarterMonths } from '@/types/okr';
@@ -85,6 +86,7 @@ const RoadmapPage = () => {
   const { items, addItem, updateItem, deleteItem, getByQuarter, refresh } = useRoadmapStore();
   const { objectives } = useOKRStore();
   const { push, undoLast } = useUndoStack(5);
+  const { progressMap, recompute: recomputeProgress } = useRoadmapEffectiveProgress(items);
 
   const [editItem, setEditItem] = useState<RoadmapItem | null>(null);
   const filtered = getByQuarter(selectedQuarter);
@@ -103,6 +105,7 @@ const RoadmapPage = () => {
 
   const handleAdd = useCallback(async (data: Omit<RoadmapItem, 'id' | 'createdAt'>) => {
     await addItem(data);
+    recomputeProgress();
     push({
       description: `Iniciativa criada: ${data.title}`,
       undo: async () => {
@@ -114,11 +117,12 @@ const RoadmapPage = () => {
       duration: 8000,
       action: { label: '↩ Desfazer', onClick: () => undoLast() },
     });
-  }, [addItem, items, deleteItem, push, undoLast]);
+  }, [addItem, items, deleteItem, push, undoLast, recomputeProgress]);
 
   const handleUpdate = useCallback(async (updated: RoadmapItem) => {
     const snapshot = items.find(i => i.id === updated.id);
     await updateItem(updated);
+    recomputeProgress();
     if (snapshot) {
       push({
         description: `Iniciativa editada: ${snapshot.title}`,
@@ -129,7 +133,7 @@ const RoadmapPage = () => {
         action: { label: '↩ Desfazer', onClick: () => undoLast() },
       });
     }
-  }, [items, updateItem, push, undoLast]);
+  }, [items, updateItem, push, undoLast, recomputeProgress]);
 
   const handleDelete = useCallback(async (id: string) => {
     const snapshot = items.find(i => i.id === id);
@@ -247,7 +251,7 @@ const RoadmapPage = () => {
                 {/* Timeline Grid Cell */}
                 <div className="flex-1 flex flex-col">
                   {grouped[themeName].map((item, idx) => {
-                    const progress = Math.max(0, Math.min(100, item.progress ?? 0));
+                    const progress = Math.max(0, Math.min(100, progressMap[item.id] ?? item.progress ?? 0));
                     const progressColor = getProgressColor(progress);
                     const pos = computeBarPosition(item, selectedQuarter);
                     const startD = parseDateOnly(item.startDate);

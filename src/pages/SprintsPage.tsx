@@ -446,6 +446,13 @@ const SprintsPage = () => {
     deleteTask(id);
   };
 
+  const handleCriterionToggled = useCallback(async (taskId: string) => {
+    // When a criterion is toggled, check roadmap and OKR progress
+    // so the celebration popup shows partial progress updates
+    await checkRoadmapProgress(taskId);
+    await checkOKRProgress(taskId);
+  }, []);
+
   const TaskCard = ({ task }: { task: BacklogTask }) => {
     const pCfg = PRIORITY_CONFIG[task.priority];
     const pIcon = PRIORITY_ICONS[task.priority];
@@ -932,6 +939,7 @@ const SprintsPage = () => {
         onSave={handleEditSave}
         onDelete={handleEditDelete}
         members={members}
+        onCriterionToggled={handleCriterionToggled}
       />
       
       {currentCelebration?.type === 'roadmap' && (

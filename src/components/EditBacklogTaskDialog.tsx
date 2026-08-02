@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { CountedInput, CountedTextarea } from '@/components/ui/counted-input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle, Sparkles, Loader2, Check, X, Target } from 'lucide-react';
 import AcceptanceCriteriaSection from '@/components/AcceptanceCriteriaSection';
@@ -352,6 +352,17 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
     ? sprintOptions.find(s => s.id === task.sprintId)?.name
     : null;
 
+  // Agrupa iniciativas por quarter para melhor UX
+  const groupedInitiatives = initiatives.reduce((acc, ini) => {
+    const q = ini.quarter || 'Sem Quarter';
+    if (!acc[q]) acc[q] = [];
+    acc[q].push(ini);
+    return acc;
+  }, {} as Record<string, typeof initiatives>);
+  
+  // Ordena os quarters (ex: Q1 2024, Q2 2024...)
+  const quarters = Object.keys(groupedInitiatives).sort();
+
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -364,7 +375,23 @@ const EditBacklogTaskDialog = ({ task, open, onOpenChange, onSave, initiatives }
             <div className="flex-1 space-y-2"><Label>Prioridade</Label><Select value={priority} onValueChange={v => setPriority(v as TaskPriority)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(PRIORITY_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent></Select></div>
           </div>
           <div className="flex gap-3">
-            <div className="flex-1 space-y-2"><Label>Iniciativa (Roadmap)</Label><Select value={initiativeId} onValueChange={setInitiativeId}><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger><SelectContent><SelectItem value="none">Nenhuma</SelectItem>{initiatives.map(i => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}</SelectContent></Select></div>
+            <div className="flex-1 space-y-2">
+              <Label>Iniciativa (Roadmap)</Label>
+              <Select value={initiativeId} onValueChange={setInitiativeId}>
+                <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  {quarters.map(q => (
+                    <SelectGroup key={q}>
+                      <SelectLabel className="bg-muted/50 text-xs text-muted-foreground uppercase">{q}</SelectLabel>
+                      {groupedInitiatives[q].map(i => (
+                        <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="w-24 space-y-2"><Label>Pontos</Label><Input type="number" min={1} max={21} placeholder="Ex: 3" value={storyPoints === 0 ? '' : storyPoints} onChange={e => setStoryPoints(e.target.value === '' ? 0 : Number(e.target.value))} /></div>
           </div>
           <div className="space-y-2">
