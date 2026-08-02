@@ -26,8 +26,6 @@ const groups: Group[] = [
     items: [
       { title: 'OKRs', url: '/okrs', tourId: 'okrs' },
       { title: 'Roadmap', url: '/roadmap', tourId: 'roadmap' },
-      { title: 'Release Planning', url: '/releases' },
-      { title: 'PRD', url: '/prd' },
       { title: 'Agenda', url: '/produto-agenda' },
     ],
   },
