@@ -87,5 +87,13 @@ export const useNotifications = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   }, [user]);
 
-  return { notifications, unreadCount, loading, fetchNotifications, markAsRead, markAllAsRead };
+  const clearAllNotifications = useCallback(async () => {
+    if (!user) return;
+    await (supabase.from('notifications') as any)
+      .delete()
+      .eq('user_id', user.id);
+    setNotifications([]);
+  }, [user]);
+
+  return { notifications, unreadCount, loading, fetchNotifications, markAsRead, markAllAsRead, clearAllNotifications };
 };

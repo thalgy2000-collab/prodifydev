@@ -1,4 +1,4 @@
-import { Bell, Info, CheckCircle, AlertTriangle, Mail, CheckCheck, Check, X, Rocket } from 'lucide-react';
+import { Bell, Info, CheckCircle, AlertTriangle, Mail, CheckCheck, Check, X, Rocket, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -102,7 +102,7 @@ const InviteItem = ({
 };
 
 export const NotificationBell = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAllNotifications } = useNotifications();
   const { pendingInvites, acceptInvite, declineInvite } = useInvites();
   const { fetchProducts } = useProduct();
   const navigate = useNavigate();
@@ -119,14 +119,8 @@ export const NotificationBell = () => {
 
   const totalUnread = unreadCount + pendingInvites.length;
 
-  const handleOpenChange = (open: boolean) => {
-    if (open && unreadCount > 0) {
-      markAllAsRead();
-    }
-  };
-
   return (
-    <DropdownMenu onOpenChange={handleOpenChange}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
@@ -140,16 +134,28 @@ export const NotificationBell = () => {
       <DropdownMenuContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between px-4 py-2.5 border-b border-border">
           <h3 className="text-sm font-semibold">Notificações</h3>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-auto py-1 px-2 text-xs gap-1 text-muted-foreground"
-              onClick={markAllAsRead}
-            >
-              <CheckCheck className="h-3.5 w-3.5" />
-              Marcar todas como lidas
-            </Button>
+          {notifications.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-auto py-1 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                disabled={unreadCount === 0}
+                onClick={markAllAsRead}
+              >
+                <CheckCheck className="h-3.5 w-3.5" />
+                Ler tudo
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-auto py-1 px-2 text-xs gap-1 text-muted-foreground hover:text-destructive"
+                onClick={clearAllNotifications}
+                title="Limpar todas as notificações"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           )}
         </div>
         <ScrollArea className="h-[400px]">
