@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import SprintDigestSettings from '@/components/SprintDigestSettings';
 
 const ProfilePage = () => {
   const { profile, loading, initial, avatarColor, refetch } = useProfile();
@@ -509,6 +510,7 @@ const ProfilePage = () => {
                       <option value="en">English (en)</option>
                     </select>
                   </div>
+                  <SprintDigestSettings />
                   <div className="border-t pt-6 space-y-3">
                     <h3 className="font-medium">Onboarding</h3>
                     <p className="text-sm text-muted-foreground">Reexibir os tours guiados.</p>

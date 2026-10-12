@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.suggest-task-impact]
 verify_jwt = false
+
+[functions.sprint-daily-digest]
+verify_jwt = false
