@@ -43,7 +43,11 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => ({}));
   const hour = currentHourBRT();
   // Data de hoje em Brasília no formato YYYY-MM-DD (comparável com as datas das tarefas)
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const nowBRT = new Date();
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(nowBRT);
+  const weekdayBRT = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'America/Sao_Paulo' }).format(nowBRT);
+  // Toda segunda-feira (ou quando forçado via includeUpcoming) envia também o planejamento completo da sprint
+  const isMonday = weekdayBRT === 'Mon' || Boolean(body.includeUpcoming);
 
   let usersQuery = supabase
     .from('profiles')
@@ -169,7 +173,8 @@ Deno.serve(async (req) => {
 
       const overdue = items.filter((i) => i.effectiveDate < today).sort(sortFn);
       const dueToday = items.filter((i) => i.effectiveDate === today).sort(sortFn);
-      const upcoming = items.filter((i) => i.effectiveDate > today).sort(sortFn);
+      // Só inclui as próximas da sprint nas segundas-feiras
+      const upcoming = isMonday ? items.filter((i) => i.effectiveDate > today).sort(sortFn) : [];
 
       if (overdue.length === 0 && dueToday.length === 0 && upcoming.length === 0) continue;
 
@@ -191,19 +196,23 @@ Deno.serve(async (req) => {
       }
       if (upcoming.length > 0) {
         sections += `
-        <p style="margin:14px 0 6px;font-weight:bold;color:#2563eb">🚀 Próximas na sprint (${upcoming.length})</p>
+        <p style="margin:14px 0 6px;font-weight:bold;color:#2563eb">🚀 Planejamento da semana na Sprint (${upcoming.length})</p>
         <ul style="padding-left:20px;margin:0">${renderList(upcoming, '#555', undefined, true)}</ul>`;
       }
     }
 
     const total = totalToday + totalOverdue + totalUpcoming;
-    if (total === 0) { skipped.push(`${user.email}: nenhuma atividade pendente na sprint`); continue; }
+    if (total === 0) { skipped.push(`${user.email}: nada para hoje/atrasado`); continue; }
 
     const name = esc(user.display_name ?? 'tudo bem');
+    const introText = isMonday
+      ? 'Boa semana! Aqui estão suas atividades de hoje, eventuais pendências atrasadas e o cronograma completo da sua sprint para a semana:'
+      : 'Estas são as atividades da sua sprint programadas para hoje e as que estão atrasadas. Já realizou alguma?';
+
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#222">
         <h2 style="margin-bottom:4px">Bom dia, ${name}! ☀️</h2>
-        <p>Aqui está o cronograma das suas atividades da sprint atual por dia e horário. Já realizou alguma hoje?</p>
+        <p>${introText}</p>
         ${sections}
         <p style="margin-top:28px">
           <a href="${APP_URL}/sprints" style="background:#4f46e5;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Abrir sprint no Prodify</a>
@@ -214,8 +223,10 @@ Deno.serve(async (req) => {
     const parts = [
       totalToday > 0 ? `${totalToday} para hoje` : '',
       totalOverdue > 0 ? `${totalOverdue} atrasada${totalOverdue === 1 ? '' : 's'}` : '',
-      totalToday === 0 && totalOverdue === 0 && totalUpcoming > 0 ? `${totalUpcoming} agendadas na semana` : '',
+      isMonday && totalUpcoming > 0 ? `${totalUpcoming} na semana` : '',
     ].filter(Boolean).join(' · ');
+
+    const subjectPrefix = isMonday ? 'Planejamento da Sprint' : 'Sprint de hoje';
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -223,7 +234,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: FROM,
         to: [user.email],
-        subject: `Sprint de hoje: ${parts} (${total} ${total === 1 ? 'atividade' : 'atividades'})`,
+        subject: `${subjectPrefix}: ${parts} (${total} ${total === 1 ? 'atividade' : 'atividades'})`,
         html,
       }),
     });
