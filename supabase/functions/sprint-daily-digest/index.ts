@@ -85,11 +85,12 @@ Deno.serve(async (req) => {
     let sections = '';
     let totalOverdue = 0;
     let totalToday = 0;
+    let totalUpcoming = 0;
 
     const fmt = (d: string) => d.split('-').reverse().join('/');
-    const list = (rows: any[], color: string, showDate: boolean) =>
+    const list = (rows: any[], color: string, datePrefix?: string) =>
       rows.map((t) =>
-        `<li style="margin:4px 0">${esc(t.title)}${showDate ? ` <span style="color:${color}">(venceu em ${fmt(t.effectiveDate)})</span>` : ''}</li>`,
+        `<li style="margin:4px 0">${esc(t.title)}${datePrefix ? ` <span style="color:${color}">(${datePrefix} ${fmt(t.effectiveDate)})</span>` : ''}</li>`,
       ).join('');
 
     for (const sprint of sprints) {
@@ -108,34 +109,43 @@ Deno.serve(async (req) => {
         .filter((t: any) => t.effectiveDate < today)
         .sort((a: any, b: any) => a.effectiveDate.localeCompare(b.effectiveDate));
       const dueToday = mine.filter((t: any) => t.effectiveDate === today);
-      if (overdue.length === 0 && dueToday.length === 0) continue;
+      const upcoming = mine
+        .filter((t: any) => t.effectiveDate > today)
+        .sort((a: any, b: any) => a.effectiveDate.localeCompare(b.effectiveDate));
+
+      if (overdue.length === 0 && dueToday.length === 0 && upcoming.length === 0) continue;
 
       totalOverdue += overdue.length;
       totalToday += dueToday.length;
+      totalUpcoming += upcoming.length;
 
       sections += `
         <h3 style="margin:24px 0 4px">${esc(sprint.name)} <span style="font-weight:normal;color:#888">— ${esc(productName.get(sprint.product_id) ?? '')}</span></h3>`;
       if (dueToday.length > 0) {
         sections += `
         <p style="margin:12px 0 4px;font-weight:bold">📅 Para hoje (${dueToday.length})</p>
-        <ul style="padding-left:20px;margin:0">${list(dueToday, '#888', false)}</ul>`;
+        <ul style="padding-left:20px;margin:0">${list(dueToday, '#888')}</ul>`;
       }
       if (overdue.length > 0) {
         sections += `
         <p style="margin:12px 0 4px;font-weight:bold;color:#b91c1c">⚠️ Atrasadas (${overdue.length})</p>
-        <ul style="padding-left:20px;margin:0">${list(overdue, '#b91c1c', true)}</ul>`;
+        <ul style="padding-left:20px;margin:0">${list(overdue, '#b91c1c', 'venceu em')}</ul>`;
+      }
+      if (upcoming.length > 0) {
+        sections += `
+        <p style="margin:12px 0 4px;font-weight:bold;color:#2563eb">🚀 Na sprint para adiantar (${upcoming.length})</p>
+        <ul style="padding-left:20px;margin:0">${list(upcoming, '#666', 'até')}</ul>`;
       }
     }
 
-    // Nada para hoje nem atrasado = nada a cobrar, não envia
-    if (totalToday + totalOverdue === 0) { skipped.push(`${user.email}: nada para hoje/atrasado`); continue; }
+    const total = totalToday + totalOverdue + totalUpcoming;
+    if (total === 0) { skipped.push(`${user.email}: nenhuma tarefa pendente na sprint`); continue; }
 
-    const total = totalToday + totalOverdue;
     const name = esc(user.display_name ?? 'tudo bem');
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#222">
         <h2 style="margin-bottom:4px">Bom dia, ${name}! ☀️</h2>
-        <p>Estas são as atividades da sprint atual para hoje e as que ficaram atrasadas. Já realizou alguma?</p>
+        <p>Aqui está o resumo da sua sprint atual (tarefas para hoje, atrasadas e as próximas da semana). Já realizou alguma hoje?</p>
         ${sections}
         <p style="margin-top:28px">
           <a href="${APP_URL}/sprints" style="background:#4f46e5;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Abrir sprint no Prodify</a>
@@ -146,6 +156,7 @@ Deno.serve(async (req) => {
     const parts = [
       totalToday > 0 ? `${totalToday} para hoje` : '',
       totalOverdue > 0 ? `${totalOverdue} atrasada${totalOverdue === 1 ? '' : 's'}` : '',
+      totalToday === 0 && totalOverdue === 0 && totalUpcoming > 0 ? `${totalUpcoming} na semana` : '',
     ].filter(Boolean).join(' · ');
 
     const res = await fetch('https://api.resend.com/emails', {
@@ -154,7 +165,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: FROM,
         to: [user.email],
-        subject: `Sprint de hoje: ${parts} (${total} ${total === 1 ? 'tarefa' : 'tarefas'})`,
+        subject: `Sprint de hoje: ${parts} (${total} ${total === 1 ? 'tarefa pendente' : 'tarefas pendentes'})`,
         html,
       }),
     });
