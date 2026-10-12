@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AppSidebar } from '@/components/AppSidebar';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 import { OnboardingTour, TourStep } from '@/components/OnboardingTour';
@@ -12,6 +12,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useProduct } from '@/contexts/ProductContext';
 import { LayoutDashboard, Target, Compass, Calculator, Rocket, BarChart3, ChevronLeft } from 'lucide-react';
 import ProductIcon from '@/components/ProductIcon';
+import { cn } from '@/lib/utils';
 
 const buildInternalSteps = (): TourStep[] => [
   {
@@ -69,6 +70,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { profile, initial, avatarColor } = useProfile();
   const { activeProduct } = useProduct();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isFullWidthBoard = location.pathname === '/sprints';
   const [showTour, setShowTour] = useState(false);
 
   const storageKey = activeProduct ? `tour_interno_${activeProduct.id}` : '';
@@ -92,8 +95,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="hidden lg:block">
           <AppSidebar />
         </div>
-        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto pb-16 lg:pb-0">
-          <header className="h-12 flex items-center justify-between gap-2 border-b border-border bg-card px-3 sticky top-0 z-20">
+        <div className={cn(
+          "flex-1 flex flex-col min-w-0 h-screen pb-16 lg:pb-0",
+          isFullWidthBoard ? "overflow-hidden" : "overflow-y-auto"
+        )}>
+          <header className="h-12 flex items-center justify-between gap-2 border-b border-border bg-card px-3 sticky top-0 z-20 shrink-0">
             <div className="lg:hidden flex items-center gap-2 min-w-0">
               <button
                 onClick={() => navigate('/inicio')}
@@ -128,7 +134,12 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </header>
           <PendingInviteBanner />
           <CategoryBreadcrumb />
-          <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full">
+          <main className={cn(
+            "flex-1 w-full",
+            isFullWidthBoard
+              ? "p-3 sm:p-4 max-w-none flex flex-col min-h-0 overflow-hidden"
+              : "p-4 sm:p-6 max-w-7xl mx-auto"
+          )}>
             {children}
           </main>
         </div>

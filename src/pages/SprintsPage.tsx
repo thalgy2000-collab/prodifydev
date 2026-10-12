@@ -519,7 +519,7 @@ const SprintsPage = () => {
   const { TourElement } = useFeatureTour('sprints', sprintsTourSteps);
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <div className="space-y-3 h-full flex-1 min-h-0 flex flex-col">
       {TourElement}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between shrink-0">
@@ -793,7 +793,7 @@ const SprintsPage = () => {
           <p className="text-sm text-muted-foreground mt-1">Crie uma sprint para começar</p>
         </div>
       ) : (
-        <div className="flex gap-4 flex-1 min-h-0 overflow-x-auto pb-2">
+        <div className="flex gap-3 flex-1 min-h-0 w-full overflow-x-auto pb-1">
           {columns.map(col => {
             const colTasks = getTasksForColumn(col);
             const isDragOver = dragOverColumnId === col.id;
@@ -801,7 +801,7 @@ const SprintsPage = () => {
               <div
                 key={col.id}
                 data-tour-feature="sprint-column"
-                className={`flex flex-col rounded-xl border-2 transition-colors min-w-[280px] w-[300px] shrink-0 ${
+                className={`flex flex-col rounded-xl border-2 transition-colors min-w-[270px] flex-1 h-full max-h-full ${
                   isDragOver ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'
                 }`}
                 onDragOver={e => { e.preventDefault(); setDragOverColumnId(col.id); }}
