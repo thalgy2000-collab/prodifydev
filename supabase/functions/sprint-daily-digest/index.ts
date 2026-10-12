@@ -101,17 +101,32 @@ Deno.serve(async (req) => {
       sortOrder: number;
     }
 
-    const renderList = (rows: DigestItem[], color: string, datePrefix?: string, showDate = true) =>
-      rows.map((item) => {
-        const timePart = item.dueTime ? ` às ${esc(item.dueTime.slice(0, 5))}` : '';
-        const datePart = showDate
-          ? ` <span style="color:${color}">(${datePrefix ? `${datePrefix} ` : ''}${fmt(item.effectiveDate)}${timePart})</span>`
-          : (timePart ? ` <span style="color:${color}">(${timePart.trim()})</span>` : '');
-        const parentPart = item.parentTitle
-          ? `<div style="font-size:12px;color:#777;margin-top:1px">↳ ${esc(item.parentTitle)}</div>`
-          : '';
-        return `<li style="margin:8px 0"><div><strong>${esc(item.title)}</strong>${datePart}</div>${parentPart}</li>`;
-      }).join('');
+    const renderGroupedByDate = (rows: DigestItem[], color: string) => {
+      const byDate = new Map<string, DigestItem[]>();
+      for (const item of rows) {
+        const arr = byDate.get(item.effectiveDate) ?? [];
+        arr.push(item);
+        byDate.set(item.effectiveDate, arr);
+      }
+
+      let out = '';
+      for (const [dateStr, dateItems] of byDate.entries()) {
+        const itemsHtml = dateItems.map((item) => {
+          const timePart = item.dueTime ? ` <span style="color:${color}">(às ${esc(item.dueTime.slice(0, 5))})</span>` : '';
+          const parentPart = item.parentTitle
+            ? `<div style="font-size:12px;color:#777;margin-top:2px">↳ ${esc(item.parentTitle)}</div>`
+            : '';
+          return `<div style="margin:6px 0 8px 0"><div>${esc(item.title)}${timePart}</div>${parentPart}</div>`;
+        }).join('');
+
+        out += `
+          <div style="margin:12px 0 14px 0">
+            <div style="font-weight:bold;color:#111;margin-bottom:4px">${fmt(dateStr)}</div>
+            ${itemsHtml}
+          </div>`;
+      }
+      return out;
+    };
 
     for (const sprint of sprints) {
       const { data: tasks } = await supabase
@@ -187,17 +202,17 @@ Deno.serve(async (req) => {
       if (dueToday.length > 0) {
         sections += `
         <p style="margin:14px 0 6px;font-weight:bold;color:#16a34a">📅 Para hoje (${dueToday.length})</p>
-        <ul style="padding-left:20px;margin:0">${renderList(dueToday, '#16a34a', undefined, false)}</ul>`;
+        ${renderGroupedByDate(dueToday, '#16a34a')}`;
       }
       if (overdue.length > 0) {
         sections += `
         <p style="margin:14px 0 6px;font-weight:bold;color:#b91c1c">⚠️ Atrasadas (${overdue.length})</p>
-        <ul style="padding-left:20px;margin:0">${renderList(overdue, '#b91c1c', 'venceu em', true)}</ul>`;
+        ${renderGroupedByDate(overdue, '#b91c1c')}`;
       }
       if (upcoming.length > 0) {
         sections += `
         <p style="margin:14px 0 6px;font-weight:bold;color:#2563eb">🚀 Planejamento da semana na Sprint (${upcoming.length})</p>
-        <ul style="padding-left:20px;margin:0">${renderList(upcoming, '#555', undefined, true)}</ul>`;
+        ${renderGroupedByDate(upcoming, '#555')}`;
       }
     }
 
