@@ -16,7 +16,7 @@ const HOURS = Array.from({ length: 24 }, (_, h) => h);
 const SprintDigestSettings = () => {
   const { user } = useAuth();
   const [enabled, setEnabled] = useState(false);
-  const [hour, setHour] = useState(18);
+  const [hour, setHour] = useState(8);
   const [available, setAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,7 +32,7 @@ const SprintDigestSettings = () => {
         setAvailable(false);
       } else if (data) {
         setEnabled(!!data.sprint_digest_enabled);
-        setHour(data.sprint_digest_hour ?? 18);
+        setHour(data.sprint_digest_hour ?? 8);
       }
       setLoading(false);
     })();
@@ -64,7 +64,7 @@ const SprintDigestSettings = () => {
           <div>
             <h3 className="font-medium">Lembrete diário da sprint por e-mail</h3>
             <p className="text-sm text-muted-foreground">
-              Receba um e-mail perguntando se você já realizou alguma atividade em aberto da sprint atual.
+              Receba todo dia um e-mail com as tarefas da sprint atual para hoje e as que estão atrasadas.
             </p>
           </div>
         </div>

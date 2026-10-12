@@ -42,6 +42,8 @@ Deno.serve(async (req) => {
   // Permite teste manual: { "force": true, "userId": "..." } ignora a hora
   const body = await req.json().catch(() => ({}));
   const hour = currentHourBRT();
+  // Data de hoje em Brasília no formato YYYY-MM-DD (comparável com as datas das tarefas)
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
 
   let usersQuery = supabase
     .from('profiles')
@@ -81,38 +83,59 @@ Deno.serve(async (req) => {
     const productName = new Map((products ?? []).map((p: any) => [p.id, p.name]));
 
     let sections = '';
-    let totalOpen = 0;
+    let totalOverdue = 0;
+    let totalToday = 0;
+
+    const fmt = (d: string) => d.split('-').reverse().join('/');
+    const list = (rows: any[], color: string, showDate: boolean) =>
+      rows.map((t) =>
+        `<li style="margin:4px 0">${esc(t.title)}${showDate ? ` <span style="color:${color}">(venceu em ${fmt(t.effectiveDate)})</span>` : ''}</li>`,
+      ).join('');
 
     for (const sprint of sprints) {
       const { data: tasks } = await supabase
         .from('backlog_tasks').select('id, title, status, assignee_id, due_date')
         .eq('sprint_id', sprint.id);
       const all = tasks ?? [];
-      const done = all.filter((t: any) => t.status === 'done').length;
-      // Minhas tarefas abertas = atribuídas a mim OU sem responsável
-      const open = all.filter((t: any) =>
-        t.status !== 'done' && (t.assignee_id === user.id || !t.assignee_id));
-      if (open.length === 0) continue;
-      totalOpen += open.length;
 
-      const items = open.map((t: any) =>
-        `<li style="margin:4px 0">${esc(t.title)}${t.due_date ? ` <span style="color:#888">(até ${t.due_date.split('-').reverse().join('/')})</span>` : ''}</li>`,
-      ).join('');
+      // Mesma regra do quadro de Sprints: sem data própria, vale o fim da sprint
+      const mine = all
+        .filter((t: any) => t.status !== 'done' && (t.assignee_id === user.id || !t.assignee_id))
+        .map((t: any) => ({ ...t, effectiveDate: t.due_date ?? sprint.end_date }))
+        .filter((t: any) => !!t.effectiveDate);
+
+      const overdue = mine
+        .filter((t: any) => t.effectiveDate < today)
+        .sort((a: any, b: any) => a.effectiveDate.localeCompare(b.effectiveDate));
+      const dueToday = mine.filter((t: any) => t.effectiveDate === today);
+      if (overdue.length === 0 && dueToday.length === 0) continue;
+
+      totalOverdue += overdue.length;
+      totalToday += dueToday.length;
 
       sections += `
-        <h3 style="margin:24px 0 4px">${esc(sprint.name)} <span style="font-weight:normal;color:#888">— ${esc(productName.get(sprint.product_id) ?? '')}</span></h3>
-        <p style="margin:0 0 8px;color:#555">${done} de ${all.length} tarefas concluídas</p>
-        <ul style="padding-left:20px;margin:0">${items}</ul>`;
+        <h3 style="margin:24px 0 4px">${esc(sprint.name)} <span style="font-weight:normal;color:#888">— ${esc(productName.get(sprint.product_id) ?? '')}</span></h3>`;
+      if (dueToday.length > 0) {
+        sections += `
+        <p style="margin:12px 0 4px;font-weight:bold">📅 Para hoje (${dueToday.length})</p>
+        <ul style="padding-left:20px;margin:0">${list(dueToday, '#888', false)}</ul>`;
+      }
+      if (overdue.length > 0) {
+        sections += `
+        <p style="margin:12px 0 4px;font-weight:bold;color:#b91c1c">⚠️ Atrasadas (${overdue.length})</p>
+        <ul style="padding-left:20px;margin:0">${list(overdue, '#b91c1c', true)}</ul>`;
+      }
     }
 
-    // Nada aberto = nada a perguntar, não envia
-    if (totalOpen === 0) { skipped.push(`${user.email}: nada em aberto`); continue; }
+    // Nada para hoje nem atrasado = nada a cobrar, não envia
+    if (totalToday + totalOverdue === 0) { skipped.push(`${user.email}: nada para hoje/atrasado`); continue; }
 
+    const total = totalToday + totalOverdue;
     const name = esc(user.display_name ?? 'tudo bem');
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#222">
-        <h2 style="margin-bottom:4px">Olá, ${name}! 👋</h2>
-        <p>Você já realizou alguma dessas atividades da sprint atual?</p>
+        <h2 style="margin-bottom:4px">Bom dia, ${name}! ☀️</h2>
+        <p>Estas são as atividades da sprint atual para hoje e as que ficaram atrasadas. Já realizou alguma?</p>
         ${sections}
         <p style="margin-top:28px">
           <a href="${APP_URL}/sprints" style="background:#4f46e5;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Abrir sprint no Prodify</a>
@@ -120,16 +143,22 @@ Deno.serve(async (req) => {
         <p style="color:#999;font-size:12px;margin-top:32px">Você recebe este lembrete diário porque ativou a opção em Perfil → App. Para parar, desative lá.</p>
       </div>`;
 
+    const parts = [
+      totalToday > 0 ? `${totalToday} para hoje` : '',
+      totalOverdue > 0 ? `${totalOverdue} atrasada${totalOverdue === 1 ? '' : 's'}` : '',
+    ].filter(Boolean).join(' · ');
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: FROM,
         to: [user.email],
-        subject: `Sprint: ${totalOpen} ${totalOpen === 1 ? 'atividade em aberto' : 'atividades em aberto'} — já fez alguma?`,
+        subject: `Sprint de hoje: ${parts} (${total} ${total === 1 ? 'tarefa' : 'tarefas'})`,
         html,
       }),
     });
+
 
     if (res.ok) sent++;
     else skipped.push(`${user.email}: Resend ${res.status} ${await res.text()}`);

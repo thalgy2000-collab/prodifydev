@@ -1,7 +1,7 @@
 -- Preferências do lembrete diário da sprint (e-mail)
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS sprint_digest_enabled boolean NOT NULL DEFAULT false,
-  ADD COLUMN IF NOT EXISTS sprint_digest_hour integer NOT NULL DEFAULT 18
+  ADD COLUMN IF NOT EXISTS sprint_digest_hour integer NOT NULL DEFAULT 8
     CHECK (sprint_digest_hour BETWEEN 0 AND 23);
 
 -- Agendamento: roda a cada hora cheia; a função só envia para quem escolheu
