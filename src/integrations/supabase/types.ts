@@ -204,6 +204,107 @@ export type Database = {
           },
         ]
       }
+      candidatos: {
+        Row: {
+          cargo_pretendido: string
+          created_at: string
+          foto_url: string | null
+          id: string
+          nome: string
+          partido: string
+          plano_governo_url: string
+        }
+        Insert: {
+          cargo_pretendido: string
+          created_at?: string
+          foto_url?: string | null
+          id?: string
+          nome: string
+          partido: string
+          plano_governo_url: string
+        }
+        Update: {
+          cargo_pretendido?: string
+          created_at?: string
+          foto_url?: string | null
+          id?: string
+          nome?: string
+          partido?: string
+          plano_governo_url?: string
+        }
+        Relationships: []
+      }
+      chat_mensagens: {
+        Row: {
+          camada: Database["public"]["Enums"]["camada_enum"] | null
+          conteudo: string
+          created_at: string
+          id: string
+          remetente: Database["public"]["Enums"]["remetente_enum"]
+          sessao_id: string
+          trecho_id: string | null
+        }
+        Insert: {
+          camada?: Database["public"]["Enums"]["camada_enum"] | null
+          conteudo: string
+          created_at?: string
+          id?: string
+          remetente: Database["public"]["Enums"]["remetente_enum"]
+          sessao_id: string
+          trecho_id?: string | null
+        }
+        Update: {
+          camada?: Database["public"]["Enums"]["camada_enum"] | null
+          conteudo?: string
+          created_at?: string
+          id?: string
+          remetente?: Database["public"]["Enums"]["remetente_enum"]
+          sessao_id?: string
+          trecho_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_mensagens_sessao_id_fkey"
+            columns: ["sessao_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_mensagens_trecho_id_fkey"
+            columns: ["trecho_id"]
+            isOneToOne: false
+            referencedRelation: "plano_trechos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessoes: {
+        Row: {
+          candidato_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          candidato_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          candidato_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessoes_candidato_id_fkey"
+            columns: ["candidato_id"]
+            isOneToOne: false
+            referencedRelation: "candidatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       competitive_analysis: {
         Row: {
           competitor_name: string
@@ -979,6 +1080,79 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plano_secoes: {
+        Row: {
+          candidato_id: string
+          created_at: string
+          id: string
+          numero_pagina: number | null
+          tema: string
+          titulo_secao: string
+        }
+        Insert: {
+          candidato_id: string
+          created_at?: string
+          id?: string
+          numero_pagina?: number | null
+          tema: string
+          titulo_secao: string
+        }
+        Update: {
+          candidato_id?: string
+          created_at?: string
+          id?: string
+          numero_pagina?: number | null
+          tema?: string
+          titulo_secao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_secoes_candidato_id_fkey"
+            columns: ["candidato_id"]
+            isOneToOne: false
+            referencedRelation: "candidatos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plano_trechos: {
+        Row: {
+          created_at: string
+          embedding: string | null
+          id: string
+          nivel_detalhamento: Database["public"]["Enums"]["nivel_detalhamento_enum"]
+          palavras_chave: string[]
+          secao_id: string
+          texto_original: string
+        }
+        Insert: {
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          nivel_detalhamento: Database["public"]["Enums"]["nivel_detalhamento_enum"]
+          palavras_chave?: string[]
+          secao_id: string
+          texto_original: string
+        }
+        Update: {
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          nivel_detalhamento?: Database["public"]["Enums"]["nivel_detalhamento_enum"]
+          palavras_chave?: string[]
+          secao_id?: string
+          texto_original?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_trechos_secao_id_fkey"
+            columns: ["secao_id"]
+            isOneToOne: false
+            referencedRelation: "plano_secoes"
             referencedColumns: ["id"]
           },
         ]
@@ -2064,11 +2238,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      analytics_abandono_camada_3: {
+        Row: {
+          pct_abandono_apos_camada_3: number | null
+          sessoes_terminaram_em_camada_3: number | null
+          total_sessoes_com_resposta: number | null
+        }
+        Relationships: []
+      }
+      analytics_por_candidato: {
+        Row: {
+          media_perguntas_por_sessao: number | null
+          nome: string | null
+          perguntas: number | null
+          sessoes: number | null
+        }
+        Relationships: []
+      }
+      analytics_visao_geral: {
+        Row: {
+          pct_camada_1: number | null
+          pct_camada_2: number | null
+          pct_camada_3: number | null
+          total_perguntas: number | null
+          total_sessoes: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       auto_activate_sprints: { Args: never; Returns: undefined }
       auto_update_sprint_status: { Args: never; Returns: undefined }
+      buscar_trechos_similares: {
+        Args: {
+          filter_candidato_id?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          candidato_id: string
+          id: string
+          nivel_detalhamento: Database["public"]["Enums"]["nivel_detalhamento_enum"]
+          numero_pagina: number
+          palavras_chave: string[]
+          secao_id: string
+          similarity: number
+          tema: string
+          texto_original: string
+          titulo_secao: string
+        }[]
+      }
       check_stale_roadmap_items: { Args: never; Returns: undefined }
       create_notification:
         | {
@@ -2121,7 +2341,9 @@ export type Database = {
       touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      camada_enum: "1" | "2" | "3"
+      nivel_detalhamento_enum: "detalhado" | "generico"
+      remetente_enum: "usuario" | "assistente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2137,12 +2359,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2166,11 +2388,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2191,11 +2413,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2216,11 +2438,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2233,11 +2455,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2248,6 +2470,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      camada_enum: ["1", "2", "3"],
+      nivel_detalhamento_enum: ["detalhado", "generico"],
+      remetente_enum: ["usuario", "assistente"],
+    },
   },
 } as const
