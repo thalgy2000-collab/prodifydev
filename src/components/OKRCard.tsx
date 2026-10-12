@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Objective, KeyResult, OKRCategory } from '@/types/okr';
 import { Trash2, Target, Pencil, TreePine, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import EditOKRDialog from './EditOKRDialog';
 
@@ -25,7 +26,24 @@ interface Props {
 
 const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit, dragHandlers }: Props) => {
   const [editOpen, setEditOpen] = useState(false);
+  const [editingPct, setEditingPct] = useState<Record<string, string>>({});
   const navigate = useNavigate();
+
+  const handlePercentCommit = (kr: KeyResult, rawValue: string) => {
+    const num = Number(rawValue);
+    setEditingPct(prev => {
+      const next = { ...prev };
+      delete next[kr.id];
+      return next;
+    });
+    if (rawValue.trim() === '' || isNaN(num)) return;
+    const clampedPct = Math.max(0, Math.min(100, num));
+    const newCurrent = kr.targetValue > 0 ? Math.round((clampedPct / 100) * kr.targetValue * 100) / 100 : clampedPct;
+    if (newCurrent !== kr.currentValue) {
+      onUpdateKR(objective.id, kr.id, newCurrent);
+    }
+  };
+
   return (
     <>
       <div
@@ -86,12 +104,34 @@ const OKRCard = ({ objective, progress, onUpdateKR, onDelete, onEdit, dragHandle
         {/* Key Results */}
         <div className="space-y-5">
           {objective.keyResults.map(kr => {
-            const pct = kr.targetValue > 0 ? (kr.currentValue / kr.targetValue) * 100 : 0;
+            const pct = kr.targetValue > 0 ? Math.min(100, Math.round((kr.currentValue / kr.targetValue) * 100)) : 0;
+            const displayPct = editingPct[kr.id] !== undefined ? editingPct[kr.id] : String(pct);
             return (
               <div key={kr.id} data-tour-feature="okr-kr-progress" className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-foreground">{kr.title}</span>
-                  <span className="font-mono text-xs text-muted-foreground">{kr.currentValue} / {kr.targetValue} {kr.unit}</span>
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-foreground flex-1">{kr.title}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-mono text-xs text-muted-foreground">{kr.currentValue} / {kr.targetValue} {kr.unit}</span>
+                    <div className="relative flex items-center">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={displayPct}
+                        aria-label={`Aproveitamento (%) de ${kr.title}`}
+                        title="Aproveitamento manual (%)"
+                        onChange={(e) => setEditingPct(prev => ({ ...prev, [kr.id]: e.target.value }))}
+                        onBlur={(e) => handlePercentCommit(kr, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                        className="h-7 w-16 pr-5 pl-2 text-right font-mono text-xs"
+                      />
+                      <span className="pointer-events-none absolute right-2 font-mono text-xs text-muted-foreground">%</span>
+                    </div>
+                  </div>
                 </div>
                 <Slider
                   value={[kr.currentValue]}

@@ -27,6 +27,18 @@ const EditOKRDialog = ({ objective, open, onOpenChange, onSave }: Props) => {
   const updateKR = (i: number, field: string, value: string | number) => {
     const next = [...krs]; next[i] = { ...next[i], [field]: value }; setKrs(next);
   };
+  const updateKRPct = (i: number, pctStr: string) => {
+    const next = [...krs];
+    const target = next[i].targetValue || 0;
+    if (pctStr === '') {
+      next[i] = { ...next[i], currentValue: 0 };
+    } else {
+      const clamped = Math.max(0, Math.min(100, Number(pctStr)));
+      const newCurrent = target > 0 ? Math.round((clamped / 100) * target * 100) / 100 : clamped;
+      next[i] = { ...next[i], currentValue: newCurrent };
+    }
+    setKrs(next);
+  };
 
   const handleSubmit = () => {
     if (!title.trim() || krs.some(kr => !kr.title.trim())) return;
@@ -51,7 +63,9 @@ const EditOKRDialog = ({ objective, open, onOpenChange, onSave }: Props) => {
                 <Label>Key Results</Label>
                 <Button variant="ghost" size="sm" onClick={addKR} className="gap-1 text-xs"><Plus className="h-3 w-3" /> Adicionar KR</Button>
               </div>
-              {krs.map((kr, i) => (
+              {krs.map((kr, i) => {
+                const pct = kr.targetValue > 0 ? Math.min(100, Math.round((kr.currentValue / kr.targetValue) * 100)) : 0;
+                return (
                 <div key={i} className="space-y-2 rounded-lg border border-border bg-secondary/30 p-3">
                   <div className="flex items-center gap-2">
                     <CountedInput maxLength={100} inline placeholder="Descrição do KR" value={kr.title} onChange={e => updateKR(i, 'title', e.target.value)} containerClassName="flex-1" />
@@ -60,10 +74,12 @@ const EditOKRDialog = ({ objective, open, onOpenChange, onSave }: Props) => {
                   <div className="flex gap-2">
                     <div className="flex-1 space-y-1"><Label className="text-xs text-muted-foreground">Atual</Label><Input type="number" value={kr.currentValue === 0 || kr.currentValue == null ? '' : kr.currentValue} onChange={e => updateKR(i, 'currentValue', e.target.value === '' ? 0 : Number(e.target.value))} placeholder="Ex: 10" /></div>
                     <div className="flex-1 space-y-1"><Label className="text-xs text-muted-foreground">Meta</Label><Input type="number" value={kr.targetValue === 0 || kr.targetValue == null ? '' : kr.targetValue} onChange={e => updateKR(i, 'targetValue', e.target.value === '' ? 0 : Number(e.target.value))} placeholder="Ex: 100" /></div>
+                    <div className="w-24 space-y-1"><Label className="text-xs text-muted-foreground">Aproveit. (%)</Label><Input type="number" min={0} max={100} value={pct === 0 && !kr.currentValue ? '' : pct} onChange={e => updateKRPct(i, e.target.value)} placeholder="0%" /></div>
                     <div className="w-20 space-y-1"><Label className="text-xs text-muted-foreground">Unidade</Label><Input value={kr.unit} onChange={e => updateKR(i, 'unit', e.target.value)} /></div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
