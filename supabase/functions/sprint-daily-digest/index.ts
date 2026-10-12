@@ -88,10 +88,26 @@ Deno.serve(async (req) => {
     let totalUpcoming = 0;
 
     const fmt = (d: string) => d.split('-').reverse().join('/');
-    const list = (rows: any[], color: string, datePrefix?: string) =>
-      rows.map((t) =>
-        `<li style="margin:4px 0">${esc(t.title)}${datePrefix ? ` <span style="color:${color}">(${datePrefix} ${fmt(t.effectiveDate)})</span>` : ''}</li>`,
-      ).join('');
+
+    interface DigestItem {
+      title: string;
+      parentTitle?: string;
+      effectiveDate: string;
+      dueTime?: string | null;
+      sortOrder: number;
+    }
+
+    const renderList = (rows: DigestItem[], color: string, datePrefix?: string, showDate = true) =>
+      rows.map((item) => {
+        const timePart = item.dueTime ? ` às ${esc(item.dueTime.slice(0, 5))}` : '';
+        const datePart = showDate
+          ? ` <span style="color:${color}">(${datePrefix ? `${datePrefix} ` : ''}${fmt(item.effectiveDate)}${timePart})</span>`
+          : (timePart ? ` <span style="color:${color}">(${timePart.trim()})</span>` : '');
+        const parentPart = item.parentTitle
+          ? `<div style="font-size:12px;color:#777;margin-top:1px">↳ ${esc(item.parentTitle)}</div>`
+          : '';
+        return `<li style="margin:8px 0"><div><strong>${esc(item.title)}</strong>${datePart}</div>${parentPart}</li>`;
+      }).join('');
 
     for (const sprint of sprints) {
       const { data: tasks } = await supabase
@@ -99,19 +115,61 @@ Deno.serve(async (req) => {
         .eq('sprint_id', sprint.id);
       const all = tasks ?? [];
 
-      // Mesma regra do quadro de Sprints: sem data própria, vale o fim da sprint
-      const mine = all
-        .filter((t: any) => t.status !== 'done' && (t.assignee_id === user.id || !t.assignee_id))
-        .map((t: any) => ({ ...t, effectiveDate: t.due_date ?? sprint.end_date }))
-        .filter((t: any) => !!t.effectiveDate);
+      const openTasks = all.filter((t: any) => t.status !== 'done' && (t.assignee_id === user.id || !t.assignee_id));
+      if (openTasks.length === 0) continue;
 
-      const overdue = mine
-        .filter((t: any) => t.effectiveDate < today)
-        .sort((a: any, b: any) => a.effectiveDate.localeCompare(b.effectiveDate));
-      const dueToday = mine.filter((t: any) => t.effectiveDate === today);
-      const upcoming = mine
-        .filter((t: any) => t.effectiveDate > today)
-        .sort((a: any, b: any) => a.effectiveDate.localeCompare(b.effectiveDate));
+      const taskIds = openTasks.map((t: any) => t.id);
+      const { data: criteriaRows } = await supabase
+        .from('acceptance_criteria')
+        .select('id, task_id, title, completed, due_date, due_time, sort_order')
+        .in('task_id', taskIds)
+        .order('sort_order', { ascending: true });
+
+      const criteriaByTask = new Map<string, any[]>();
+      for (const c of criteriaRows ?? []) {
+        const arr = criteriaByTask.get(c.task_id) ?? [];
+        arr.push(c);
+        criteriaByTask.set(c.task_id, arr);
+      }
+
+      const items: DigestItem[] = [];
+      for (const t of openTasks) {
+        const taskCriteria = criteriaByTask.get(t.id) ?? [];
+        if (taskCriteria.length > 0) {
+          // Segue as datas das subtarefas (critérios de aceite) não concluídas
+          for (const c of taskCriteria) {
+            if (c.completed) continue;
+            const effectiveDate = c.due_date ?? t.due_date ?? sprint.end_date;
+            if (!effectiveDate) continue;
+            items.push({
+              title: c.title,
+              parentTitle: t.title,
+              effectiveDate,
+              dueTime: c.due_time,
+              sortOrder: c.sort_order ?? 0,
+            });
+          }
+        } else {
+          // Sem subtarefas: usa a data da própria tarefa (ou fim da sprint)
+          const effectiveDate = t.due_date ?? sprint.end_date;
+          if (!effectiveDate) continue;
+          items.push({
+            title: t.title,
+            effectiveDate,
+            dueTime: null,
+            sortOrder: 0,
+          });
+        }
+      }
+
+      const sortFn = (a: DigestItem, b: DigestItem) =>
+        a.effectiveDate.localeCompare(b.effectiveDate) ||
+        (a.dueTime ?? '99:99').localeCompare(b.dueTime ?? '99:99') ||
+        a.sortOrder - b.sortOrder;
+
+      const overdue = items.filter((i) => i.effectiveDate < today).sort(sortFn);
+      const dueToday = items.filter((i) => i.effectiveDate === today).sort(sortFn);
+      const upcoming = items.filter((i) => i.effectiveDate > today).sort(sortFn);
 
       if (overdue.length === 0 && dueToday.length === 0 && upcoming.length === 0) continue;
 
@@ -123,29 +181,29 @@ Deno.serve(async (req) => {
         <h3 style="margin:24px 0 4px">${esc(sprint.name)} <span style="font-weight:normal;color:#888">— ${esc(productName.get(sprint.product_id) ?? '')}</span></h3>`;
       if (dueToday.length > 0) {
         sections += `
-        <p style="margin:12px 0 4px;font-weight:bold">📅 Para hoje (${dueToday.length})</p>
-        <ul style="padding-left:20px;margin:0">${list(dueToday, '#888')}</ul>`;
+        <p style="margin:14px 0 6px;font-weight:bold;color:#16a34a">📅 Para hoje (${dueToday.length})</p>
+        <ul style="padding-left:20px;margin:0">${renderList(dueToday, '#16a34a', undefined, false)}</ul>`;
       }
       if (overdue.length > 0) {
         sections += `
-        <p style="margin:12px 0 4px;font-weight:bold;color:#b91c1c">⚠️ Atrasadas (${overdue.length})</p>
-        <ul style="padding-left:20px;margin:0">${list(overdue, '#b91c1c', 'venceu em')}</ul>`;
+        <p style="margin:14px 0 6px;font-weight:bold;color:#b91c1c">⚠️ Atrasadas (${overdue.length})</p>
+        <ul style="padding-left:20px;margin:0">${renderList(overdue, '#b91c1c', 'venceu em', true)}</ul>`;
       }
       if (upcoming.length > 0) {
         sections += `
-        <p style="margin:12px 0 4px;font-weight:bold;color:#2563eb">🚀 Na sprint para adiantar (${upcoming.length})</p>
-        <ul style="padding-left:20px;margin:0">${list(upcoming, '#666', 'até')}</ul>`;
+        <p style="margin:14px 0 6px;font-weight:bold;color:#2563eb">🚀 Próximas na sprint (${upcoming.length})</p>
+        <ul style="padding-left:20px;margin:0">${renderList(upcoming, '#555', undefined, true)}</ul>`;
       }
     }
 
     const total = totalToday + totalOverdue + totalUpcoming;
-    if (total === 0) { skipped.push(`${user.email}: nenhuma tarefa pendente na sprint`); continue; }
+    if (total === 0) { skipped.push(`${user.email}: nenhuma atividade pendente na sprint`); continue; }
 
     const name = esc(user.display_name ?? 'tudo bem');
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#222">
         <h2 style="margin-bottom:4px">Bom dia, ${name}! ☀️</h2>
-        <p>Aqui está o resumo da sua sprint atual (tarefas para hoje, atrasadas e as próximas da semana). Já realizou alguma hoje?</p>
+        <p>Aqui está o cronograma das suas atividades da sprint atual por dia e horário. Já realizou alguma hoje?</p>
         ${sections}
         <p style="margin-top:28px">
           <a href="${APP_URL}/sprints" style="background:#4f46e5;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">Abrir sprint no Prodify</a>
@@ -156,7 +214,7 @@ Deno.serve(async (req) => {
     const parts = [
       totalToday > 0 ? `${totalToday} para hoje` : '',
       totalOverdue > 0 ? `${totalOverdue} atrasada${totalOverdue === 1 ? '' : 's'}` : '',
-      totalToday === 0 && totalOverdue === 0 && totalUpcoming > 0 ? `${totalUpcoming} na semana` : '',
+      totalToday === 0 && totalOverdue === 0 && totalUpcoming > 0 ? `${totalUpcoming} agendadas na semana` : '',
     ].filter(Boolean).join(' · ');
 
     const res = await fetch('https://api.resend.com/emails', {
@@ -165,7 +223,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: FROM,
         to: [user.email],
-        subject: `Sprint de hoje: ${parts} (${total} ${total === 1 ? 'tarefa pendente' : 'tarefas pendentes'})`,
+        subject: `Sprint de hoje: ${parts} (${total} ${total === 1 ? 'atividade' : 'atividades'})`,
         html,
       }),
     });
