@@ -11,7 +11,8 @@ import EditRoadmapDialog from '@/components/EditRoadmapDialog';
 import { getCurrentQuarter, getQuarterMonths } from '@/types/okr';
 import { RoadmapItem, parseDateOnly } from '@/types/roadmap';
 import QuarterSelector from '@/components/QuarterSelector';
-import { Map, Trash2, Link2, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Map, Trash2, Link2, Pencil, Maximize2, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFeatureTour } from '@/hooks/useFeatureTour';
@@ -89,6 +90,17 @@ const RoadmapPage = () => {
   const { progressMap, recompute: recomputeProgress } = useRoadmapEffectiveProgress(items);
 
   const [editItem, setEditItem] = useState<RoadmapItem | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
   const filtered = getByQuarter(selectedQuarter);
 
   const handleQuarterChange = (val: string) => {
@@ -185,7 +197,7 @@ const RoadmapPage = () => {
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
+      <div className={cn("space-y-6 transition-all", isFullscreen && "fixed inset-0 z-50 bg-background overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6")}>
         {TourElement}
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -193,7 +205,28 @@ const RoadmapPage = () => {
             <h1 className="text-2xl font-bold tracking-tight">Roadmap</h1>
             <p className="text-sm text-muted-foreground">Cronograma visual das iniciativas</p>
           </div>
-          <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} existingThemes={existingThemes} onAdd={handleAdd} />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-9 text-xs sm:text-sm"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              title={isFullscreen ? 'Sair da tela cheia (Esc)' : 'Visualizar em tela cheia'}
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className="h-4 w-4" />
+                  <span>Sair da tela cheia</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="h-4 w-4" />
+                  <span>Tela cheia</span>
+                </>
+              )}
+            </Button>
+            <CreateRoadmapDialog quarter={selectedQuarter} objectives={objectives} existingThemes={existingThemes} onAdd={handleAdd} />
+          </div>
         </div>
 
         {/* Quarter & Year Navigation */}
