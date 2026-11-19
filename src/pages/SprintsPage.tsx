@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, DragEvent } from 'react';
 import { useSprintStore } from '@/hooks/useSprintStore';
 import { useBacklogStore } from '@/hooks/useBacklogStore';
 import { useAcceptanceCriteriaStore } from '@/hooks/useAcceptanceCriteriaStore';
-import { Sprint, SPRINT_STATUS_CONFIG, SprintStatus } from '@/types/sprint';
+import { Sprint, SPRINT_STATUS_CONFIG, SprintStatus, getSprintStatusConfig } from '@/types/sprint';
 import { BacklogTask, PRIORITY_CONFIG, TaskStatus } from '@/types/backlog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -222,10 +222,12 @@ const SprintsPage = () => {
 
   const activeSprint = getActiveSprint();
   const activeSprints = sprints.filter(s => s.status !== 'completed');
-  const completedSprints = sprints.filter(s => s.status === 'completed');
+  const completedSprints = sprints
+    .filter(s => s.status === 'completed')
+    .sort((a, b) => (b.endDate || '').localeCompare(a.endDate || ''));
   const [selectedSprintIdOverride, setSelectedSprintIdOverride] = useState<string | null>(null);
   
-  const selectedSprint = sprints.find(s => s.id === selectedSprintIdOverride) || activeSprint || activeSprints[0];
+  const selectedSprint = sprints.find(s => s.id === selectedSprintIdOverride) || activeSprint || activeSprints[0] || completedSprints[0];
 
   const sprintTasks = selectedSprint ? tasks.filter(t => t.sprintId === selectedSprint.id) : [];
 
@@ -301,11 +303,12 @@ const SprintsPage = () => {
   }, [sprintTasks, updateTask]);
 
   // Fetch criteria for sprint tasks
+  const sprintTaskIdsKey = sprintTasks.map(t => t.id).join(',');
   useEffect(() => {
-    if (sprintTasks.length > 0) {
-      fetchByTasks(sprintTasks.map(t => t.id));
+    if (sprintTaskIdsKey) {
+      fetchByTasks(sprintTaskIdsKey.split(','));
     }
-  }, [sprintTasks.length, fetchByTasks]);
+  }, [sprintTaskIdsKey, fetchByTasks]);
 
   // Fetch product members for assignee dropdown
   useEffect(() => {
@@ -348,7 +351,11 @@ const SprintsPage = () => {
 
   const getTasksForColumn = (col: KanbanColumn) => {
     return sprintTasks
-      .filter(t => col.statusMap.includes(t.status))
+      .filter(t => {
+        if (col.statusMap.includes(t.status)) return true;
+        if (col.id === 'pending' && !['in_progress', 'done', 'cancelled'].includes(t.status)) return true;
+        return false;
+      })
       .sort((a, b) => {
         const ad = a.dueDate ? new Date(a.dueDate + 'T00:00:00').getTime() : Infinity;
         const bd = b.dueDate ? new Date(b.dueDate + 'T00:00:00').getTime() : Infinity;
@@ -454,8 +461,8 @@ const SprintsPage = () => {
   }, []);
 
   const TaskCard = ({ task }: { task: BacklogTask }) => {
-    const pCfg = PRIORITY_CONFIG[task.priority];
-    const pIcon = PRIORITY_ICONS[task.priority];
+    const pCfg = PRIORITY_CONFIG[task.priority] ?? PRIORITY_CONFIG.medium;
+    const pIcon = PRIORITY_ICONS[task.priority] ?? PRIORITY_ICONS.medium;
     const PriorityIcon = pIcon?.icon || Minus;
     const sprintOverdue = selectedSprint && isOverdue(selectedSprint) && task.status !== 'done';
     const progress = getProgress(task.id);
@@ -528,9 +535,9 @@ const SprintsPage = () => {
           <p className="text-sm text-muted-foreground">Gerencie seus ciclos de trabalho</p>
         </div>
         <div className="flex items-center gap-2">
-          {sprints.length > 1 && (
+          {sprints.length > 0 && (
             <Select value={selectedSprint?.id || ''} onValueChange={setSelectedSprintIdOverride}>
-              <SelectTrigger className="h-9 w-[180px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[200px]"><SelectValue placeholder="Selecionar sprint" /></SelectTrigger>
               <SelectContent>
                 {activeSprints.length > 0 && (
                   <SelectGroup>
@@ -572,42 +579,56 @@ const SprintsPage = () => {
       </div>
 
       {/* Sprint info bar */}
-      {selectedSprint && (
-        <div data-tour-feature="sprint-active" className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shrink-0">
-          <Zap className="h-4 w-4 text-primary" />
-          <span className="font-semibold">{selectedSprint.name}</span>
-          <Badge
-            data-tour-feature="sprint-status"
-            variant="secondary"
-            style={{
-              backgroundColor: `hsl(${SPRINT_STATUS_CONFIG[selectedSprint.status].color} / 0.15)`,
-              color: `hsl(${SPRINT_STATUS_CONFIG[selectedSprint.status].color})`,
-            }}
-          >
-            {SPRINT_STATUS_CONFIG[selectedSprint.status].label}
-          </Badge>
-          {selectedSprint.goal && <span className="text-sm text-muted-foreground">— {selectedSprint.goal}</span>}
-          <span className="ml-auto font-mono text-xs text-muted-foreground">{formatDateBR(selectedSprint.startDate)} → {formatDateBR(selectedSprint.endDate)}</span>
-          <Select value={selectedSprint.status} onValueChange={v => updateSprint(selectedSprint.id, { status: v as SprintStatus })}>
-            <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
-            <SelectContent>{Object.entries(SPRINT_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
-          </Select>
-          {selectedSprint.status !== 'completed' && (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => setConfirmCloseSprintOpen(true)}
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Encerrar
-            </Button>
-          )}
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteSprint(selectedSprint)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      {selectedSprint && (() => {
+        const statusCfg = getSprintStatusConfig(selectedSprint.status);
+        return (
+          <div data-tour-feature="sprint-active" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border bg-card px-4 py-3 shrink-0">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <Zap className="h-4 w-4 text-primary shrink-0" />
+              <span className="font-semibold shrink-0">{selectedSprint.name}</span>
+              <Badge
+                data-tour-feature="sprint-status"
+                variant="secondary"
+                className="shrink-0"
+                style={{
+                  backgroundColor: `hsl(${statusCfg.color} / 0.15)`,
+                  color: `hsl(${statusCfg.color})`,
+                }}
+              >
+                {statusCfg.label}
+              </Badge>
+              {selectedSprint.goal && (
+                <span className="text-sm text-muted-foreground truncate min-w-0" title={selectedSprint.goal}>
+                  — {selectedSprint.goal}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 ml-auto shrink-0 flex-wrap">
+              <span className="font-mono text-xs text-muted-foreground whitespace-nowrap">
+                {formatDateBR(selectedSprint.startDate)} → {formatDateBR(selectedSprint.endDate)}
+              </span>
+              <Select value={selectedSprint.status} onValueChange={v => updateSprint(selectedSprint.id, { status: v as SprintStatus })}>
+                <SelectTrigger className="h-8 w-[140px]"><SelectValue /></SelectTrigger>
+                <SelectContent>{Object.entries(SPRINT_STATUS_CONFIG).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}</SelectContent>
+              </Select>
+              {selectedSprint.status !== 'completed' && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setConfirmCloseSprintOpen(true)}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Encerrar
+                </Button>
+              )}
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteSprint(selectedSprint)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Close sprint confirmation */}
       <AlertDialog open={confirmCloseSprintOpen} onOpenChange={setConfirmCloseSprintOpen}>
@@ -628,6 +649,7 @@ const SprintsPage = () => {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
               if (selectedSprint) {
+                setSelectedSprintIdOverride(selectedSprint.id);
                 updateSprint(selectedSprint.id, { status: 'completed' });
               }
               setConfirmCloseSprintOpen(false);
@@ -801,7 +823,7 @@ const SprintsPage = () => {
               <div
                 key={col.id}
                 data-tour-feature="sprint-column"
-                className={`flex flex-col rounded-xl border-2 transition-colors min-w-[270px] flex-1 h-full max-h-full ${
+                className={`flex flex-col rounded-xl border-2 transition-colors min-w-[270px] flex-1 min-h-[380px] lg:min-h-0 lg:h-full lg:max-h-full ${
                   isDragOver ? 'border-primary bg-primary/5' : 'border-border bg-secondary/20'
                 }`}
                 onDragOver={e => { e.preventDefault(); setDragOverColumnId(col.id); }}

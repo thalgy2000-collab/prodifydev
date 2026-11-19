@@ -97,7 +97,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
         <div className={cn(
           "flex-1 flex flex-col min-w-0 h-screen pb-16 lg:pb-0",
-          isFullWidthBoard ? "overflow-hidden" : "overflow-y-auto"
+          isFullWidthBoard ? "overflow-y-auto lg:overflow-hidden" : "overflow-y-auto"
         )}>
           <header className="h-12 flex items-center justify-between gap-2 border-b border-border bg-card px-3 sticky top-0 z-20 shrink-0">
             <div className="lg:hidden flex items-center gap-2 min-w-0">
@@ -137,7 +137,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <main className={cn(
             "flex-1 w-full",
             isFullWidthBoard
-              ? "p-3 sm:p-4 max-w-none flex flex-col min-h-0 overflow-hidden"
+              ? "p-3 sm:p-4 max-w-none flex flex-col min-h-0 lg:overflow-hidden"
               : "p-4 sm:p-6 max-w-7xl mx-auto"
           )}>
             {children}

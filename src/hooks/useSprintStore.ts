@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Sprint } from '@/types/sprint';
+import { Sprint, normalizeSprintStatus } from '@/types/sprint';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProduct } from '@/contexts/ProductContext';
@@ -14,10 +14,10 @@ export const useSprintStore = () => {
     if (!user || !activeProduct) { setSprints([]); return; }
     const { data } = await (supabase.from('sprints') as any).select('*').eq('product_id', activeProduct.id);
     if (data) {
-      setSprints(data.map(d => ({
+      setSprints(data.map((d: any) => ({
         id: d.id, name: d.name, goal: d.goal,
         startDate: d.start_date, endDate: d.end_date,
-        status: d.status as Sprint['status'], createdAt: d.created_at,
+        status: normalizeSprintStatus(d.status), createdAt: d.created_at,
       })));
     }
   }, [user, activeProduct]);

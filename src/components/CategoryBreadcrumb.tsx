@@ -12,7 +12,7 @@ export function CategoryBreadcrumb() {
   return (
     <nav
       aria-label="breadcrumb"
-      className="px-6 md:px-8 pt-4 text-sm text-muted-foreground flex items-center gap-1.5"
+      className="px-6 md:px-8 pt-4 text-sm text-muted-foreground flex items-center gap-1.5 shrink-0"
     >
       <Link
         to={`/categoria/${category.slug}`}
